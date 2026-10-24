@@ -164,6 +164,9 @@ const Store = {
     const item = list.find(b => b.pnr === pnr || b.barcode === pnr);
     if (item) {
       item.boardingStatus = newStatus;
+      if (newStatus === 'BOARDED') {
+        item.boardedAt = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+      }
       this.saveBookings(list);
       return item;
     }
