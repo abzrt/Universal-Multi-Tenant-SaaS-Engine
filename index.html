@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TECH SOLUTION | TICKETING SERVICES PLATFORM</title>
+  <meta name="description" content="Platform ticketing universal multi-tenant untuk berbagai operator perusahaan transportasi, kapal laut, ferry, dan bus dengan portal login mandiri masing-masing perusahaan.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Enterprise Status Bar -->
+  <div class="enterprise-bar">
+    <div class="site-container flex-between">
+      <div class="ent-left">
+        <span class="live-pulse"></span>
+        <span>Universal Multi-Tenant SaaS Engine • <strong>Platform Tiketing Pelayaran Multi-Tenant Resmi</strong></span>
+      </div>
+      <div class="ent-right">
+        <span class="tag-badge">Cloud Manifest Ditjen Hubla</span>
+        <span class="tag-badge">Multi-Tenant Gateway</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Header Navigation -->
+  <header class="global-navbar">
+    <div class="site-container flex-between">
+      <!-- Brand Logo -->
+      <a href="#" class="brand-link" id="brandHomeLink">
+        <div class="brand-badge-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+            <path d="M7 15h.01"/><path d="M11 15h2"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-name">TECH <span class="brand-highlight">SOLUTION</span></span>
+          <span class="brand-sub">TICKETING SERVICES PLATFORM</span>
+        </div>
+      </a>
+
+
+
+      <!-- Right Header Status / Tenant Badge -->
+      <div class="header-tenant-box" id="headerTenantBox">
+        <!-- Rendered dynamically (Login button OR Logged in Company Badge) -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       HALAMAN AWAL: PANTAUAN CUACA MARITIM BMKG RESMI
+       (Sesuai Rute Perusahaan Terdaftar: Nunukan - Tawau & Nunukan - Parepare)
+       ======================================================== -->
+  <main class="view-panel active" id="viewWeatherHome">
+    <section class="site-container weather-home-section">
+
+      <!-- BMKG Maritime Hero Station Banner -->
+      <div class="bmkg-hero-banner">
+        <div class="bmkg-badge-row">
+          <span class="bmkg-official-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            BADAN METEOROLOGI, KLIMATOLOGI, DAN GEOFISIKA (BMKG)
+          </span>
+          <span class="bmkg-live-indicator">
+            <span class="live-pulse"></span>
+            Pantauan Maritim Real-Time (maritim.bmkg.go.id)
+          </span>
+          <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
+            Status: AMAN MELAUT & KONDUSIF
+          </span>
+        </div>
+
+        <h1 class="bmkg-title">Pusat Informasi Cuaca Maritim & Jalur Pelayaran Resmi</h1>
+        <p class="bmkg-subtitle">
+          Informasi prakiraan tinggi gelombang laut, kecepatan angin, pasang surut, dan kelayakan berlayar resmi berdasarkan web BMKG Maritim untuk rute operasional perusahaan pelayaran terdaftar (Nunukan - Tawau dan Nunukan - Parepare).
+        </p>
+
+        <div class="bmkg-hero-actions">
+          <span class="text-dim" style="font-size: 0.85rem;">
+            Stasiun Pengamat: <strong>Stasiun Meteorologi Nunukan (Tunon Taka) & Stasiun Meteorologi Maritim Parepare</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Weather Route Cards Deck (2 Rute Eksklusif) -->
+      <div class="weather-routes-deck">
+
+        <!-- KARTU 1: NUNUKAN - TAWAU (LUAR NEGERI) -->
+        <div class="weather-route-card">
+          <div class="weather-card-header">
+            <div>
+              <span class="tag-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: #0284c7; font-weight: 700; margin-bottom: 0.35rem;">
+                🌏 PERJALANAN LUAR NEGERI
+              </span>
+              <h3 class="route-geo-title">Nunukan (Tunon Taka) ⇄ Tawau (Sabah)</h3>
+              <span class="route-waters-name">Wilayah Perairan: Laut Sulawesi Bagian Barat & Teluk Cowie</span>
+            </div>
+            <div class="safety-status-pill safe">
+              <span>● Sangat Aman</span>
+            </div>
+          </div>
+
+          <div class="weather-card-hero-metric">
+            <div class="wave-highlight">
+              <span class="label">Tinggi Gelombang Signifikan</span>
+              <span class="value">0.25 - 0.75 m</span>
+              <span class="desc">✓ Kategori: Tenang (Rendah)</span>
+            </div>
+            <div class="condition-cell">
+              <div class="condition-icon">⛅</div>
+              <span class="condition-text">Cerah Berawan</span>
+              <span class="condition-temp">Suhu: 29°C - 31°C</span>
+            </div>
+          </div>
+
+          <div class="weather-grid-4">
+            <div class="weather-sub-cell">
+              <span class="lbl">Arah & Kecepatan Angin</span>
+              <span class="val">Timur Laut • 8 - 14 Knot</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Jarak Pandang (Visibility)</span>
+              <span class="val">&gt; 10 KM (Sangat Baik)</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Kelembapan Udara</span>
+              <span class="val">76% - 82%</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Pasang Surut Air Laut</span>
+              <span class="val">Pasang +2.3m / Surut +0.7m</span>
+            </div>
+          </div>
+
+          <div class="weather-advisory-note">
+            <strong>Rekomendasi Syahbandar & BMKG:</strong> Kondisi perairan Teluk Cowie dan Laut Sulawesi sangat kondusif. Seluruh armada kapal cepat katamaran (MV Mid East Express, Malindo Bahari) beroperasi normal sesuai jadwal resmi.
+          </div>
+        </div>
+
+        <!-- KARTU 2: NUNUKAN - PAREPARE (DALAM NEGERI) -->
+        <div class="weather-route-card">
+          <div class="weather-card-header">
+            <div>
+              <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700; margin-bottom: 0.35rem;">
+                🇮🇩 PERJALANAN DALAM NEGERI
+              </span>
+              <h3 class="route-geo-title">Nunukan (Tunon Taka) ⇄ Parepare (Nusantara)</h3>
+              <span class="route-waters-name">Wilayah Perairan: Selat Makassar Bagian Utara & Tengah</span>
+            </div>
+            <div class="safety-status-pill safe">
+              <span>● Aman & Terkendali</span>
+            </div>
+          </div>
+
+          <div class="weather-card-hero-metric">
+            <div class="wave-highlight">
+              <span class="label">Tinggi Gelombang Signifikan</span>
+              <span class="value">0.75 - 1.25 m</span>
+              <span class="desc">✓ Kategori: Rendah</span>
+            </div>
+            <div class="condition-cell">
+              <div class="condition-icon">🌤️</div>
+              <span class="condition-text">Berawan Sejuk</span>
+              <span class="condition-temp">Suhu: 28°C - 32°C</span>
+            </div>
+          </div>
+
+          <div class="weather-grid-4">
+            <div class="weather-sub-cell">
+              <span class="lbl">Arah & Kecepatan Angin</span>
+              <span class="val">Tenggara • 10 - 16 Knot</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Jarak Pandang (Visibility)</span>
+              <span class="val">9 - 10 KM (Aman)</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Kelembapan Udara</span>
+              <span class="val">74% - 85%</span>
+            </div>
+            <div class="weather-sub-cell">
+              <span class="lbl">Arus Permukaan Laut</span>
+              <span class="val">0.2 - 0.4 m/s (Ke Selatan)</span>
+            </div>
+          </div>
+
+          <div class="weather-advisory-note">
+            <strong>Rekomendasi Syahbandar & BMKG:</strong> Alur pelayaran Selat Makassar aman untuk kapal penumpang samudera (KM Bukit Siguntang, KM Thalia). Tidak terdeteksi bibit siklon tropis atau gelombang tinggi ekstrem.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3-Day Maritime Forecast Table -->
+      <div class="bmkg-forecast-block">
+        <div class="flex-between align-center" style="margin-bottom: 1rem;">
+          <div>
+            <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.25rem;">Prakiraan Cuaca Maritim 3 Hari ke Depan (BMKG 72 Jam)</h4>
+            <p class="text-dim">Pembaruan berkala dari Pusat Meteorologi Maritim untuk keselamatan navigasi pelayaran.</p>
+          </div>
+          <span class="tag-badge" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border-color: #0284c7;">
+            Sinkronisasi BMKG Otomatis
+          </span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="bmkg-forecast-table">
+            <thead>
+              <tr>
+                <th>Hari / Periode</th>
+                <th>Rute Pelayaran</th>
+                <th>Kondisi Cuaca</th>
+                <th>Tinggi Gelombang</th>
+                <th>Kecepatan Angin</th>
+                <th>Status Berlayar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Hari Ini (Real-Time)</strong></td>
+                <td>Nunukan ➔ Tawau (Sabah)</td>
+                <td><span style="color: #38bdf8;">⛅ Cerah Berawan</span></td>
+                <td><strong style="color: #10b981;">0.25 - 0.75 m</strong> (Tenang)</td>
+                <td>8 - 14 Knot (Timur Laut)</td>
+                <td><span class="status-pill paid">AMAN</span></td>
+              </tr>
+              <tr>
+                <td><strong>Hari Ini (Real-Time)</strong></td>
+                <td>Nunukan ➔ Parepare (Sulsel)</td>
+                <td><span style="color: #38bdf8;">🌤️ Berawan</span></td>
+                <td><strong style="color: #10b981;">0.75 - 1.25 m</strong> (Rendah)</td>
+                <td>10 - 16 Knot (Tenggara)</td>
+                <td><span class="status-pill paid">AMAN</span></td>
+              </tr>
+              <tr>
+                <td><strong>Besok (Pagi - Sore)</strong></td>
+                <td>Nunukan ➔ Tawau (Sabah)</td>
+                <td><span>☀️ Cerah</span></td>
+                <td><strong style="color: #10b981;">0.30 - 0.80 m</strong> (Tenang)</td>
+                <td>6 - 12 Knot (Timur)</td>
+                <td><span class="status-pill paid">AMAN</span></td>
+              </tr>
+              <tr>
+                <td><strong>Besok (Pagi - Malam)</strong></td>
+                <td>Nunukan ➔ Parepare (Sulsel)</td>
+                <td><span>⛅ Cerah Berawan</span></td>
+                <td><strong style="color: #10b981;">0.80 - 1.30 m</strong> (Rendah)</td>
+                <td>10 - 18 Knot (Selatan)</td>
+                <td><span class="status-pill paid">AMAN</span></td>
+              </tr>
+              <tr>
+                <td><strong>Lusa (Proyeksi 72 Jam)</strong></td>
+                <td>Nunukan ⇄ Tawau & Parepare</td>
+                <td><span>🌦️ Hujan Ringan Lokal</span></td>
+                <td><strong style="color: #f59e0b;">0.80 - 1.40 m</strong> (Rendah-Sedang)</td>
+                <td>12 - 20 Knot (Barat Daya)</td>
+                <td><span class="status-pill paid">KONDUSIF</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bmkg-station-footer">
+          <div>
+            Sumber Data: <strong>Badan Meteorologi, Klimatologi, dan Geofisika Republik Indonesia (BMKG)</strong>
+          </div>
+          <div>
+            Stasiun Meteorologi Tunon Taka Nunukan & Stasiun Meteorologi Paotere Parepare • Update Terkini
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ========================================================
+       MODAL LOGIN & REGISTRASI PERUSAHAAN (TENANTS)
+       (Hanya Muncul Saat Mengklik Tombol "Masuk Mitra Operator")
+       ======================================================== -->
+  <div class="modal-layer" id="modalCompanyAuth">
+    <div class="modal-window modal-wide" style="max-width: 860px; padding: 0; background: transparent; border: none; box-shadow: none;">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+        <button type="button" class="btn-close-modal-auth" id="btnCloseCompanyAuth" style="background: rgba(30, 41, 59, 0.95); border: 1px solid var(--border-line); color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; transition: var(--transition); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+          &times;
+        </button>
+      </div>
+
+      <div class="auth-box-grid" style="margin: 0;">
+        <!-- Left: Company Login Form -->
+        <div class="auth-card" style="box-shadow: 0 20px 50px rgba(0,0,0,0.7); backdrop-filter: blur(12px);">
+          <div class="auth-card-header">
+            <div class="auth-icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+            </div>
+            <div>
+              <h3>Masuk Portal Perusahaan</h3>
+              <p>Kelola armada, jadwal rute, manifest penumpang, dan proses tiket.</p>
+            </div>
+          </div>
+
+          <!-- Quick One-Click Enterprise Demo Logins -->
+          <div class="quick-demo-logins">
+            <span class="demo-lead">⚡ Masuk Instan Portal Perusahaan Terdaftar:</span>
+            <div class="demo-buttons-grid" id="demoButtonsGrid">
+              <!-- Rendered dynamically for registered companies -->
+            </div>
+          </div>
+
+          <div class="divider-text"><span>Atau Masuk dengan Kredensial Email</span></div>
+
+          <form id="formCompanyLogin">
+            <div class="input-block">
+              <label>Email Perusahaan / Admin</label>
+              <input type="email" id="loginCompEmail" class="form-input" placeholder="contoh: admin@pelni.co.id" required>
+            </div>
+
+            <div class="input-block">
+              <label>Password</label>
+              <input type="password" id="loginCompPassword" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary-block" id="btnLoginSubmit">
+              <span>Masuk ke Dashboard Perusahaan</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Register New Company -->
+        <div class="auth-card register-card" style="box-shadow: 0 20px 50px rgba(0,0,0,0.7); backdrop-filter: blur(12px);">
+          <div class="auth-card-header">
+            <div class="auth-icon-wrap icon-purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            </div>
+            <div>
+              <h3>Daftarkan Perusahaan Baru</h3>
+              <p>Daftarkan operator Anda untuk otomatis mengaktifkan portal masuk resmi.</p>
+            </div>
+          </div>
+
+          <form id="formCompanyRegister">
+            <div class="input-block">
+              <label>Nama Perusahaan / Operator *</label>
+              <input type="text" id="regCompName" class="form-input" placeholder="Contoh: PT Samudera Maju Bahari" required>
+            </div>
+
+            <div class="input-block">
+              <label>Kategori Layanan *</label>
+              <select id="regCompCategory" class="form-input" required>
+                <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+                <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+              </select>
+            </div>
+
+            <div class="form-row-2">
+              <div class="input-block">
+                <label>Email Resmi Perusahaan *</label>
+                <input type="email" id="regCompEmail" class="form-input" placeholder="admin@perusahaan.co.id" required>
+              </div>
+              <div class="input-block">
+                <label>Password Akun *</label>
+                <input type="password" id="regCompPassword" class="form-input" placeholder="Minimal 6 karakter" required>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="input-block">
+                <label>Nomor Telepon Kantor / WA</label>
+                <input type="tel" id="regCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required>
+              </div>
+              <div class="input-block">
+                <label>Warna Brand Utama</label>
+                <select id="regCompColor" class="form-input">
+                  <option value="#0284c7">Biru Samudera (#0284c7)</option>
+                  <option value="#0d9488">Teal Pesisir (#0d9488)</option>
+                  <option value="#f59e0b">Amber Emas (#f59e0b)</option>
+                  <option value="#8b5cf6">Ungu Eksekutif (#8b5cf6)</option>
+                  <option value="#e11d48">Merah Marun (#e11d48)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-secondary-block" id="btnRegisterSubmit">
+              <span>Daftarkan Perusahaan & Buat Portal</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       VIEW 3: DASHBOARD ADMIN PERUSAHAAN (TENANT DASHBOARD)
+       ======================================================== -->
+  <main class="view-panel" id="viewCompanyDashboard">
+    <!-- Tenant Top Profile Banner -->
+    <section class="tenant-banner">
+      <div class="site-container flex-between align-center">
+        <div class="tenant-info-cell">
+          <div class="tenant-avatar" id="dashTenantAvatar">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/></svg>
+          </div>
+          <div>
+            <div class="tenant-name-row">
+              <h2 id="dashTenantName">PT PELNI (Persero)</h2>
+              <span class="badge-verified">✓ TERVERIFIKASI RESMI</span>
+            </div>
+            <p class="tenant-meta" id="dashTenantMeta">Kategori: Pelayaran Samudera • ID: COMP-PELNI • Email: admin@pelni.co.id</p>
+          </div>
+        </div>
+
+        <div class="tenant-actions-cell">
+          <button type="button" class="btn-tenant-logout" id="dashBtnLogout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            <span>Keluar Akun</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Sub-Tabs -->
+    <div class="dashboard-tabs-bar">
+      <div class="site-container">
+        <div class="dash-tabs-wrap">
+          <button type="button" class="dash-tab-btn active" data-tab="tabOverview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span>Ringkasan & KPI</span>
+          </button>
+          <button type="button" class="dash-tab-btn" data-tab="tabFleet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/></svg>
+            <span>Kelola Armada Kapal (<span id="countFleetBadge">0</span>)</span>
+          </button>
+          <button type="button" class="dash-tab-btn" data-tab="tabSchedules">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span>Kelola Rute & Jadwal (<span id="countSchedBadge">0</span>)</span>
+          </button>
+          <button type="button" class="dash-tab-btn" data-tab="tabManifest">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span>Manifest Penumpang (<span id="countManifestBadge">0</span>)</span>
+          </button>
+          <button type="button" class="dash-tab-btn" data-tab="tabScanner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/><path d="M7 12h10"/></svg>
+            <span>Gate Scanner & Check-in</span>
+          </button>
+          <button type="button" class="dash-tab-btn" data-tab="tabTicketing" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+            <span>🎫 Proses Tiket Baru (Loket)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Content Panes -->
+    <div class="site-container dash-content-pane">
+
+      <!-- SUBTAB: PROSES TIKET BARU (LOKET PERUSAHAAN) -->
+      <div class="dash-pane" id="paneTicketing">
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center">
+            <div>
+              <h4>Loket Pemrosesan & Penerbitan Tiket Resmi</h4>
+              <p class="text-dim">Pilih jadwal kapal dan terbitkan tiket penumpang sesuai ketentuan operasional dan tarif resmi perusahaan Anda.</p>
+            </div>
+            <span class="tag-badge" id="ticketingCompBadge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">Ketentuan Operator Resmi</span>
+          </div>
+
+          <div class="schedules-deck" id="companyTicketingSchedulesList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 1: OVERVIEW & KPIS -->
+      <div class="dash-pane active" id="paneOverview">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon-cell icon-blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <span class="kpi-lbl">Total Pendapatan Kotor</span>
+              <h3 class="kpi-val" id="kpiRevenue">Rp 0</h3>
+              <span class="kpi-trend positive">↑ Real-Time Sync</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-cell icon-green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            </div>
+            <div>
+              <span class="kpi-lbl">Tiket Terjual</span>
+              <h3 class="kpi-val" id="kpiTicketsSold">0</h3>
+              <span class="kpi-trend">Lunas / Terkonfirmasi</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-cell icon-amber">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+              <span class="kpi-lbl">Okupansi Rata-rata</span>
+              <h3 class="kpi-val" id="kpiOccupancy">74.5%</h3>
+              <span class="kpi-trend positive">Optimal</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-cell icon-purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+            </div>
+            <div>
+              <span class="kpi-lbl">Armada Aktif</span>
+              <h3 class="kpi-val" id="kpiFleetCount">0</h3>
+              <span class="kpi-trend">Siap Berlayar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Booking Activity in this Tenant -->
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center">
+            <h4>Transaksi Pemesanan Tiket Terkini (Khusus Perusahaan Anda)</h4>
+            <span class="text-dim">Sinkronisasi Instan</span>
+          </div>
+          <div class="table-responsive">
+            <table class="dash-table" id="tableRecentBookings">
+              <thead>
+                <tr>
+                  <th>Kode PNR</th>
+                  <th>Tanggal</th>
+                  <th>Rute & Kapal</th>
+                  <th>Nama Pemesan</th>
+                  <th>Jumlah Pax</th>
+                  <th>Total Bayar</th>
+                  <th>Status Boarding</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyRecentBookings">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 2: FLEET MANAGEMENT -->
+      <div class="dash-pane" id="paneFleet">
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center">
+            <div>
+              <h4>Daftar Armada Kapal Milik Perusahaan</h4>
+              <p class="text-dim">Kelola data kapal, nomor registrasi IMO, kapasitas kursi, dan fasilitas operasional.</p>
+            </div>
+            <button type="button" class="btn-primary-action" id="btnOpenAddVessel">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+              <span>Tambah Armada Baru</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Nama Armada / Kapal</th>
+                  <th>No Registrasi / IMO</th>
+                  <th>Tipe Sarana</th>
+                  <th>Kapasitas Pax</th>
+                  <th>Fasilitas Penumpang</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyFleetList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 3: SCHEDULES & ROUTES MANAGEMENT -->
+      <div class="dash-pane" id="paneSchedules">
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center">
+            <div>
+              <h4>Manajemen Jadwal Keberangkatan & Tarif Tiket</h4>
+              <p class="text-dim">Buka rute pelayaran baru, atur waktu keberangkatan, kelas kabin, dan harga tiket.</p>
+            </div>
+            <button type="button" class="btn-primary-action" id="btnOpenAddSchedule">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+              <span>Buka Jadwal Baru</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>ID Jadwal</th>
+                  <th>Kapal / Armada</th>
+                  <th>Rute Lintasan</th>
+                  <th>Waktu Keberangkatan</th>
+                  <th>Dermaga / Pier</th>
+                  <th>Pilihan Kelas & Harga</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySchedulesList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 4: PASSENGER MANIFEST -->
+      <div class="dash-pane" id="paneManifest">
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center">
+            <div>
+              <h4>Manifest Penumpang Resmi (Ditjen Hubla Compliance)</h4>
+              <p class="text-dim">Daftar nama dan identitas seluruh penumpang yang terdaftar di armada perusahaan Anda.</p>
+            </div>
+            <button type="button" class="btn-secondary-action" onclick="window.print()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+              <span>Cetak Manifest</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Kode PNR</th>
+                  <th>Nama Lengkap Penumpang</th>
+                  <th>NIK KTP / Identitas</th>
+                  <th>Kapal & Kelas</th>
+                  <th>Rute</th>
+                  <th>Nomor Kursi</th>
+                  <th>Status Bayar</th>
+                  <th>Status Boarding</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyManifestList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 5: SCANNER & GATE TERMINAL CHECK-IN -->
+      <div class="dash-pane" id="paneScanner">
+        <div class="dash-block-panel scanner-block">
+          <div class="scanner-box-layout">
+            <div class="scanner-input-col">
+              <div class="scanner-brand-tag">
+                <span class="dot-green"></span>
+                <span>TERMINAL GATE SCANNER • PETUGAS DERMAGA</span>
+              </div>
+              <h3>Validasi Boarding Pass Penumpang</h3>
+              <p class="text-dim">Masukkan Kode Booking (PNR) atau Barcode tiket untuk verifikasi keabsahan tiket dan mengubah status penumpang menjadi <strong>SUDAH NAIK KAPAL (BOARDED)</strong>.</p>
+
+              <div class="scanner-search-field">
+                <label>Scan Barcode / Input PNR:</label>
+                <div class="input-with-action">
+                  <input type="text" id="scanInputCode" placeholder="Contoh: OMNI-PLN-928410" style="text-transform: uppercase;">
+                  <button type="button" class="btn-scan-action" id="btnScanCode">
+                    <span>Validasi Tiket</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Demo Scan Buttons -->
+              <div class="quick-scan-hints">
+                <span class="text-dim" style="font-size: 0.8rem;">Coba Barcode Contoh:</span>
+                <div class="scan-chips" id="quickScanChips">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Scanner Result Feedback Card -->
+            <div class="scanner-result-col">
+              <div class="ticket-verification-card" id="scanResultCard">
+                <div class="scan-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/><path d="M7 12h10"/></svg>
+                  <h4>Menunggu Input Kode Booking...</h4>
+                  <p>Masukkan kode PNR di sebelah kiri untuk menampilkan verifikasi tiket.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ========================================================
+       MODALS
+       ======================================================== -->
+
+  <!-- Modal Tambah Armada Baru -->
+  <div class="modal-layer" id="modalAddVessel">
+    <div class="modal-window">
+      <div class="modal-top">
+        <h4>Tambah Armada Kapal Baru</h4>
+        <button type="button" class="btn-close-x" id="btnCloseAddVessel">&times;</button>
+      </div>
+      <form id="formAddVessel" class="modal-content-form">
+        <div class="input-block">
+          <label>Nama Kapal / Armada *</label>
+          <input type="text" id="vesselNameInput" class="form-input" placeholder="Contoh: KM Nusantara Sejahtera 01" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Nomor Registrasi / IMO *</label>
+            <input type="text" id="vesselRegInput" class="form-input" placeholder="Contoh: IMO-9821940" required>
+          </div>
+          <div class="input-block">
+            <label>Kategori Layanan / Tipe Kapal</label>
+            <select id="vesselTypeInput" class="form-input">
+              <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+              <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Kapasitas Total Penumpang (Kursi) *</label>
+          <input type="number" id="vesselCapacityInput" class="form-input" placeholder="Contoh: 850" min="20" required>
+        </div>
+        <div class="input-block">
+          <label>Fasilitas Penumpang (Pisahkan dengan koma)</label>
+          <input type="text" id="vesselFacInput" class="form-input" placeholder="Contoh: Full AC, Kantin, WiFi Satelit, Musholla" value="Full AC Sentral, Kantin, Colokan Listrik, Musholla">
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelAddVessel">Batal</button>
+          <button type="submit" class="btn-submit-action">Simpan & Daftarkan Armada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Buka Jadwal Baru -->
+  <div class="modal-layer" id="modalAddSchedule">
+    <div class="modal-window">
+      <div class="modal-top">
+        <h4>Buka Rute & Jadwal Keberangkatan Baru</h4>
+        <button type="button" class="btn-close-x" id="btnCloseAddSchedule">&times;</button>
+      </div>
+      <form id="formAddSchedule" class="modal-content-form">
+        <div class="input-block">
+          <label>Pilih Kapal / Armada Perusahaan Anda *</label>
+          <select id="schedVesselSelect" class="form-input" required>
+            <!-- Injected by JS -->
+          </select>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Pelabuhan Asal *</label>
+            <select id="schedOriginSelect" class="form-input" required>
+              <!-- Injected by JS -->
+            </select>
+          </div>
+          <div class="input-block">
+            <label>Pelabuhan Tujuan *</label>
+            <select id="schedDestSelect" class="form-input" required>
+              <!-- Injected by JS -->
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Jam Berangkat (WIB) *</label>
+            <input type="time" id="schedDepartTime" class="form-input" required value="08:30">
+          </div>
+          <div class="input-block">
+            <label>Jam Tiba (WIB) *</label>
+            <input type="time" id="schedArrivalTime" class="form-input" required value="16:00">
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Dermaga / Pier Keberangkatan *</label>
+          <input type="text" id="schedPierInput" class="form-input" placeholder="Contoh: Dermaga Eksekutif Nusantara 02" required value="Dermaga Eksekutif 01">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Tarif Kelas VIP (Rp) *</label>
+            <input type="number" id="schedPriceVip" class="form-input" value="750000" min="50000" required>
+          </div>
+          <div class="input-block">
+            <label>Tarif Kelas Ekonomi (Rp) *</label>
+            <input type="number" id="schedPriceEko" class="form-input" value="325000" min="30000" required>
+          </div>
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelAddSchedule">Batal</button>
+          <button type="submit" class="btn-submit-action">Publikasikan Jadwal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Booking & Pembayaran Pelanggan -->
+  <div class="modal-layer" id="modalCustomerBooking">
+    <div class="modal-window modal-wide">
+      <div class="modal-top">
+        <div>
+          <h4 id="bookModalVessel">Pemesanan Tiket Kapal</h4>
+          <p class="text-dim" id="bookModalCompany">Operator: PT PELNI</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseCustomerBooking">&times;</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Route Banner Preview -->
+        <div class="book-route-strip" id="bookRouteStrip">
+          <!-- Filled by JS -->
+        </div>
+
+        <!-- Seat Selection Grid -->
+        <div class="seat-picker-block">
+          <h5 class="subhead">1. Pilih Posisi Kursi / Kabin:</h5>
+          <div class="seat-cells-container" id="custSeatGrid">
+            <!-- Injected by JS -->
+          </div>
+          <div class="seat-status-bar">
+            <span>Kursi Dipilih: <strong id="custSelectedSeatDisplay" style="color: #38bdf8;">Belum dipilih</strong></span>
+            <span>Total Tarif Tiket: <strong id="custSubtotalDisplay" style="color: #f59e0b;">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <!-- Passenger Form -->
+        <div class="passenger-inputs-block">
+          <h5 class="subhead">2. Data Penumpang (Manifest Ditjen Hubla):</h5>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label>Nama Lengkap (Sesuai KTP/Paspor) *</label>
+              <input type="text" id="custPaxName" class="form-input" placeholder="Contoh: Budi Gunawan" required value="Budi Gunawan">
+            </div>
+            <div class="input-block">
+              <label>NIK KTP / No Paspor (16 Digit) *</label>
+              <input type="text" id="custPaxNik" class="form-input" placeholder="31710xxxxxxxxxxx" required value="3171092801940005">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label>Nomor WhatsApp *</label>
+              <input type="tel" id="custPaxPhone" class="form-input" placeholder="08xxxxxxxxxx" required value="081298410291">
+            </div>
+            <div class="input-block">
+              <label>Email Pemesan *</label>
+              <input type="email" id="custPaxEmail" class="form-input" placeholder="nama@email.com" required value="budi.gunawan@gmail.com">
+            </div>
+          </div>
+        </div>
+
+        <!-- Instant Payment Method -->
+        <div class="payment-selection-block">
+          <h5 class="subhead">3. Metode Pembayaran Instan:</h5>
+          <div class="pay-methods-row">
+            <label class="pay-method-pill active">
+              <input type="radio" name="custPayMethod" value="QRIS Instan" checked>
+              <span>QRIS Instan (BCA, OVO, GoPay, Dana)</span>
+            </label>
+            <label class="pay-method-pill">
+              <input type="radio" name="custPayMethod" value="Virtual Account BCA">
+              <span>BCA Virtual Account</span>
+            </label>
+            <label class="pay-method-pill">
+              <input type="radio" name="custPayMethod" value="Mandiri Virtual Account">
+              <span>Mandiri Virtual Account</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-bottom-actions">
+        <button type="button" class="btn-cancel" id="btnCancelCustomerBooking">Batal</button>
+        <button type="button" class="btn-submit-action btn-green" id="btnConfirmPayCustomer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Konfirmasi & Terbitkan Tiket (Simulasi Bayar)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Boarding Pass / E-Tiket Sukses -->
+  <div class="modal-layer" id="modalCustomerTicket">
+    <div class="modal-window modal-wide">
+      <div class="modal-top">
+        <div>
+          <h4>E-Tiket & Boarding Pass Resmi</h4>
+          <p class="text-dim">Status: <strong style="color: #10b981;">LUNAS / CONFIRMED</strong></p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseCustomerTicket">&times;</button>
+      </div>
+
+      <div class="modal-body-scroll" id="ticketPrintArea">
+        <div class="boarding-pass-print-card" id="passCardWrap">
+          <div class="bp-top flex-between">
+            <div>
+              <span class="bp-op-name" id="ticketCompName">PT PELNI (Persero)</span>
+              <span class="bp-pass-title">OFFICIAL SEA BOARDING PASS</span>
+            </div>
+            <div class="text-right">
+              <span class="bp-pnr-lbl">KODE BOOKING (PNR)</span>
+              <strong class="bp-pnr-code" id="ticketPnrVal">OMNI-PLN-928410</strong>
+            </div>
+          </div>
+
+          <div class="bp-body">
+            <div class="bp-route-row flex-between align-center">
+              <div>
+                <span class="bp-city-code" id="ticketOriginCode">JKT</span>
+                <span class="bp-city-name" id="ticketOriginCity">Jakarta (Tanjung Priok)</span>
+                <strong class="bp-time" id="ticketDepartTime">09:00 WIB</strong>
+              </div>
+              <div class="bp-arrow-cell">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <span id="ticketVesselVal">KM Kelud</span>
+              </div>
+              <div class="text-right">
+                <span class="bp-city-code" id="ticketDestCode">BTH</span>
+                <span class="bp-city-name" id="ticketDestCity">Batam (Batu Ampar)</span>
+                <strong class="bp-time" id="ticketArrivalTime">15:00 WIB</strong>
+              </div>
+            </div>
+
+            <div class="bp-grid-details">
+              <div class="bp-cell">
+                <span class="lbl">Nama Penumpang</span>
+                <strong class="val" id="ticketPaxNameVal">Budi Gunawan</strong>
+                <span class="sub" id="ticketPaxNikVal">NIK: 3171092801940005</span>
+              </div>
+              <div class="bp-cell">
+                <span class="lbl">Nomor Kursi</span>
+                <strong class="val highlight-blue" id="ticketSeatVal">A-04</strong>
+                <span class="sub" id="ticketClassVal">VIP Stateroom</span>
+              </div>
+              <div class="bp-cell">
+                <span class="lbl">Dermaga Keberangkatan</span>
+                <strong class="val" id="ticketPierVal">Dermaga 2 Samudera</strong>
+                <span class="sub">Tiba 2 Jam Sebelum Berlayar</span>
+              </div>
+              <div class="bp-cell">
+                <span class="lbl">Total Bayar</span>
+                <strong class="val text-gold" id="ticketTotalAmountVal">Rp 950.000</strong>
+                <span class="sub" id="ticketPayMethodVal">QRIS Instan</span>
+              </div>
+            </div>
+
+            <div class="bp-perforated">
+              <div class="circle-c c-left"></div>
+              <div class="dashes"></div>
+              <div class="circle-c c-right"></div>
+            </div>
+
+            <div class="bp-barcode-foot flex-between align-center">
+              <div class="barcode-graphic">
+                <div class="lines" id="ticketBarcodeLines">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <span class="barcode-num" id="ticketBarcodeNum">8910 2841 9028 1102</span>
+              </div>
+              <div class="gate-status-pill" id="ticketBoardingStatusPill">
+                READY FOR BOARDING
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-bottom-actions">
+        <button type="button" class="btn-cancel" onclick="window.print()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+          <span>Cetak Tiket (PDF)</span>
+        </button>
+        <button type="button" class="btn-submit-action" id="btnDoneTicket">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div class="toast-popup" id="toastPopup">
+    <div class="toast-ic" id="toastIcon">✓</div>
+    <div>
+      <h5 id="toastTitle">Berhasil</h5>
+      <p id="toastBody">Pesan notifikasi.</p>
+    </div>
+  </div>
+
+  <script src="data-store.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
