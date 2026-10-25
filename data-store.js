@@ -7,7 +7,47 @@ const STORAGE_KEYS = {
   VESSELS: 'tech_vessels_v5_live',
   SCHEDULES: 'tech_schedules_v5_live',
   BOOKINGS: 'tech_bookings_v5_live',
-  CURRENT_USER_COMPANY: 'tech_current_tenant_v5'
+  CURRENT_USER_COMPANY: 'tech_current_tenant_v5',
+  KSOP_SETTINGS: 'tech_ksop_settings_v5'
+};
+
+// Pengaturan Default Pejabat KSOP, Syahbandar, dan Regulasi Maritim
+const DEFAULT_KSOP_SETTINGS = {
+  // KSOP / Syahbandar
+  ksopName: 'Capt. Agus Suherman, S.Si.T., M.Mar.',
+  ksopNip: '19750812 200003 1 002',
+  ksopRank: 'Pembina Utama Muda (IV/c)',
+  ksopTitle: 'Kepala Kantor Kesyahbandaran dan Otoritas Pelabuhan',
+  ksopOffice: 'Kantor KSOP Kelas IV Nunukan',
+  ksopPort: 'Pelabuhan Tunon Taka Nunukan',
+
+  // Petugas Keselamatan / Marine Inspector
+  inspectorName: 'H. Faisal, M.M.Tr., M.Mar.Eng.',
+  inspectorNip: '19820415 200604 1 008',
+  inspectorTitle: 'Kasi Keselamatan Berlayar, Penjagaan & Patroli',
+
+  // Nakhoda / Master Kapal (Default)
+  masterName: 'Capt. Bambang Prakoso, M.Mar.',
+  masterCertNo: 'ANT-II / 620019284',
+
+  // Imigrasi (TPI)
+  immigrationOfficer: 'Rahmat Hidayat, S.H.',
+  immigrationNip: '19880920 201101 1 003',
+  immigrationTitle: 'Kasubsi Lalu Lintas Keimigrasian TPI Nunukan',
+
+  // Bea Cukai (Customs)
+  customsOfficer: 'Budi Santoso, S.E.',
+  customsNip: '19860314 200812 1 001',
+  customsTitle: 'Pemeriksa Bea dan Cukai Pertama KPPBC Nunukan',
+
+  // Karantina Kesehatan Pelabuhan (KKP)
+  quarantineOfficer: 'dr. Siti Nurhaliza',
+  quarantineNip: '19901105 201705 2 004',
+  quarantineTitle: 'Dokter Karantina Kesehatan Wilker Tunon Taka',
+
+  // Format Penomoran SPB & Regulasi
+  spbPrefix: 'SPB.NNK/2026/X/',
+  regulationNotice: 'Diterbitkan sesuai ketentuan Undang-Undang No. 17 Tahun 2008 tentang Pelayaran dan Peraturan Direktur Jenderal Perhubungan Laut.'
 };
 
 // Initial Registered Companies (Kosong / Tanpa Demo - Siap didaftarkan oleh pengguna)
@@ -173,6 +213,118 @@ const Store = {
     return null;
   },
 
+  updateBooking(updatedBooking) {
+    const list = this.getBookings();
+    const idx = list.findIndex(b => b.pnr === updatedBooking.pnr);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updatedBooking };
+      this.saveBookings(list);
+      return list[idx];
+    }
+    return null;
+  },
+
+  updatePassenger(pnr, paxIndex, updatedPax) {
+    const list = this.getBookings();
+    const b = list.find(item => item.pnr === pnr);
+    if (b && b.passengers && b.passengers[paxIndex]) {
+      b.passengers[paxIndex] = { ...b.passengers[paxIndex], ...updatedPax };
+      // Sync contact name if first passenger
+      if (paxIndex === 0 && updatedPax.name && b.contact) {
+        b.contact.name = updatedPax.name;
+      }
+      this.saveBookings(list);
+      return b;
+    }
+    return null;
+  },
+
+  transferBookingVessel(pnr, transferData) {
+    const list = this.getBookings();
+    const b = list.find(item => item.pnr === pnr);
+    if (b) {
+      const oldVessel = b.vesselName;
+      b.vesselId = transferData.vesselId || b.vesselId;
+      b.vesselName = transferData.vesselName || b.vesselName;
+      b.scheduleId = transferData.scheduleId || b.scheduleId;
+      if (transferData.departTime) b.departTime = transferData.departTime;
+      if (transferData.arrivalTime) b.arrivalTime = transferData.arrivalTime;
+      if (transferData.pier) b.pier = transferData.pier;
+      if (transferData.className) b.className = transferData.className;
+
+      // Update seats if provided
+      if (transferData.newSeat && b.passengers && b.passengers.length > 0) {
+        b.passengers[0].seat = transferData.newSeat;
+      }
+
+      // Append transfer audit remark
+      const transferAuditNote = `[TRANSFER KAPAL: Dari ${oldVessel} ke ${b.vesselName} (${new Date().toLocaleDateString('id-ID')}) - Ket: ${transferData.reason || 'Operasional'}]`;
+      b.transferHistory = b.transferHistory || [];
+      b.transferHistory.push({
+        date: new Date().toISOString(),
+        fromVessel: oldVessel,
+        toVessel: b.vesselName,
+        reason: transferData.reason || 'Operasional Pelabuhan'
+      });
+
+      if (b.passengers && b.passengers[0]) {
+        b.passengers[0].remark = b.passengers[0].remark 
+          ? `${b.passengers[0].remark} • ${transferAuditNote}` 
+          : transferAuditNote;
+      }
+
+      this.saveBookings(list);
+      return b;
+    }
+    return null;
+  },
+
+  batchTransferPassengers(pnrList, transferData) {
+    if (!Array.isArray(pnrList) || pnrList.length === 0) return 0;
+    const list = this.getBookings();
+    let count = 0;
+
+    list.forEach(b => {
+      if (pnrList.includes(b.pnr)) {
+        const oldVessel = b.vesselName;
+        b.vesselId = transferData.vesselId || b.vesselId;
+        b.vesselName = transferData.vesselName || b.vesselName;
+        b.scheduleId = transferData.scheduleId || b.scheduleId;
+        if (transferData.departTime) b.departTime = transferData.departTime;
+        if (transferData.arrivalTime) b.arrivalTime = transferData.arrivalTime;
+        if (transferData.pier) b.pier = transferData.pier;
+
+        // Auto assign seat or preserve
+        if (transferData.seatMode === 'PRESERVE') {
+          // Keep current seat
+        } else if (transferData.seatMap && transferData.seatMap[b.pnr]) {
+          if (b.passengers && b.passengers[0]) {
+            b.passengers[0].seat = transferData.seatMap[b.pnr];
+          }
+        }
+
+        const transferAuditNote = `[TRANSFER KAPAL MASSAL: Dari ${oldVessel} ke ${b.vesselName} (${new Date().toLocaleDateString('id-ID')}) - Ket: ${transferData.reason || 'Operasional'}]`;
+        b.transferHistory = b.transferHistory || [];
+        b.transferHistory.push({
+          date: new Date().toISOString(),
+          fromVessel: oldVessel,
+          toVessel: b.vesselName,
+          reason: transferData.reason || 'Operasional Pelabuhan'
+        });
+
+        if (b.passengers) {
+          b.passengers.forEach(p => {
+            p.remark = p.remark ? `${p.remark} • ${transferAuditNote}` : transferAuditNote;
+          });
+        }
+        count++;
+      }
+    });
+
+    this.saveBookings(list);
+    return count;
+  },
+
   // Current Logged In Company Session
   getCurrentTenant() {
     const raw = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
@@ -190,6 +342,26 @@ const Store = {
     } else {
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER_COMPANY, JSON.stringify(tenantObj));
     }
+  },
+
+  // Pengaturan Pejabat KSOP & Regulasi Maritim
+  getKsopSettings() {
+    const raw = localStorage.getItem(STORAGE_KEYS.KSOP_SETTINGS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.KSOP_SETTINGS, JSON.stringify(DEFAULT_KSOP_SETTINGS));
+      return { ...DEFAULT_KSOP_SETTINGS };
+    }
+    try {
+      return { ...DEFAULT_KSOP_SETTINGS, ...JSON.parse(raw) };
+    } catch (e) {
+      return { ...DEFAULT_KSOP_SETTINGS };
+    }
+  },
+
+  saveKsopSettings(settings) {
+    const merged = { ...DEFAULT_KSOP_SETTINGS, ...settings };
+    localStorage.setItem(STORAGE_KEYS.KSOP_SETTINGS, JSON.stringify(merged));
+    return merged;
   }
 };
 

@@ -126,6 +126,15 @@ body {
   font-size: 0.68rem;
 }
 
+/* Sembunyikan Header Bar Global Begitu Masuk Portal Perusahaan */
+body.in-company-portal .enterprise-top-strip,
+body.in-company-portal .global-navbar {
+  display: none !important;
+}
+body.in-company-portal .dash-sidebar-nav {
+  top: 20px !important;
+}
+
 /* ================= NAVBAR ================= */
 .global-navbar {
   position: sticky;
@@ -153,6 +162,30 @@ body {
   justify-content: center;
   color: #fff;
   box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+}
+.brand-logo-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.22) 0%, rgba(7, 14, 27, 0.85) 75%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25), inset 0 0 10px rgba(56, 189, 248, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.brand-link:hover .brand-logo-wrap {
+  transform: translateY(-1px) scale(1.06);
+  border-color: var(--primary-cyan);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.25);
+}
+.brand-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(56, 189, 248, 0.5));
 }
 .brand-name {
   font-family: var(--font-mono);
@@ -844,63 +877,71 @@ body {
   background: #7c3aed;
 }
 
-/* ================= VIEW 3: COMPANY DASHBOARD ================= */
+/* ================= VIEW 3: COMPANY DASHBOARD (COMPACT ENTERPRISE DENSITY) ================= */
+#viewCompanyDashboard {
+  font-size: 0.82rem;
+}
 .tenant-banner {
   background: rgba(15, 27, 48, 0.75);
   border-bottom: 1px solid var(--border-line);
-  padding: 1.2rem 0;
+  padding: 0.65rem 0;
 }
 .tenant-info-cell {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 .tenant-avatar {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   background: #0284c7;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);
+}
+.tenant-avatar svg {
+  width: 20px;
+  height: 20px;
 }
 .tenant-name-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 .tenant-name-row h2 {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 800;
+  line-height: 1.2;
 }
 .badge-verified {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid var(--accent-green);
   color: var(--accent-green);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  padding: 0.15rem 0.55rem;
+  padding: 0.1rem 0.45rem;
   border-radius: var(--radius-full);
 }
 .tenant-meta {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-dim);
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 .btn-tenant-logout {
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid var(--accent-rose);
   color: var(--accent-rose);
-  padding: 0.45rem 0.85rem;
+  padding: 0.35rem 0.7rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   transition: var(--transition);
 }
 .btn-tenant-logout:hover {
@@ -908,46 +949,187 @@ body {
   color: #fff;
 }
 
-/* Dashboard Tabs */
-.dashboard-tabs-bar {
-  background: rgba(7, 14, 27, 0.8);
-  border-bottom: 1px solid var(--border-line);
+/* ========================================================
+   DASHBOARD SIDEBAR NAVIGATION (PERSIS FOTO KEDUA - COMPACT DENSITY)
+   ======================================================== */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.15rem;
+  padding: 1.15rem 1.25rem 2.5rem;
+  align-items: start;
 }
-.dash-tabs-wrap {
-  display: flex;
-  gap: 0.4rem;
-  overflow-x: auto;
-  padding: 0.4rem 0;
-}
-.dash-tab-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  padding: 0.5rem 0.95rem;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.82rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  white-space: nowrap;
-  transition: var(--transition);
-}
-.dash-tab-btn:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.03);
-}
-.dash-tab-btn.active {
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--primary-cyan);
-  border: 1px solid var(--border-focus);
+@media (max-width: 992px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* Dashboard Pane Containers */
-.dash-content-pane {
-  padding: 1.4rem 1.2rem 3rem;
+.dash-sidebar-nav {
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: 1px solid var(--border-line);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 15px;
+  z-index: 20;
+}
+
+.dash-nav-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dash-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-nav-icon {
+  width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dash-nav-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dash-nav-text {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.dash-nav-pill:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.dash-nav-pill.active {
+  background-color: rgba(2, 132, 199, 0.16) !important;
+  color: #38bdf8 !important;
+  font-weight: 700;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.15);
+}
+
+.dash-nav-pill.active .dash-nav-icon svg {
+  stroke: #38bdf8 !important;
+}
+
+.dash-nav-section-title {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 10px 8px 4px 8px;
+}
+
+.dash-nav-chevron {
+  width: 14px;
+  height: 14px;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dash-nav-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.dash-nav-group.open .dash-nav-chevron {
+  transform: rotate(180deg);
+  color: #38bdf8;
+}
+
+.dash-sub-menu {
+  display: none;
+  flex-direction: column;
+  padding: 3px 0 6px 26px;
+  gap: 2px;
+  animation: fadeInDown 0.2s ease forwards;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dash-nav-group.open .dash-sub-menu {
+  display: flex;
+}
+
+.dash-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dash-sub-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.dash-sub-item.active {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.sub-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.badge-new-pill {
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  flex-shrink: 0;
+}
+
+.dash-content-area {
+  min-width: 0;
 }
 .dash-pane {
   display: none;
@@ -956,29 +1138,33 @@ body {
   display: block;
 }
 
-/* KPI Grid */
+/* KPI Grid Compact Density */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.4rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 .kpi-card {
   background: var(--bg-card);
   border: 1px solid var(--border-line);
-  border-radius: var(--radius-md);
-  padding: 1.15rem;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 .kpi-icon-cell {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-md);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.kpi-icon-cell svg {
+  width: 18px;
+  height: 18px;
 }
 .icon-blue { background: rgba(2, 132, 199, 0.15); color: var(--primary-cyan); }
 .icon-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
@@ -986,17 +1172,17 @@ body {
 .icon-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
 
 .kpi-lbl {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   color: var(--text-dim);
 }
 .kpi-val {
   font-family: var(--font-mono);
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  margin: 0.1rem 0;
+  margin: 0.05rem 0;
 }
 .kpi-trend {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
 }
 .kpi-trend.positive {
@@ -1004,20 +1190,23 @@ body {
   font-weight: 700;
 }
 
-/* Dashboard Tables */
+/* Dashboard Tables & Panels Compact Density */
 .dash-block-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-line);
-  border-radius: var(--radius-md);
-  padding: 1.35rem;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.15rem;
+  box-shadow: var(--shadow-md);
 }
 .block-header {
-  margin-bottom: 1.15rem;
+  margin-bottom: 0.85rem;
 }
 .block-header h4 {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 800;
+}
+.block-header p.text-dim {
+  font-size: 0.78rem;
 }
 .table-responsive {
   overflow-x: auto;
@@ -1025,18 +1214,19 @@ body {
 .dash-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   text-align: left;
 }
 .dash-table th {
-  padding: 0.65rem 0.85rem;
+  padding: 0.45rem 0.65rem;
   background: rgba(7, 14, 27, 0.6);
   color: var(--text-dim);
+  font-size: 0.7rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border-line);
 }
 .dash-table td {
-  padding: 0.7rem 0.85rem;
+  padding: 0.48rem 0.65rem;
   border-bottom: 1px solid var(--border-line);
   color: var(--text-main);
 }
@@ -1046,15 +1236,50 @@ body {
 
 /* Status Badges */
 .status-pill {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.5rem;
   border-radius: var(--radius-full);
   display: inline-block;
 }
 .status-pill.paid { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
 .status-pill.boarded { background: rgba(2, 132, 199, 0.2); color: var(--primary-cyan); }
 .status-pill.waiting { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); }
+
+/* Table Action Buttons for Manifest & Ticket */
+.btn-action-sm {
+  padding: 3px 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-line);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.btn-action-sm:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+.btn-action-sm.btn-edit-manifest:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+}
+.btn-action-sm.btn-edit-ticket:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+.btn-action-sm.btn-transfer-vessel:hover {
+  border-color: #a855f7;
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.12);
+}
 
 /* Buttons */
 .btn-primary-action {
@@ -1981,3 +2206,109 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================= SETTINGS & KSOP STYLES ================= */
+.settings-card-box {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border-line);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.4rem;
+  transition: all 0.25s ease;
+  position: relative;
+}
+.settings-card-box:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.12);
+}
+.settings-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.settings-card-head h5 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+.settings-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ================= CONTEXTUAL COMPACT DENSITY FOR DASHBOARD ================= */
+#viewCompanyDashboard .sched-card {
+  border-radius: var(--radius-sm);
+}
+#viewCompanyDashboard .sched-header {
+  padding: 0.55rem 0.95rem;
+}
+#viewCompanyDashboard .sched-body-grid {
+  padding: 0.85rem 1rem;
+  gap: 1rem;
+}
+#viewCompanyDashboard .node-time {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+#viewCompanyDashboard .node-city {
+  font-size: 0.78rem;
+}
+#viewCompanyDashboard .node-pier {
+  font-size: 0.7rem;
+}
+#viewCompanyDashboard .track-duration {
+  font-size: 0.68rem;
+}
+#viewCompanyDashboard .price-tag-sub {
+  font-size: 0.65rem;
+}
+#viewCompanyDashboard .price-tag-val {
+  font-size: 1.12rem;
+}
+#viewCompanyDashboard .btn-book-sched {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+}
+#viewCompanyDashboard .form-input {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+}
+#viewCompanyDashboard .input-block {
+  margin-bottom: 0.85rem;
+}
+#viewCompanyDashboard .input-block label {
+  font-size: 0.72rem;
+  margin-bottom: 0.2rem;
+}
+#viewCompanyDashboard .settings-card-box {
+  padding: 0.95rem 1.1rem;
+}
+#viewCompanyDashboard .settings-card-head {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.55rem;
+}
+#viewCompanyDashboard .settings-card-head h5 {
+  font-size: 0.88rem;
+}
+#viewCompanyDashboard .settings-ic {
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+}
+#viewCompanyDashboard .btn-submit-action {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.82rem;
+}
+
+

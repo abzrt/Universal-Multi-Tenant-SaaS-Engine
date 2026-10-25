@@ -187,6 +187,7 @@ const App = {
     const btnComp = document.getElementById('btnModeCompany');
 
     if (viewName === 'weatherHome') {
+      document.body.classList.remove('in-company-portal');
       const weatherPanel = document.getElementById('viewWeatherHome');
       if (weatherPanel) weatherPanel.classList.add('active');
       if (btnComp) btnComp.classList.add('active');
@@ -194,6 +195,7 @@ const App = {
     } else if (viewName === 'companyAuth') {
       this.openCompanyAuthModal();
     } else if (viewName === 'companyDashboard') {
+      document.body.classList.add('in-company-portal');
       const dashPanel = document.getElementById('viewCompanyDashboard');
       if (dashPanel) dashPanel.classList.add('active');
       if (btnComp) btnComp.classList.add('active');
@@ -272,6 +274,42 @@ const App = {
           this.openBoardingPassModal(found);
         } else {
           this.showToast('Tidak Ditemukan', `Kode Booking "${pnr}" tidak terdaftar di sistem.`, 'warning');
+        }
+      });
+    }
+
+    // Auto-calculate Age and Sync Pax Type (Dewasa / Anak / Bayi)
+    const dobInput = document.getElementById('custPaxDob');
+    const ageInput = document.getElementById('custPaxAge');
+    const typeSelect = document.getElementById('custPaxType');
+
+    if (dobInput && ageInput) {
+      dobInput.addEventListener('change', () => {
+        if (!dobInput.value) return;
+        const bDate = new Date(dobInput.value);
+        const today = new Date();
+        let calcAge = today.getFullYear() - bDate.getFullYear();
+        const m = today.getMonth() - bDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) {
+          calcAge--;
+        }
+        calcAge = Math.max(0, calcAge);
+        ageInput.value = calcAge;
+        if (typeSelect) {
+          if (calcAge < 2) typeSelect.value = 'Bayi';
+          else if (calcAge < 12) typeSelect.value = 'Anak';
+          else typeSelect.value = 'Dewasa';
+        }
+      });
+    }
+
+    if (ageInput && typeSelect) {
+      ageInput.addEventListener('input', () => {
+        const val = parseInt(ageInput.value, 10);
+        if (!isNaN(val)) {
+          if (val < 2) typeSelect.value = 'Bayi';
+          else if (val < 12) typeSelect.value = 'Anak';
+          else typeSelect.value = 'Dewasa';
         }
       });
     }
@@ -670,13 +708,16 @@ const App = {
       return;
     }
 
+    const paxType = document.getElementById('custPaxType') ? document.getElementById('custPaxType').value : 'Dewasa';
     const paxName = document.getElementById('custPaxName').value.trim();
-    const docType = document.getElementById('custDocType').value;
-    const docNum = document.getElementById('custPaxDocNum').value.trim();
-    const passportExp = document.getElementById('custPaxPassportExp') ? document.getElementById('custPaxPassportExp').value : '';
-    const nationality = document.getElementById('custPaxNationality').value;
     const gender = document.getElementById('custPaxGender').value;
+    const docNum = document.getElementById('custPaxDocNum').value.trim();
     const dob = document.getElementById('custPaxDob').value;
+    const age = document.getElementById('custPaxAge') ? document.getElementById('custPaxAge').value : '';
+    const nationality = document.getElementById('custPaxNationality').value;
+    const remark = document.getElementById('custPaxRemark') ? document.getElementById('custPaxRemark').value.trim() : '-';
+    const docType = document.getElementById('custDocType') ? document.getElementById('custDocType').value : 'PASSPORT_RI';
+    const passportExp = document.getElementById('custPaxPassportExp') ? document.getElementById('custPaxPassportExp').value : '';
     const paxPhone = document.getElementById('custPaxPhone').value.trim();
     const paxEmail = document.getElementById('custPaxEmail').value.trim();
 
@@ -727,14 +768,18 @@ const App = {
       isIntl,
       contact: { name: paxName, phone: paxPhone, email: paxEmail },
       passengers: this.selectedSeats.map(seat => ({
+        paxType,
         name: paxName,
-        docType,
-        nik: docNum,
-        docNumber: docNum,
-        passportExp,
-        nationality,
         gender,
+        docType,
+        passportNo: docNum,
+        docNumber: docNum,
+        nik: docNum,
         dob,
+        age,
+        nationality,
+        remark,
+        passportExp,
         seat,
         className: currentClass.name
       })),
@@ -958,21 +1003,93 @@ const App = {
 
   // ================= COMPANY DASHBOARD =================
   initDashboardEvents() {
+    // Helper function to switch tabs
+    const switchTab = (tabKey) => {
+      document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
+      if (tabKey === 'tabOverview') document.getElementById('paneOverview')?.classList.add('active');
+      if (tabKey === 'tabFleet') document.getElementById('paneFleet')?.classList.add('active');
+      if (tabKey === 'tabSchedules') document.getElementById('paneSchedules')?.classList.add('active');
+      if (tabKey === 'tabManifest') document.getElementById('paneManifest')?.classList.add('active');
+      if (tabKey === 'tabScanner') document.getElementById('paneScanner')?.classList.add('active');
+      if (tabKey === 'tabTicketing') document.getElementById('paneTicketing')?.classList.add('active');
+      if (tabKey === 'tabSettings') {
+        document.getElementById('paneSettings')?.classList.add('active');
+        this.loadKsopSettingsToForm();
+      }
+    };
+
     // Sub-tabs switching
     document.querySelectorAll('.dash-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
         document.querySelectorAll('.dash-tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const tabKey = btn.getAttribute('data-tab');
 
-        document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
-        if (tabKey === 'tabOverview') document.getElementById('paneOverview').classList.add('active');
-        if (tabKey === 'tabFleet') document.getElementById('paneFleet').classList.add('active');
-        if (tabKey === 'tabSchedules') document.getElementById('paneSchedules').classList.add('active');
-        if (tabKey === 'tabManifest') document.getElementById('paneManifest').classList.add('active');
-        if (tabKey === 'tabScanner') document.getElementById('paneScanner').classList.add('active');
-        if (tabKey === 'tabTicketing') document.getElementById('paneTicketing').classList.add('active');
+        // Toggle accordion group if exists
+        const parentGroup = btn.closest('.dash-nav-group');
+        if (parentGroup) {
+          const wasOpen = parentGroup.classList.contains('open');
+          document.querySelectorAll('.dash-nav-group').forEach(g => {
+            if (g !== parentGroup) g.classList.remove('open');
+          });
+          parentGroup.classList.toggle('open', !wasOpen);
+        } else {
+          document.querySelectorAll('.dash-nav-group').forEach(g => g.classList.remove('open'));
+        }
+
+        switchTab(tabKey);
+
+        // Handle specific actions from Photo 2 navigation
+        const action = btn.getAttribute('data-action');
+        if (action === 'seat-focus') {
+          const ticketingPane = document.getElementById('paneTicketing');
+          if (ticketingPane) {
+            ticketingPane.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else if (action === 'ksop-focus') {
+          const btnExport = document.getElementById('btnExportManifestCsv');
+          if (btnExport) {
+            btnExport.scrollIntoView({ behavior: 'smooth' });
+            btnExport.style.outline = '2px solid #10b981';
+            setTimeout(() => { btnExport.style.outline = 'none'; }, 2000);
+          }
+        }
       });
+    });
+
+    // Sub-menu item click listener
+    document.querySelectorAll('.dash-sub-item[data-tab]').forEach(sub => {
+      sub.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabKey = sub.getAttribute('data-tab');
+        switchTab(tabKey);
+        
+        // highlight parent button
+        const group = sub.closest('.dash-nav-group');
+        if (group) {
+          const parentBtn = group.querySelector('.dash-tab-btn');
+          if (parentBtn) {
+            document.querySelectorAll('.dash-tab-btn').forEach(b => b.classList.remove('active'));
+            parentBtn.classList.add('active');
+          }
+          group.querySelectorAll('.dash-sub-item').forEach(s => s.classList.remove('active'));
+          sub.classList.add('active');
+        }
+      });
+    });
+
+    // Submenu shortcuts
+    document.getElementById('subBtnAddSchedule')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('btnOpenAddSchedule')?.click();
+    });
+    document.getElementById('subBtnAddVessel')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('btnOpenAddVessel')?.click();
+    });
+    document.getElementById('subBtnExportCsv')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('btnExportManifestCsv')?.click();
     });
 
     // Logout button
@@ -1073,6 +1190,9 @@ const App = {
       this.refreshCompanyDashboard();
       this.showToast('Jadwal Dipublikasikan', `Rute ${originId} ➔ ${destinationId} berhasil dibuka untuk umum.`);
     });
+
+    // Initialize KSOP Settings Events
+    this.initKsopSettingsEvents();
   },
 
   // Refresh Dashboard contents based on logged-in tenant
@@ -1081,45 +1201,72 @@ const App = {
     if (!tenant) return;
 
     // Header banner
-    document.getElementById('dashTenantName').innerText = tenant.name;
-    document.getElementById('dashTenantMeta').innerText = `Kategori: ${tenant.category} • ID: ${tenant.id} • Email: ${tenant.email}`;
-    document.getElementById('dashTenantAvatar').style.background = tenant.brandColor;
+    const elName = document.getElementById('dashTenantName');
+    if (elName) elName.innerText = tenant.name;
+    const elMeta = document.getElementById('dashTenantMeta');
+    if (elMeta) elMeta.innerText = `Kategori: ${tenant.category} • ID: ${tenant.id} • Email: ${tenant.email}`;
+    const elAvatar = document.getElementById('dashTenantAvatar');
+    if (elAvatar) elAvatar.style.background = tenant.brandColor;
 
     // Fetch Tenant Isolated Data
     const fleet = Store.getVesselsByCompany(tenant.id);
     const schedules = Store.getSchedulesByCompany(tenant.id);
     const bookings = Store.getBookingsByCompany(tenant.id);
 
-    // Update Badges Count
-    document.getElementById('countFleetBadge').innerText = fleet.length;
-    document.getElementById('countSchedBadge').innerText = schedules.length;
-    document.getElementById('countManifestBadge').innerText = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
+    // Update Badges Count (Safe Optional Chaining)
+    const badgeFleet = document.getElementById('countFleetBadge');
+    if (badgeFleet) badgeFleet.innerText = fleet.length;
+    const badgeSched = document.getElementById('countSchedBadge');
+    if (badgeSched) badgeSched.innerText = schedules.length;
+    const badgeManifest = document.getElementById('countManifestBadge');
+    if (badgeManifest) badgeManifest.innerText = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
 
     // Calculate Financial KPIs
     const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
     const totalTickets = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
 
-    document.getElementById('kpiRevenue').innerText = formatRupiah(totalRevenue);
-    document.getElementById('kpiTicketsSold').innerText = totalTickets;
-    document.getElementById('kpiFleetCount').innerText = fleet.length;
+    const elRev = document.getElementById('kpiRevenue');
+    if (elRev) elRev.innerText = formatRupiah(totalRevenue);
+    const elTix = document.getElementById('kpiTicketsSold');
+    if (elTix) elTix.innerText = totalTickets;
+    const elFleet = document.getElementById('kpiFleetCount');
+    if (elFleet) elFleet.innerText = fleet.length;
 
     // Render Recent Bookings Table
     const tbodyRecent = document.getElementById('tbodyRecentBookings');
     tbodyRecent.innerHTML = '';
     if (bookings.length === 0) {
-      tbodyRecent.innerHTML = `<tr><td colspan="7" class="text-center text-dim" style="padding: 2rem;">Belum ada tiket yang dipesan pada armada perusahaan Anda.</td></tr>`;
+      tbodyRecent.innerHTML = `<tr><td colspan="8" class="text-center text-dim" style="padding: 2rem;">Belum ada tiket yang dipesan pada armada perusahaan Anda.</td></tr>`;
     } else {
       bookings.slice(0, 5).forEach(b => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${b.pnr}</strong></td>
+          <td><strong style="color: var(--primary-cyan); font-family: var(--font-mono);">${b.pnr}</strong></td>
           <td>${b.departDate}</td>
           <td>${b.originCity} ➔ ${b.destinationCity}<br><small class="text-dim">${b.vesselName}</small></td>
           <td>${b.contact.name}</td>
           <td>${b.passengers.length} Kursi</td>
           <td class="text-gold"><strong>${formatRupiah(b.totalAmount)}</strong></td>
           <td><span class="status-pill ${b.boardingStatus === 'BOARDED' ? 'boarded' : 'waiting'}">${b.boardingStatus}</span></td>
+          <td style="white-space: nowrap; text-align: center;">
+            <div style="display: flex; gap: 4px; justify-content: center;">
+              <button type="button" class="btn-action-sm btn-edit-ticket" title="Edit Tiket & Kursi">
+                🎫 Tiket
+              </button>
+              <button type="button" class="btn-action-sm btn-transfer-vessel" title="Transfer Penumpang ke Kapal Lain">
+                🔄 Transfer
+              </button>
+            </div>
+          </td>
         `;
+
+        tr.querySelector('.btn-edit-ticket').addEventListener('click', () => {
+          this.openEditTicketModal(b.pnr);
+        });
+        tr.querySelector('.btn-transfer-vessel').addEventListener('click', () => {
+          this.openTransferVesselModal(b.pnr, 0);
+        });
+
         tbodyRecent.appendChild(tr);
       });
     }
@@ -1321,10 +1468,11 @@ const App = {
     // Flatten all passengers
     let paxList = [];
     bookings.forEach(b => {
-      b.passengers.forEach(p => {
+      b.passengers.forEach((p, pIdx) => {
         paxList.push({
           booking: b,
-          pax: p
+          pax: p,
+          paxIndex: pIdx
         });
       });
     });
@@ -1373,7 +1521,7 @@ const App = {
 
     // Render Table Rows
     if (paxList.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="11" class="text-center text-dim" style="padding: 2.5rem;">Tidak ada manifest penumpang yang sesuai dengan kriteria filter saat ini.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="text-center text-dim" style="padding: 2.5rem;">Tidak ada manifest penumpang yang sesuai dengan kriteria filter saat ini.</td></tr>`;
       return;
     }
 
@@ -1382,29 +1530,86 @@ const App = {
       const p = item.pax;
       const tr = document.createElement('tr');
 
-      const natBadge = p.nationality === 'MY' ? '<span style="color:#38bdf8;">🇲🇾 Malaysia</span>' : (p.nationality === 'OTHER' ? '🌏 WNA Lain' : '<span style="color:#10b981;">🇮🇩 Indonesia</span>');
-      const docBadge = p.docType === 'KTP' ? `KTP: <code>${p.docNumber || p.nik}</code>` : (p.docType === 'PLB' ? `PLB: <code>${p.docNumber || p.nik}</code>` : `PASPOR: <strong>${p.docNumber || p.nik}</strong>`);
       const isBoarded = b.boardingStatus === 'BOARDED';
+      const docNum = p.passportNo || p.docNumber || p.nik || '-';
+      const paxTypeBadge = p.paxType === 'Anak' 
+        ? '<span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: #f59e0b;">Anak-Anak</span>' 
+        : (p.paxType === 'Bayi' 
+          ? '<span class="tag-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: #a855f7;">Bayi (Infant)</span>' 
+          : '<span class="tag-badge" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border-color: #0284c7;">Dewasa</span>');
 
       tr.innerHTML = `
+        <td style="text-align: center;">
+          <input type="checkbox" class="check-pax-item" data-pnr="${b.pnr}" data-pax-idx="${item.paxIndex}" style="cursor: pointer; width: 16px; height: 16px;">
+        </td>
         <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
         <td><strong style="color: var(--primary-cyan); font-family: var(--font-mono);">${b.pnr}</strong></td>
-        <td><strong>${p.name}</strong></td>
-        <td>${natBadge}</td>
-        <td>${docBadge}</td>
-        <td>${p.gender === 'P' ? 'P' : 'L'} • <small class="text-dim">${p.dob || '-'}</small></td>
-        <td><strong>${b.vesselName}</strong><br><small class="text-dim">${p.className || b.className}</small></td>
-        <td>${b.originCity} ➔ ${b.destinationCity}</td>
-        <td><strong style="color: var(--accent-gold); font-family: var(--font-mono);">${p.seat}</strong></td>
-        <td><span class="status-pill paid">${b.paymentStatus}</span></td>
+        <td>${paxTypeBadge}</td>
+        <td><strong style="color: #fff;">${p.name}</strong></td>
+        <td style="text-align: center; font-weight: 600;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #38bdf8;">L</span>'}</td>
+        <td><code style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #f8fafc;">${docNum}</code></td>
+        <td>${p.dob || '-'} <small class="text-dim">(${p.age ? p.age + ' th' : '-'})</small></td>
+        <td>${p.nationality || 'Indonesia'}</td>
+        <td style="font-size: 0.8rem; color: var(--text-dim); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
+        <td><strong>${b.vesselName}</strong> <span style="color: var(--accent-gold); font-family: var(--font-mono); font-weight: bold;">(${p.seat})</span></td>
         <td>
           <span class="status-pill ${isBoarded ? 'boarded' : 'waiting'}">
             ${isBoarded ? `✓ BOARDED (${b.boardedAt || 'ONBOARD'})` : 'MENUNGGU'}
           </span>
         </td>
+        <td style="white-space: nowrap; text-align: center;">
+          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+            <button type="button" class="btn-action-sm btn-edit-manifest" title="Edit Data Manifest Penumpang (Nama, Dokumen, Umur, Remark)">
+              ✏️ Manifest
+            </button>
+            <button type="button" class="btn-action-sm btn-edit-ticket" title="Edit Tiket (Nomor Kursi, Status Bayar & Boarding)">
+              🎫 Tiket
+            </button>
+            <button type="button" class="btn-action-sm btn-transfer-vessel" title="Alihkan / Transfer Penumpang ke Kapal Lain">
+              🔄 Transfer
+            </button>
+          </div>
+        </td>
       `;
+
+      tr.querySelector('.btn-edit-manifest').addEventListener('click', () => {
+        this.openEditManifestModal(b.pnr, item.paxIndex);
+      });
+      tr.querySelector('.btn-edit-ticket').addEventListener('click', () => {
+        this.openEditTicketModal(b.pnr);
+      });
+      tr.querySelector('.btn-transfer-vessel').addEventListener('click', () => {
+        this.openTransferVesselModal(b.pnr, item.paxIndex, 'SINGLE');
+      });
+
       tbody.appendChild(tr);
     });
+
+    // Check all checkbox listener in manifest table header
+    const checkAllBox = document.getElementById('checkAllManifestTable');
+    if (checkAllBox) {
+      checkAllBox.checked = false;
+      checkAllBox.onchange = () => {
+        document.querySelectorAll('.check-pax-item').forEach(cb => {
+          cb.checked = checkAllBox.checked;
+        });
+      };
+    }
+
+    // Bulk transfer button listener on manifest panel
+    const btnBulkTransfer = document.getElementById('btnOpenBulkTransferModal');
+    if (btnBulkTransfer) {
+      btnBulkTransfer.onclick = () => {
+        const checkedBoxes = Array.from(document.querySelectorAll('.check-pax-item:checked'));
+        const checkedPnrs = Array.from(new Set(checkedBoxes.map(cb => cb.getAttribute('data-pnr'))));
+        if (checkedPnrs.length > 0) {
+          this.openTransferVesselModal(checkedPnrs, 0, 'SELECTED');
+        } else {
+          // If none checked, open modal with all passengers selected by default
+          this.openTransferVesselModal(null, 0, 'ALL');
+        }
+      };
+    }
   },
 
   // Export Manifest CSV (Standard KSOP / Port Clearance Format)
@@ -1417,22 +1622,20 @@ const App = {
     const headers = [
       'No',
       'Kode PNR',
-      'Nama Penumpang',
-      'Kewarganegaraan',
-      'Jenis Dokumen',
-      'Nomor Dokumen',
-      'Masa Berlaku Paspor',
+      'Jenis Penumpang',
+      'Nama Lengkap',
       'Jenis Kelamin',
+      'No. Passport',
       'Tanggal Lahir',
+      'Umur (Tahun)',
+      'Negara Asal',
+      'Remark / Keterangan',
       'Nama Kapal',
-      'Kelas Layanan',
-      'Pelabuhan Asal',
-      'Pelabuhan Tujuan',
-      'Waktu Keberangkatan',
       'Nomor Kursi',
+      'Kelas Layanan',
+      'Rute Keberangkatan',
       'Status Pembayaran',
-      'Status Boarding',
-      'Waktu Boarding'
+      'Status Boarding'
     ];
 
     let rowIdx = 1;
@@ -1444,22 +1647,20 @@ const App = {
         const row = [
           rowIdx++,
           b.pnr,
+          p.paxType || 'Dewasa',
           p.name,
-          p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : 'Indonesia'),
-          p.docType || 'KTP',
-          p.docNumber || p.nik,
-          p.passportExp || '-',
           p.gender === 'P' ? 'Perempuan' : 'Laki-laki',
+          p.passportNo || p.docNumber || p.nik || '-',
           p.dob || '-',
+          p.age ? `${p.age} th` : '-',
+          p.nationality || 'Indonesia',
+          p.remark || '-',
           b.vesselName,
-          p.className || b.className,
-          b.originCity,
-          b.destinationCity,
-          b.departTime,
           p.seat,
+          p.className || b.className,
+          `${b.originCity} ➔ ${b.destinationCity}`,
           b.paymentStatus,
-          b.boardingStatus,
-          b.boardedAt || '-'
+          b.boardingStatus
         ];
         rows.push(row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','));
       });
@@ -1483,15 +1684,37 @@ const App = {
     const modal = document.getElementById('modalOfficialManifestPrint');
     if (!modal) return;
 
+    const ksop = Store.getKsopSettings();
     document.getElementById('docPrintCompanyTitle').innerText = tenant.name.toUpperCase();
-    document.getElementById('docPrintCompanySub').innerText = `Kategori: ${tenant.category} • Pangkalan Pelabuhan: Tunon Taka Nunukan`;
-    document.getElementById('docPrintManifestRef').innerText = `MNF-${tenant.code || 'KSOP'}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+    document.getElementById('docPrintCompanySub').innerText = `Kategori: ${tenant.category} • Pangkalan Pelabuhan: ${ksop.ksopPort || 'Pelabuhan Tunon Taka Nunukan'}`;
+    const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const prefix = ksop.spbPrefix || `MNF-${tenant.code || 'KSOP'}/`;
+    document.getElementById('docPrintManifestRef').innerText = `${prefix}${dateCode}`;
 
     if (bookings.length > 0) {
       document.getElementById('docPrintVesselName').innerText = bookings[0].vesselName;
       document.getElementById('docPrintRoute').innerText = `${bookings[0].originCity} ➔ ${bookings[0].destinationCity}`;
       document.getElementById('docPrintDepTime').innerText = `${bookings[0].departDate || 'Hari Ini'} • ${bookings[0].departTime}`;
     }
+
+    // Populate Official Signatures and Disclaimers
+    const printMaster = document.getElementById('printMasterName');
+    if (printMaster) printMaster.innerText = ksop.masterName || 'Capt. Bambang Prakoso, M.Mar.';
+    const printMasterCert = document.getElementById('printMasterCert');
+    if (printMasterCert) printMasterCert.innerText = `COC: ${ksop.masterCertNo || 'ANT-II / 620019284'}`;
+
+    const printImmi = document.getElementById('printImmigrationOfficer');
+    if (printImmi) printImmi.innerText = ksop.immigrationOfficer || 'Rahmat Hidayat, S.H.';
+    const printImmiNip = document.getElementById('printImmigrationNip');
+    if (printImmiNip) printImmiNip.innerText = ksop.immigrationNip ? `NIP. ${ksop.immigrationNip}` : '-';
+
+    const printKsop = document.getElementById('printKsopOfficer');
+    if (printKsop) printKsop.innerText = ksop.ksopName || 'Capt. Agus Suherman, S.Si.T., M.Mar.';
+    const printKsopNip = document.getElementById('printKsopNip');
+    if (printKsopNip) printKsopNip.innerText = ksop.ksopNip ? `NIP. ${ksop.ksopNip}` : '-';
+
+    const printNotice = document.getElementById('printRegulationNotice');
+    if (printNotice) printNotice.innerText = ksop.regulationNotice || 'Diterbitkan sesuai ketentuan Undang-Undang No. 17 Tahun 2008 tentang Pelayaran dan Peraturan Direktur Jenderal Perhubungan Laut.';
 
     const tbody = document.getElementById('tbodyOfficialManifestPrintList');
     tbody.innerHTML = '';
@@ -1655,6 +1878,493 @@ const App = {
       btnCancelManifestPrint.addEventListener('click', () => {
         document.getElementById('modalOfficialManifestPrint').classList.remove('show');
       });
+    }
+
+    // Modal 1: Edit Manifest Listeners
+    document.getElementById('btnCloseEditManifest')?.addEventListener('click', () => {
+      document.getElementById('modalEditManifest').classList.remove('show');
+    });
+    document.getElementById('btnCancelEditManifest')?.addEventListener('click', () => {
+      document.getElementById('modalEditManifest').classList.remove('show');
+    });
+    document.getElementById('formEditManifest')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pnr = document.getElementById('editManifestPnr').value;
+      const paxIndex = parseInt(document.getElementById('editManifestPaxIndex').value, 10) || 0;
+
+      const updatedPax = {
+        paxType: document.getElementById('editPaxType').value,
+        name: document.getElementById('editPaxName').value.trim(),
+        gender: document.getElementById('editPaxGender').value,
+        docType: 'PASSPORT',
+        passportNo: document.getElementById('editPaxDocNum').value.trim(),
+        docNumber: document.getElementById('editPaxDocNum').value.trim(),
+        nik: document.getElementById('editPaxDocNum').value.trim(),
+        dob: document.getElementById('editPaxDob').value,
+        age: document.getElementById('editPaxAge').value,
+        nationality: document.getElementById('editPaxNationality').value,
+        remark: document.getElementById('editPaxRemark').value.trim()
+      };
+
+      Store.updatePassenger(pnr, paxIndex, updatedPax);
+      document.getElementById('modalEditManifest').classList.remove('show');
+      this.refreshCompanyDashboard();
+      this.showToast('Manifest Diperbarui', `Data manifest penumpang "${updatedPax.name}" (PNR: ${pnr}) berhasil disimpan.`);
+    });
+
+    // Modal 2: Edit Ticket Listeners
+    document.getElementById('btnCloseEditTicket')?.addEventListener('click', () => {
+      document.getElementById('modalEditTicket').classList.remove('show');
+    });
+    document.getElementById('btnCancelEditTicket')?.addEventListener('click', () => {
+      document.getElementById('modalEditTicket').classList.remove('show');
+    });
+    document.getElementById('formEditTicket')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pnr = document.getElementById('editTicketPnr').value;
+      const booking = Store.getBookingByPnr(pnr);
+      if (!booking) return;
+
+      const newSeat = document.getElementById('editTicketSeat').value.trim().toUpperCase();
+      const newClass = document.getElementById('editTicketClass').value;
+      const newPayment = document.getElementById('editTicketPaymentStatus').value;
+      const newBoarding = document.getElementById('editTicketBoardingStatus').value;
+      const contactName = document.getElementById('editTicketContactName').value.trim();
+      const contactPhone = document.getElementById('editTicketContactPhone').value.trim();
+
+      booking.className = newClass;
+      booking.paymentStatus = newPayment;
+      booking.boardingStatus = newBoarding;
+      if (newBoarding === 'BOARDED' && !booking.boardedAt) {
+        booking.boardedAt = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+      }
+      if (booking.contact) {
+        booking.contact.name = contactName || booking.contact.name;
+        booking.contact.phone = contactPhone || booking.contact.phone;
+      }
+      if (booking.passengers && booking.passengers[0]) {
+        booking.passengers[0].seat = newSeat;
+        booking.passengers[0].className = newClass;
+      }
+
+      Store.updateBooking(booking);
+      document.getElementById('modalEditTicket').classList.remove('show');
+      this.refreshCompanyDashboard();
+      this.showToast('Tiket Diperbarui', `Tiket ${pnr} berhasil diupdate: Kursi ${newSeat}, Status ${newPayment}.`);
+    });
+
+    // Modal 3: Transfer Vessel Listeners
+    document.getElementById('btnCloseTransferVessel')?.addEventListener('click', () => {
+      document.getElementById('modalTransferVessel').classList.remove('show');
+    });
+    document.getElementById('btnCancelTransferVessel')?.addEventListener('click', () => {
+      document.getElementById('modalTransferVessel').classList.remove('show');
+    });
+    document.getElementById('formTransferVessel')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tenant = Store.getCurrentTenant();
+      const targetSchedId = document.getElementById('transferTargetScheduleSelect').value;
+      const checkedBoxes = Array.from(document.querySelectorAll('#transferPaxListContainer .check-transfer-modal-pax:checked'));
+      const pnrList = Array.from(new Set(checkedBoxes.map(cb => cb.getAttribute('data-pnr'))));
+      const newSeatVal = document.getElementById('transferNewSeatInput').value.trim().toUpperCase();
+      const reason = document.getElementById('transferReasonSelect').value;
+      const extraRemark = document.getElementById('transferRemarkInput').value.trim();
+
+      if (!targetSchedId) {
+        this.showToast('Jadwal Kosong', 'Pilih jadwal kapal tujuan transfer terlebih dahulu.', 'warning');
+        return;
+      }
+
+      if (pnrList.length === 0) {
+        this.showToast('Belum Ada Penumpang', 'Pilih minimal satu penumpang untuk dialihkan.', 'warning');
+        return;
+      }
+
+      const schedules = Store.getSchedulesByCompany(tenant.id);
+      const targetSched = schedules.find(s => s.id === targetSchedId);
+      const fleet = Store.getVesselsByCompany(tenant.id);
+
+      let targetVesselName = 'Armada Baru';
+      let targetVesselId = '';
+      let departTime = '';
+      let arrivalTime = '';
+      let pier = '';
+
+      if (targetSched) {
+        targetVesselId = targetSched.vesselId;
+        const v = fleet.find(f => f.id === targetSched.vesselId);
+        targetVesselName = v ? v.name : (targetSched.vesselNameCustom || 'Armada Baru');
+        departTime = targetSched.departTime;
+        arrivalTime = targetSched.arrivalTime;
+        pier = targetSched.pier;
+      }
+
+      const finalReason = extraRemark ? `${reason} (${extraRemark})` : reason;
+
+      if (pnrList.length === 1) {
+        // Single passenger transfer
+        const transferData = {
+          scheduleId: targetSchedId,
+          vesselId: targetVesselId,
+          vesselName: targetVesselName,
+          departTime,
+          arrivalTime,
+          pier,
+          newSeat: newSeatVal || 'A-01',
+          reason: finalReason
+        };
+        Store.transferBookingVessel(pnrList[0], transferData);
+        this.showToast('Transfer Berhasil!', `Penumpang tiket ${pnrList[0]} resmi dialihkan ke ${targetVesselName} (Kursi: ${transferData.newSeat}).`);
+      } else {
+        // Batch / All passengers transfer
+        const transferData = {
+          scheduleId: targetSchedId,
+          vesselId: targetVesselId,
+          vesselName: targetVesselName,
+          departTime,
+          arrivalTime,
+          pier,
+          seatMode: newSeatVal.includes('OTOMATIS') ? 'AUTO' : 'PRESERVE',
+          reason: finalReason
+        };
+        const count = Store.batchTransferPassengers(pnrList, transferData);
+        this.showToast('Transfer Massal Berhasil!', `${count} Penumpang resmi dialihkan serentak ke ${targetVesselName}.`);
+      }
+
+      document.getElementById('modalTransferVessel').classList.remove('show');
+      this.refreshCompanyDashboard();
+    });
+  },
+
+  // Open Modal 1: Edit Manifest
+  openEditManifestModal(pnr, paxIndex = 0) {
+    const booking = Store.getBookingByPnr(pnr);
+    if (!booking || !booking.passengers || !booking.passengers[paxIndex]) {
+      this.showToast('Data Tidak Ditemukan', 'Data penumpang tidak ditemukan.', 'warning');
+      return;
+    }
+
+    const p = booking.passengers[paxIndex];
+    document.getElementById('editManifestPnr').value = pnr;
+    document.getElementById('editManifestPaxIndex').value = paxIndex;
+    document.getElementById('editManifestPnrLabel').innerText = `${pnr} (Kursi: ${p.seat})`;
+
+    document.getElementById('editPaxType').value = p.paxType || 'Dewasa';
+    document.getElementById('editPaxName').value = p.name || '';
+    document.getElementById('editPaxGender').value = p.gender || 'L';
+    document.getElementById('editPaxDocNum').value = p.passportNo || p.docNumber || p.nik || '';
+    document.getElementById('editPaxDob').value = p.dob || '';
+    document.getElementById('editPaxAge').value = p.age || '';
+    document.getElementById('editPaxNationality').value = p.nationality || 'Indonesia';
+    document.getElementById('editPaxRemark').value = p.remark || '';
+
+    // Auto-calculate age listener for edit form
+    const dobInput = document.getElementById('editPaxDob');
+    const ageInput = document.getElementById('editPaxAge');
+    const typeInput = document.getElementById('editPaxType');
+
+    dobInput.onchange = () => {
+      if (dobInput.value) {
+        const birthDate = new Date(dobInput.value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        if (age >= 0) {
+          ageInput.value = age;
+          if (age < 2) typeInput.value = 'Bayi';
+          else if (age < 12) typeInput.value = 'Anak';
+          else typeInput.value = 'Dewasa';
+        }
+      }
+    };
+
+    document.getElementById('modalEditManifest').classList.add('show');
+  },
+
+  // Open Modal 2: Edit Ticket
+  openEditTicketModal(pnr) {
+    const booking = Store.getBookingByPnr(pnr);
+    if (!booking) {
+      this.showToast('Tiket Tidak Ditemukan', `Tiket ${pnr} tidak ditemukan.`, 'warning');
+      return;
+    }
+
+    document.getElementById('editTicketPnr').value = pnr;
+    document.getElementById('editTicketPnrLabel').innerText = `${pnr} • ${booking.vesselName}`;
+
+    const p0 = booking.passengers && booking.passengers[0] ? booking.passengers[0] : {};
+    document.getElementById('editTicketSeat').value = p0.seat || '';
+    document.getElementById('editTicketClass').value = booking.className || 'Ekonomi (Main Deck)';
+    document.getElementById('editTicketPaymentStatus').value = booking.paymentStatus || 'PAID';
+    document.getElementById('editTicketBoardingStatus').value = booking.boardingStatus || 'NOT_CHECKED_IN';
+    document.getElementById('editTicketContactName').value = booking.contact ? booking.contact.name : (p0.name || '');
+    document.getElementById('editTicketContactPhone').value = booking.contact ? booking.contact.phone : '';
+
+    document.getElementById('modalEditTicket').classList.add('show');
+  },
+
+  // Open Modal 3: Transfer Vessel (Dengan Opsi Pilih Semua vs Pilih Satu-Satu)
+  openTransferVesselModal(pnrOrList = null, paxIndex = 0, initialMode = 'SINGLE') {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const allBookings = Store.getBookingsByCompany(tenant.id);
+    if (allBookings.length === 0) {
+      this.showToast('Data Kosong', 'Belum ada data penumpang terdaftar untuk ditransfer.', 'warning');
+      return;
+    }
+
+    // Determine target PNR list
+    let selectedPnrs = [];
+    if (Array.isArray(pnrOrList)) {
+      selectedPnrs = pnrOrList;
+    } else if (typeof pnrOrList === 'string') {
+      selectedPnrs = [pnrOrList];
+    } else {
+      // Default to all PNRs
+      selectedPnrs = allBookings.map(b => b.pnr);
+    }
+
+    // Determine initial active vessel and route for origin display
+    const firstBooking = allBookings.find(b => selectedPnrs.includes(b.pnr)) || allBookings[0];
+    document.getElementById('transferCurrentVessel').innerText = firstBooking ? firstBooking.vesselName : 'Armada Perusahaan';
+    document.getElementById('transferCurrentRoute').innerText = firstBooking 
+      ? `${firstBooking.originCity} ➔ ${firstBooking.destinationCity} • ${firstBooking.departTime || 'Jadwal Reguler'}` 
+      : 'Rute Pelayaran';
+
+    // Populate schedules of company
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const fleet = Store.getVesselsByCompany(tenant.id);
+    const select = document.getElementById('transferTargetScheduleSelect');
+    select.innerHTML = '';
+
+    if (schedules.length === 0) {
+      select.add(new Option(`Belum ada jadwal lain milik ${tenant.name}. Tambahkan jadwal baru terlebih dahulu.`, ''));
+    } else {
+      schedules.forEach(s => {
+        const v = fleet.find(f => f.id === s.vesselId);
+        const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
+        const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
+        const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
+        const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${s.status}]`;
+        const opt = new Option(label, s.id);
+        if (firstBooking && s.id === firstBooking.scheduleId) {
+          opt.text += ' (Jadwal Saat Ini)';
+        }
+        select.add(opt);
+      });
+    }
+
+    // Render Checklist Penumpang Asal
+    const container = document.getElementById('transferPaxListContainer');
+    container.innerHTML = '';
+
+    allBookings.forEach(b => {
+      b.passengers.forEach((p, pIdx) => {
+        const isChecked = selectedPnrs.includes(b.pnr);
+        const row = document.createElement('label');
+        row.className = 'transfer-pax-row';
+        row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.2s;';
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" class="check-transfer-modal-pax" data-pnr="${b.pnr}" data-seat="${p.seat}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px;">
+            <div>
+              <strong style="color: #fff;">${p.name}</strong>
+              <small class="text-dim" style="margin-left: 6px;">(${p.paxType || 'Dewasa'})</small>
+              <div style="font-size: 0.72rem; color: #94a3b8;">
+                PNR: <code style="color: var(--primary-cyan); font-weight: bold;">${b.pnr}</code> • Paspor/NIK: <code>${p.passportNo || p.docNumber || p.nik || '-'}</code>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); border-color: var(--accent-gold);">
+              Kursi: ${p.seat}
+            </span>
+            <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">${b.vesselName}</div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    });
+
+    // Update Counter Function
+    const updateSelectedCount = () => {
+      const checkedBoxes = container.querySelectorAll('.check-transfer-modal-pax:checked');
+      const count = checkedBoxes.length;
+      const badge = document.getElementById('transferSelectedCountBadge');
+      const submitText = document.getElementById('btnTransferSubmitText');
+      const seatInput = document.getElementById('transferNewSeatInput');
+      const helper = document.getElementById('transferSeatHelper');
+
+      if (badge) badge.innerText = `${count} Penumpang Dipilih`;
+      if (submitText) submitText.innerText = count > 1 
+        ? `Konfirmasi Transfer (${count} Penumpang Sekaligus)` 
+        : (count === 1 ? `Konfirmasi Transfer 1 Penumpang` : `Pilih Penumpang untuk Ditransfer`);
+
+      if (count > 1) {
+        seatInput.value = 'OTOMATIS (Berurutan)';
+        seatInput.placeholder = 'OTOMATIS (Berurutan)';
+        if (helper) helper.innerText = 'Untuk transfer banyak penumpang, sistem otomatis mengalokasikan kursi berurutan di kapal baru.';
+      } else if (count === 1) {
+        const firstChecked = checkedBoxes[0];
+        seatInput.value = firstChecked ? (firstChecked.getAttribute('data-seat') || 'A-01') : 'A-01';
+        if (helper) helper.innerText = 'Nomor kursi spesifik untuk penumpang terpilih di kapal baru.';
+      } else {
+        seatInput.value = '';
+      }
+    };
+
+    // Attach checkbox changes
+    container.querySelectorAll('.check-transfer-modal-pax').forEach(cb => {
+      cb.addEventListener('change', updateSelectedCount);
+    });
+
+    // Button Select All & Unselect All inside modal
+    const btnSelectAll = document.getElementById('btnSelectAllTransferPax');
+    if (btnSelectAll) {
+      btnSelectAll.onclick = () => {
+        container.querySelectorAll('.check-transfer-modal-pax').forEach(cb => { cb.checked = true; });
+        const rAll = document.querySelector('input[name="transferScopeMode"][value="ALL"]');
+        if (rAll) rAll.checked = true;
+        document.getElementById('pillTransferModeAll')?.classList.add('active');
+        document.getElementById('pillTransferModeSingle')?.classList.remove('active');
+        updateSelectedCount();
+      };
+    }
+
+    const btnUnselectAll = document.getElementById('btnUnselectAllTransferPax');
+    if (btnUnselectAll) {
+      btnUnselectAll.onclick = () => {
+        container.querySelectorAll('.check-transfer-modal-pax').forEach(cb => { cb.checked = false; });
+        const rSingle = document.querySelector('input[name="transferScopeMode"][value="SINGLE"]');
+        if (rSingle) rSingle.checked = true;
+        document.getElementById('pillTransferModeSingle')?.classList.add('active');
+        document.getElementById('pillTransferModeAll')?.classList.remove('active');
+        updateSelectedCount();
+      };
+    }
+
+    // Radio Scope Modes (Single vs All)
+    const radioSingle = document.querySelector('input[name="transferScopeMode"][value="SINGLE"]');
+    const radioAll = document.querySelector('input[name="transferScopeMode"][value="ALL"]');
+    const pillSingle = document.getElementById('pillTransferModeSingle');
+    const pillAll = document.getElementById('pillTransferModeAll');
+
+    if (initialMode === 'ALL' || selectedPnrs.length > 1) {
+      if (radioAll) radioAll.checked = true;
+      if (pillAll) pillAll.classList.add('active');
+      if (pillSingle) pillSingle.classList.remove('active');
+    } else {
+      if (radioSingle) radioSingle.checked = true;
+      if (pillSingle) pillSingle.classList.add('active');
+      if (pillAll) pillAll.classList.remove('active');
+    }
+
+    if (pillSingle && pillAll) {
+      pillSingle.onclick = () => {
+        if (radioSingle) radioSingle.checked = true;
+        pillSingle.classList.add('active');
+        pillAll.classList.remove('active');
+        // Uncheck all except first
+        const boxes = container.querySelectorAll('.check-transfer-modal-pax');
+        boxes.forEach((cb, i) => { cb.checked = (i === 0); });
+        updateSelectedCount();
+      };
+      pillAll.onclick = () => {
+        if (radioAll) radioAll.checked = true;
+        pillAll.classList.add('active');
+        pillSingle.classList.remove('active');
+        // Check all
+        container.querySelectorAll('.check-transfer-modal-pax').forEach(cb => { cb.checked = true; });
+        updateSelectedCount();
+      };
+    }
+
+    updateSelectedCount();
+    document.getElementById('transferRemarkInput').value = `Pengalihan resmi penumpang kapal`;
+    document.getElementById('modalTransferVessel').classList.add('show');
+  },
+
+  // Load KSOP & Maritime Settings to Form
+  loadKsopSettingsToForm() {
+    const s = Store.getKsopSettings();
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    };
+
+    setVal('settingKsopName', s.ksopName);
+    setVal('settingKsopNip', s.ksopNip);
+    setVal('settingKsopRank', s.ksopRank);
+    setVal('settingKsopOffice', s.ksopOffice);
+    setVal('settingKsopPort', s.ksopPort);
+
+    setVal('settingInspectorName', s.inspectorName);
+    setVal('settingInspectorNip', s.inspectorNip);
+    setVal('settingInspectorTitle', s.inspectorTitle);
+
+    setVal('settingMasterName', s.masterName);
+    setVal('settingMasterCertNo', s.masterCertNo);
+
+    setVal('settingImmigrationOfficer', s.immigrationOfficer);
+    setVal('settingImmigrationNip', s.immigrationNip);
+
+    setVal('settingCustomsOfficer', s.customsOfficer);
+    setVal('settingQuarantineOfficer', s.quarantineOfficer);
+
+    setVal('settingSpbPrefix', s.spbPrefix);
+    setVal('settingRegulationNotice', s.regulationNotice);
+  },
+
+  // Initialize KSOP Settings Submit & Reset
+  initKsopSettingsEvents() {
+    const form = document.getElementById('formKsopSettings');
+    if (form && !this.ksopSettingsInitialized) {
+      this.ksopSettingsInitialized = true;
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+
+        const updatedSettings = {
+          ksopName: getVal('settingKsopName'),
+          ksopNip: getVal('settingKsopNip'),
+          ksopRank: getVal('settingKsopRank'),
+          ksopOffice: getVal('settingKsopOffice'),
+          ksopPort: getVal('settingKsopPort'),
+
+          inspectorName: getVal('settingInspectorName'),
+          inspectorNip: getVal('settingInspectorNip'),
+          inspectorTitle: getVal('settingInspectorTitle'),
+
+          masterName: getVal('settingMasterName'),
+          masterCertNo: getVal('settingMasterCertNo'),
+
+          immigrationOfficer: getVal('settingImmigrationOfficer'),
+          immigrationNip: getVal('settingImmigrationNip'),
+
+          customsOfficer: getVal('settingCustomsOfficer'),
+          quarantineOfficer: getVal('settingQuarantineOfficer'),
+
+          spbPrefix: getVal('settingSpbPrefix'),
+          regulationNotice: getVal('settingRegulationNotice')
+        };
+
+        Store.saveKsopSettings(updatedSettings);
+        this.showToast('Pengaturan KSOP Tersimpan', 'Identitas Kepala KSOP, Syahbandar, Nakhoda, dan Otoritas Maritim resmi diperbarui.');
+      });
+
+      const btnReset = document.getElementById('btnResetKsopDefaults');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => {
+          if (confirm('Kembalikan pengaturan pejabat ke data standar resmi KSOP Nunukan & Ditjen Hubla?')) {
+            Store.saveKsopSettings(DEFAULT_KSOP_SETTINGS);
+            this.loadKsopSettingsToForm();
+            this.showToast('Standar KSOP Dipulihkan', 'Pengaturan berhasil direset ke standar resmi KSOP.');
+          }
+        });
+      }
     }
   },
 
