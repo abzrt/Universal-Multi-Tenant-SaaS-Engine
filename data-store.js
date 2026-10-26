@@ -297,6 +297,14 @@ const Store = {
         // Auto assign seat or preserve
         if (transferData.seatMode === 'PRESERVE') {
           // Keep current seat
+        } else if (transferData.seatMode === 'AUTO') {
+          // Sequential seat allocation in destination vessel
+          if (b.passengers) {
+            b.passengers.forEach((p, pIdx) => {
+              const seatNum = String(count + pIdx + 1).padStart(2, '0');
+              p.seat = `B-${seatNum}`;
+            });
+          }
         } else if (transferData.seatMap && transferData.seatMap[b.pnr]) {
           if (b.passengers && b.passengers[0]) {
             b.passengers[0].seat = transferData.seatMap[b.pnr];

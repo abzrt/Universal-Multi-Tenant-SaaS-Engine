@@ -7,6 +7,14 @@ const App = {
   selectedCompanyFilter: 'ALL',
   currentBookingSchedule: null,
   selectedSeats: [],
+  calendarState: {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(),
+    viewMode: 'GRID',
+    filterVessel: 'ALL',
+    filterRoute: 'ALL',
+    selectedVoyageId: null
+  },
 
   init() {
     this.initDates();
@@ -16,6 +24,7 @@ const App = {
     this.initCustomerEvents();
     this.initAuthEvents();
     this.initDashboardEvents();
+    this.initCalendarEvents();
     this.initModals();
 
     // Check if a company session already exists
@@ -162,6 +171,32 @@ const App = {
           this.switchView('weatherHome');
         }
       });
+
+      // Interactive 3D Cursor Tilt & Magnetic Depth on Tech Solution Logo
+      const logoWrap = document.getElementById('brandLogoWrap');
+      const logoImg = document.getElementById('brandLogoImg');
+      if (logoWrap) {
+        brandHome.addEventListener('mousemove', (e) => {
+          const rect = logoWrap.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const deltaX = (e.clientX - centerX) / (rect.width / 2);
+          const deltaY = (e.clientY - centerY) / (rect.height / 2);
+
+          const tiltX = -deltaY * 18;
+          const tiltY = deltaX * 18;
+
+          logoWrap.style.transform = `perspective(500px) rotateX(${tiltX.toFixed(1)}deg) rotateY(${tiltY.toFixed(1)}deg) translateY(-3px) scale(1.1)`;
+          if (logoImg) {
+            logoImg.style.transform = `translateZ(25px) scale(1.15) translate(${(deltaX * 3).toFixed(1)}px, ${(deltaY * 3).toFixed(1)}px)`;
+          }
+        });
+
+        brandHome.addEventListener('mouseleave', () => {
+          logoWrap.style.transform = '';
+          if (logoImg) logoImg.style.transform = '';
+        });
+      }
     }
 
     // Swap ports
@@ -873,7 +908,7 @@ const App = {
 
     if (companies.length === 0) {
       grid.innerHTML = `
-        <div style="background: rgba(15, 23, 42, 0.4); border: 1px dashed var(--border-line); border-radius: var(--radius-md); padding: 0.85rem 1rem; color: var(--text-dim); font-size: 0.83rem; line-height: 1.5; grid-column: 1 / -1;">
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius-md); padding: 0.85rem 1rem; color: #64748b; font-size: 0.83rem; line-height: 1.5; grid-column: 1 / -1;">
           Belum ada perusahaan terdaftar. Silakan daftarkan perusahaan pelayaran Anda melalui formulir di samping untuk otomatis membuat portal masuk resmi.
         </div>
       `;
@@ -977,6 +1012,7 @@ const App = {
         categoryType: isIntl ? 'INTERNATIONAL' : 'DOMESTIC',
         originId: 'NNK',
         destinationId: isIntl ? 'TWU' : 'PRE',
+        departDate: new Date().toISOString().split('T')[0],
         departTime: '08:30',
         arrivalTime: isIntl ? '10:00' : '18:30',
         durationText: isIntl ? '1.5 Jam (Lintas Batas)' : '27 Jam (Direct Sea)',
@@ -1012,6 +1048,14 @@ const App = {
       if (tabKey === 'tabManifest') document.getElementById('paneManifest')?.classList.add('active');
       if (tabKey === 'tabScanner') document.getElementById('paneScanner')?.classList.add('active');
       if (tabKey === 'tabTicketing') document.getElementById('paneTicketing')?.classList.add('active');
+      if (tabKey === 'tabSeats') {
+        document.getElementById('paneSeats')?.classList.add('active');
+        this.renderSeatDashboard();
+      }
+      if (tabKey === 'tabCalendar') {
+        document.getElementById('paneCalendar')?.classList.add('active');
+        this.renderVoyageCalendar();
+      }
       if (tabKey === 'tabSettings') {
         document.getElementById('paneSettings')?.classList.add('active');
         this.loadKsopSettingsToForm();
@@ -1111,18 +1155,12 @@ const App = {
       document.getElementById('modalAddVessel').classList.add('show');
     });
 
-    // Add Schedule Modal trigger
+    // Add Schedule Modal triggers
     document.getElementById('btnOpenAddSchedule').addEventListener('click', () => {
-      const tenant = Store.getCurrentTenant();
-      const vessels = Store.getVesselsByCompany(tenant.id);
-      const sel = document.getElementById('schedVesselSelect');
-      sel.innerHTML = '';
-      if (vessels.length === 0) {
-        sel.add(new Option(`${tenant.shortName} Express 01`, 'VES-NEW'));
-      } else {
-        vessels.forEach(v => sel.add(new Option(`${v.name} (${v.type})`, v.id)));
-      }
-      document.getElementById('modalAddSchedule').classList.add('show');
+      this.openAddScheduleModal();
+    });
+    document.getElementById('subBtnAddSchedule')?.addEventListener('click', () => {
+      this.openAddScheduleModal();
     });
 
     // Submit Add Vessel Form
@@ -1154,41 +1192,77 @@ const App = {
       this.showToast('Armada Ditambahkan', `Kapal "${name}" berhasil terdaftar di bawah ${tenant.name}.`);
     });
 
-    // Submit Add Schedule Form
+    // Submit Add Schedule Form (Dengan Dukungan Tanggal & Pola Keberangkatan Kalender)
     document.getElementById('formAddSchedule').addEventListener('submit', (e) => {
       e.preventDefault();
       const tenant = Store.getCurrentTenant();
       const vesselId = document.getElementById('schedVesselSelect').value;
       const originId = document.getElementById('schedOriginSelect').value;
       const destinationId = document.getElementById('schedDestSelect').value;
+      const dateVal = document.getElementById('schedDateInput')?.value || new Date().toISOString().split('T')[0];
+      const recurrence = document.getElementById('schedRecurrenceSelect')?.value || 'ONCE';
       const departTime = document.getElementById('schedDepartTime').value;
       const arrivalTime = document.getElementById('schedArrivalTime').value;
       const pier = document.getElementById('schedPierInput').value.trim();
       const priceVip = parseInt(document.getElementById('schedPriceVip').value, 10);
       const priceEko = parseInt(document.getElementById('schedPriceEko').value, 10);
 
-      const newSched = {
-        id: `SCH-${tenant.code || 'OP'}-${Date.now().toString(36).toUpperCase()}`,
+      const fleet = Store.getVesselsByCompany(tenant.id);
+      const vessel = fleet.find(v => v.id === vesselId);
+      const vName = vessel ? vessel.name : 'KM Armada';
+
+      const createSchedObj = (dStr) => ({
+        id: `SCH-${tenant.code || 'OP'}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`,
         companyId: tenant.id,
         vesselId,
+        vesselNameCustom: vName,
         originId,
         destinationId,
+        departDate: dStr,
         departTime,
         arrivalTime,
         daysToAdd: 0,
         pier,
-        status: 'ACTIVE',
+        status: 'Aktif',
         classes: [
           { id: 'cls-vip', name: 'VIP Suite Class', price: priceVip, quota: 20, booked: 0 },
           { id: 'cls-eko', name: 'Ekonomi Reclining', price: priceEko, quota: 100, booked: 0 }
         ]
-      };
+      });
 
-      Store.addSchedule(newSched);
+      let addedCount = 0;
+      if (recurrence === 'DAILY_WEEK') {
+        const base = new Date(dateVal);
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(base);
+          d.setDate(base.getDate() + i);
+          const dStr = d.toISOString().split('T')[0];
+          Store.addSchedule(createSchedObj(dStr));
+          addedCount++;
+        }
+      } else if (recurrence === 'DAILY_MONTH') {
+        const base = new Date(dateVal);
+        const y = base.getFullYear();
+        const m = base.getMonth();
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        for (let day = base.getDate(); day <= lastDay; day++) {
+          const d = new Date(y, m, day);
+          const dStr = d.toISOString().split('T')[0];
+          Store.addSchedule(createSchedObj(dStr));
+          addedCount++;
+        }
+      } else {
+        Store.addSchedule(createSchedObj(dateVal));
+        addedCount = 1;
+      }
+
       document.getElementById('modalAddSchedule').classList.remove('show');
       document.getElementById('formAddSchedule').reset();
       this.refreshCompanyDashboard();
-      this.showToast('Jadwal Dipublikasikan', `Rute ${originId} ➔ ${destinationId} berhasil dibuka untuk umum.`);
+      if (document.getElementById('paneCalendar')?.classList.contains('active')) {
+        this.renderVoyageCalendar();
+      }
+      this.showToast('Jadwal Pelayaran Terbit', `${addedCount} jadwal pelayaran ${vName} rute ${originId} ➔ ${destinationId} berhasil diterbitkan di kalender!`);
     });
 
     // Initialize KSOP Settings Events
@@ -1218,6 +1292,8 @@ const App = {
     if (badgeFleet) badgeFleet.innerText = fleet.length;
     const badgeSched = document.getElementById('countSchedBadge');
     if (badgeSched) badgeSched.innerText = schedules.length;
+    const badgeCal = document.getElementById('countCalendarBadge');
+    if (badgeCal) badgeCal.innerText = schedules.length;
     const badgeManifest = document.getElementById('countManifestBadge');
     if (badgeManifest) badgeManifest.innerText = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
 
@@ -1453,6 +1529,11 @@ const App = {
         scanChipsWrap.appendChild(chip);
       });
     }
+
+    // Refresh Live Seat Map Dashboard if active
+    if (document.getElementById('paneSeats')?.classList.contains('active')) {
+      this.renderSeatDashboard();
+    }
   },
 
   // Render Manifest Table with Filters and Stats
@@ -1545,9 +1626,9 @@ const App = {
         <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
         <td><strong style="color: var(--primary-cyan); font-family: var(--font-mono);">${b.pnr}</strong></td>
         <td>${paxTypeBadge}</td>
-        <td><strong style="color: #fff;">${p.name}</strong></td>
-        <td style="text-align: center; font-weight: 600;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #38bdf8;">L</span>'}</td>
-        <td><code style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #f8fafc;">${docNum}</code></td>
+        <td><strong style="color: #0f172a;">${p.name}</strong></td>
+        <td style="text-align: center; font-weight: 600;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #0284c7;">L</span>'}</td>
+        <td><code style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #0f172a;">${docNum}</code></td>
         <td>${p.dob || '-'} <small class="text-dim">(${p.age ? p.age + ' th' : '-'})</small></td>
         <td>${p.nationality || 'Indonesia'}</td>
         <td style="font-size: 0.8rem; color: var(--text-dim); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
@@ -1780,10 +1861,10 @@ const App = {
 
         <h3 style="font-size: 1.35rem; margin: 0.25rem 0;">${p0.name}</h3>
         <p class="text-dim" style="font-size: 0.85rem;">
-          ${docLabel}: <code style="color: #fff; font-weight: bold;">${p0.docNumber || p0.nik}</code> • Kursi: <strong style="color: var(--primary-cyan);">${booking.passengers.map(p => p.seat).join(', ')}</strong> (${booking.className})
+          ${docLabel}: <code style="color: #0f172a; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${p0.docNumber || p0.nik}</code> • Kursi: <strong style="color: var(--primary-cyan);">${booking.passengers.map(p => p.seat).join(', ')}</strong> (${booking.className})
         </p>
 
-        <div style="margin: 0.85rem 0; font-size: 0.84rem; background: rgba(7, 14, 27, 0.5); padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--border-line);">
+        <div style="margin: 0.85rem 0; font-size: 0.84rem; background: #f8fafc; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--border-line);">
           <div>Kapal: <strong>${booking.vesselName}</strong></div>
           <div>Rute: <strong>${booking.originCity} ➔ ${booking.destinationCity}</strong> (${booking.departTime})</div>
           <div>Dermaga: <strong>${booking.pier}</strong></div>
@@ -1963,15 +2044,15 @@ const App = {
     document.getElementById('formTransferVessel')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const tenant = Store.getCurrentTenant();
-      const targetSchedId = document.getElementById('transferTargetScheduleSelect').value;
+      const targetSchedRaw = document.getElementById('transferTargetScheduleSelect').value;
       const checkedBoxes = Array.from(document.querySelectorAll('#transferPaxListContainer .check-transfer-modal-pax:checked'));
       const pnrList = Array.from(new Set(checkedBoxes.map(cb => cb.getAttribute('data-pnr'))));
       const newSeatVal = document.getElementById('transferNewSeatInput').value.trim().toUpperCase();
       const reason = document.getElementById('transferReasonSelect').value;
       const extraRemark = document.getElementById('transferRemarkInput').value.trim();
 
-      if (!targetSchedId) {
-        this.showToast('Jadwal Kosong', 'Pilih jadwal kapal tujuan transfer terlebih dahulu.', 'warning');
+      if (!targetSchedRaw) {
+        this.showToast('Jadwal Kosong', 'Pilih kapal atau jadwal tujuan transfer terlebih dahulu.', 'warning');
         return;
       }
 
@@ -1980,23 +2061,120 @@ const App = {
         return;
       }
 
-      const schedules = Store.getSchedulesByCompany(tenant.id);
-      const targetSched = schedules.find(s => s.id === targetSchedId);
-      const fleet = Store.getVesselsByCompany(tenant.id);
+      const allBookings = Store.getBookingsByCompany(tenant.id);
+      const firstBooking = allBookings.find(b => pnrList.includes(b.pnr)) || allBookings[0];
+      const currentSchedId = firstBooking ? firstBooking.scheduleId : null;
 
-      let targetVesselName = 'Armada Baru';
+      // Prevent transferring to the exact same schedule
+      if (currentSchedId && (targetSchedRaw === currentSchedId || targetSchedRaw === `SCHED:${currentSchedId}`)) {
+        this.showToast('Tujuan Tidak Valid', 'Kapal tujuan transfer tidak boleh sama dengan jadwal pelayaran saat ini! Pilih jadwal atau armada lain.', 'warning');
+        return;
+      }
+
+      let targetSchedId = '';
       let targetVesselId = '';
+      let targetVesselName = 'Armada Pengganti';
       let departTime = '';
       let arrivalTime = '';
-      let pier = '';
+      let pier = 'Dermaga Penumpang';
+      let companyEndorsement = '';
 
-      if (targetSched) {
-        targetVesselId = targetSched.vesselId;
-        const v = fleet.find(f => f.id === targetSched.vesselId);
-        targetVesselName = v ? v.name : (targetSched.vesselNameCustom || 'Armada Baru');
-        departTime = targetSched.departTime;
-        arrivalTime = targetSched.arrivalTime;
-        pier = targetSched.pier;
+      const fleet = Store.getVesselsByCompany(tenant.id);
+      const allSchedules = Store.getSchedules();
+
+      if (targetSchedRaw === 'CREATE_EMERGENCY_BACKUP') {
+        // Auto provision backup vessel & schedule
+        const backupName = `${tenant.shortName || tenant.name} Express 02 (Armada Cadangan)`;
+        let backupVessel = fleet.find(f => f.name.includes('Cadangan') || f.name.includes('02'));
+        if (!backupVessel) {
+          backupVessel = Store.addVessel({
+            id: 'VESSEL-' + Date.now().toString(36),
+            companyId: tenant.id,
+            name: backupName,
+            code: 'CAD-02',
+            capacity: 250,
+            type: 'Kapal Cepat Cadangan (KSOP Authorized)',
+            status: 'ACTIVE'
+          });
+        }
+        const origId = firstBooking ? (firstBooking.originId || 'NNK') : 'NNK';
+        const destId = firstBooking ? (firstBooking.destinationId || 'TWU') : 'TWU';
+        const newSched = Store.addSchedule({
+          id: 'SCH-EMG-' + Date.now().toString(36),
+          companyId: tenant.id,
+          vesselId: backupVessel.id,
+          vesselNameCustom: backupVessel.name,
+          originId: origId,
+          destinationId: destId,
+          departTime: firstBooking && firstBooking.departTime ? firstBooking.departTime : '09:00',
+          arrivalTime: firstBooking && firstBooking.arrivalTime ? firstBooking.arrivalTime : '10:30',
+          date: firstBooking && firstBooking.bookingDate ? firstBooking.bookingDate : new Date().toISOString().split('T')[0],
+          pier: 'Dermaga Cadangan KSOP',
+          priceEconomy: firstBooking ? (firstBooking.totalFare || 250000) : 250000,
+          priceVip: 350000,
+          quotaTotal: 250,
+          quotaBooked: 0,
+          status: 'ACTIVE'
+        });
+        targetSchedId = newSched.id;
+        targetVesselId = backupVessel.id;
+        targetVesselName = backupVessel.name;
+        departTime = newSched.departTime;
+        arrivalTime = newSched.arrivalTime;
+        pier = newSched.pier;
+      } else if (targetSchedRaw.startsWith('BACKUP_VESSEL:')) {
+        const vId = targetSchedRaw.replace('BACKUP_VESSEL:', '');
+        const backupVessel = fleet.find(f => f.id === vId) || { id: vId, name: 'Armada Cadangan' };
+        const origId = firstBooking ? (firstBooking.originId || 'NNK') : 'NNK';
+        const destId = firstBooking ? (firstBooking.destinationId || 'TWU') : 'TWU';
+        const newSched = Store.addSchedule({
+          id: 'SCH-EMG-' + Date.now().toString(36),
+          companyId: tenant.id,
+          vesselId: backupVessel.id,
+          vesselNameCustom: backupVessel.name,
+          originId: origId,
+          destinationId: destId,
+          departTime: firstBooking && firstBooking.departTime ? firstBooking.departTime : '09:00',
+          arrivalTime: firstBooking && firstBooking.arrivalTime ? firstBooking.arrivalTime : '10:30',
+          date: firstBooking && firstBooking.bookingDate ? firstBooking.bookingDate : new Date().toISOString().split('T')[0],
+          pier: 'Dermaga Cadangan KSOP',
+          priceEconomy: firstBooking ? (firstBooking.totalFare || 250000) : 250000,
+          priceVip: 350000,
+          quotaTotal: 250,
+          quotaBooked: 0,
+          status: 'ACTIVE'
+        });
+        targetSchedId = newSched.id;
+        targetVesselId = backupVessel.id;
+        targetVesselName = backupVessel.name;
+        departTime = newSched.departTime;
+        arrivalTime = newSched.arrivalTime;
+        pier = newSched.pier;
+      } else if (targetSchedRaw.startsWith('PARTNER_SCHED:')) {
+        const psId = targetSchedRaw.replace('PARTNER_SCHED:', '');
+        const targetSched = allSchedules.find(s => s.id === psId);
+        if (targetSched) {
+          const pComp = Store.getCompanyById(targetSched.companyId);
+          companyEndorsement = pComp ? ` (Endorsement KSOP: ${pComp.name})` : '';
+          targetSchedId = targetSched.id;
+          targetVesselId = targetSched.vesselId;
+          targetVesselName = (targetSched.vesselNameCustom || 'Kapal Mitra') + companyEndorsement;
+          departTime = targetSched.departTime;
+          arrivalTime = targetSched.arrivalTime;
+          pier = targetSched.pier;
+        }
+      } else {
+        const cleanId = targetSchedRaw.replace('SCHED:', '');
+        const targetSched = allSchedules.find(s => s.id === cleanId);
+        if (targetSched) {
+          targetSchedId = targetSched.id;
+          targetVesselId = targetSched.vesselId;
+          const v = fleet.find(f => f.id === targetSched.vesselId);
+          targetVesselName = v ? v.name : (targetSched.vesselNameCustom || 'Armada Alternatif');
+          departTime = targetSched.departTime;
+          arrivalTime = targetSched.arrivalTime;
+          pier = targetSched.pier;
+        }
       }
 
       const finalReason = extraRemark ? `${reason} (${extraRemark})` : reason;
@@ -2033,6 +2211,9 @@ const App = {
 
       document.getElementById('modalTransferVessel').classList.remove('show');
       this.refreshCompanyDashboard();
+      if (typeof this.renderVoyageCalendar === 'function') {
+        this.renderVoyageCalendar();
+      }
     });
   },
 
@@ -2133,27 +2314,109 @@ const App = {
       ? `${firstBooking.originCity} ➔ ${firstBooking.destinationCity} • ${firstBooking.departTime || 'Jadwal Reguler'}` 
       : 'Rute Pelayaran';
 
-    // Populate schedules of company
-    const schedules = Store.getSchedulesByCompany(tenant.id);
+    // Origin schedule & vessel info
+    const currentSchedId = firstBooking ? firstBooking.scheduleId : null;
+    const currentVesselId = firstBooking ? firstBooking.vesselId : null;
+    const currentOriginId = firstBooking ? (firstBooking.originId || (firstBooking.originCity === 'Nunukan' ? 'NNK' : (firstBooking.originCity === 'Tawau' ? 'TWU' : 'PRE'))) : 'NNK';
+    const currentDestId = firstBooking ? (firstBooking.destinationId || (firstBooking.destinationCity === 'Tawau' ? 'TWU' : (firstBooking.destinationCity === 'Nunukan' ? 'NNK' : 'PRE'))) : 'TWU';
+
+    const companySchedules = Store.getSchedulesByCompany(tenant.id);
     const fleet = Store.getVesselsByCompany(tenant.id);
+    const allSchedules = Store.getSchedules();
+    const allCompanies = Store.getCompanies();
+
     const select = document.getElementById('transferTargetScheduleSelect');
     select.innerHTML = '';
 
-    if (schedules.length === 0) {
-      select.add(new Option(`Belum ada jadwal lain milik ${tenant.name}. Tambahkan jadwal baru terlebih dahulu.`, ''));
-    } else {
-      schedules.forEach(s => {
+    // 1. Other regular schedules of this company (EXCLUDING current schedule!)
+    const altCompanySchedules = companySchedules.filter(s => s.id !== currentSchedId);
+
+    // 2. Backup fleet vessels belonging to this company
+    const backupFleetVessels = fleet.filter(v => v.id !== currentVesselId);
+
+    // 3. Partner company schedules operating the same route (KSOP clearance / endorsement)
+    const partnerSchedules = allSchedules.filter(s => 
+      s.companyId !== tenant.id && 
+      s.originId === currentOriginId && 
+      s.destinationId === currentDestId
+    );
+
+    let optionCount = 0;
+
+    // Group 1: Other schedules of current company
+    if (altCompanySchedules.length > 0) {
+      const grpCompany = document.createElement('optgroup');
+      grpCompany.label = `🚢 Jadwal Alternatif Milik ${tenant.shortName || tenant.name}`;
+      altCompanySchedules.forEach(s => {
         const v = fleet.find(f => f.id === s.vesselId);
         const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
         const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
         const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
         const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${s.status}]`;
-        const opt = new Option(label, s.id);
-        if (firstBooking && s.id === firstBooking.scheduleId) {
-          opt.text += ' (Jadwal Saat Ini)';
-        }
-        select.add(opt);
+        grpCompany.appendChild(new Option(label, `SCHED:${s.id}`));
+        optionCount++;
       });
+      select.appendChild(grpCompany);
+    }
+
+    // Group 2: Backup fleet vessels of company
+    if (backupFleetVessels.length > 0) {
+      const grpBackup = document.createElement('optgroup');
+      grpBackup.label = `⚓ Armada Cadangan Milik ${tenant.shortName || tenant.name}`;
+      backupFleetVessels.forEach(v => {
+        const label = `${v.name} (Armada Cadangan) — Siap Berlayar [Otomatis Buka Jadwal Pengganti]`;
+        grpBackup.appendChild(new Option(label, `BACKUP_VESSEL:${v.id}`));
+        optionCount++;
+      });
+      select.appendChild(grpBackup);
+    }
+
+    // Group 3: Partner schedules on the same route (KSOP clearance)
+    if (partnerSchedules.length > 0) {
+      const grpPartner = document.createElement('optgroup');
+      grpPartner.label = `🤝 Rekomendasi KSOP: Mitra Pelayaran Resmi di Rute yang Sama`;
+      partnerSchedules.forEach(ps => {
+        const pComp = allCompanies.find(c => c.id === ps.companyId);
+        const pCompName = pComp ? (pComp.shortName || pComp.name) : 'Mitra Resmi KSOP';
+        const orig = MASTER_PORTS.find(pt => pt.id === ps.originId) || { city: ps.originId };
+        const dest = MASTER_PORTS.find(pt => pt.id === ps.destinationId) || { city: ps.destinationId };
+        const label = `${ps.vesselNameCustom || 'Kapal Mitra'} (${pCompName}) — ${orig.city} ➔ ${dest.city} (${ps.departTime} WITA)`;
+        grpPartner.appendChild(new Option(label, `PARTNER_SCHED:${ps.id}`));
+        optionCount++;
+      });
+      select.appendChild(grpPartner);
+    }
+
+    // Group 4: Fast Emergency Action
+    const grpAction = document.createElement('optgroup');
+    grpAction.label = `⚡ Aksi Darurat Syahbandar / KSOP`;
+    const newBackupVesselName = `${tenant.shortName || tenant.name} Express 02 (Armada Cadangan)`;
+    grpAction.appendChild(new Option(`+ Buka & Aktifkan ${newBackupVesselName} sebagai Kapal Pengganti`, 'CREATE_EMERGENCY_BACKUP'));
+    select.appendChild(grpAction);
+
+    // Warning Box logic when no alternative regular schedule exists
+    const warningBox = document.getElementById('transferTargetWarningBox');
+    const warningTitle = document.getElementById('transferTargetWarningTitle');
+    const warningText = document.getElementById('transferTargetWarningText');
+    const btnQuickBackup = document.getElementById('btnQuickAddBackupVesselForTransfer');
+
+    if (altCompanySchedules.length === 0) {
+      if (warningBox) warningBox.style.display = 'flex';
+      if (warningTitle) warningTitle.innerText = `Armada Utama (${firstBooking ? firstBooking.vesselName : 'Saat Ini'}) Belum Memiliki Jadwal Alternatif`;
+      if (warningText) {
+        warningText.innerText = partnerSchedules.length > 0
+          ? `Tersedia ${partnerSchedules.length} kapal mitra di rute ini, atau buat Armada Cadangan Darurat langsung.`
+          : `Tidak ada kapal reguler lain. Klik tombol di kanan untuk mengaktifkan Armada Cadangan resmi (${tenant.shortName || tenant.name} Express 02).`;
+      }
+    } else {
+      if (warningBox) warningBox.style.display = 'none';
+    }
+
+    // Attach quick backup button handler
+    if (btnQuickBackup) {
+      btnQuickBackup.onclick = () => {
+        this.quickProvisionEmergencyBackupSchedule(tenant, firstBooking);
+      };
     }
 
     // Render Checklist Penumpang Asal
@@ -2165,14 +2428,14 @@ const App = {
         const isChecked = selectedPnrs.includes(b.pnr);
         const row = document.createElement('label');
         row.className = 'transfer-pax-row';
-        row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.2s;';
+        row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: #ffffff; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s;';
         row.innerHTML = `
           <div style="display: flex; align-items: center; gap: 10px;">
             <input type="checkbox" class="check-transfer-modal-pax" data-pnr="${b.pnr}" data-seat="${p.seat}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px;">
             <div>
-              <strong style="color: #fff;">${p.name}</strong>
+              <strong style="color: #0f172a;">${p.name}</strong>
               <small class="text-dim" style="margin-left: 6px;">(${p.paxType || 'Dewasa'})</small>
-              <div style="font-size: 0.72rem; color: #94a3b8;">
+              <div style="font-size: 0.72rem; color: #64748b;">
                 PNR: <code style="color: var(--primary-cyan); font-weight: bold;">${b.pnr}</code> • Paspor/NIK: <code>${p.passportNo || p.docNumber || p.nik || '-'}</code>
               </div>
             </div>
@@ -2286,6 +2549,60 @@ const App = {
     document.getElementById('modalTransferVessel').classList.add('show');
   },
 
+  // Buka & Aktifkan Armada Cadangan Darurat (KSOP Fast Provision)
+  quickProvisionEmergencyBackupSchedule(tenant, firstBooking) {
+    const backupName = `${tenant.shortName || tenant.name} Express 02 (Armada Cadangan)`;
+    let fleet = Store.getVesselsByCompany(tenant.id);
+    let backupVessel = fleet.find(f => f.name.includes('Cadangan') || f.name.includes('02'));
+    if (!backupVessel) {
+      backupVessel = Store.addVessel({
+        id: 'VESSEL-' + Date.now().toString(36),
+        companyId: tenant.id,
+        name: backupName,
+        code: 'CAD-02',
+        capacity: 250,
+        type: 'Kapal Cepat Cadangan (KSOP Authorized)',
+        status: 'ACTIVE'
+      });
+    }
+
+    const origId = firstBooking ? (firstBooking.originId || (firstBooking.originCity === 'Nunukan' ? 'NNK' : 'PRE')) : 'NNK';
+    const destId = firstBooking ? (firstBooking.destinationId || (firstBooking.destinationCity === 'Tawau' ? 'TWU' : 'PRE')) : 'TWU';
+    const origPort = MASTER_PORTS.find(p => p.id === origId) || { city: 'Nunukan' };
+    const destPort = MASTER_PORTS.find(p => p.id === destId) || { city: 'Tawau' };
+
+    const newSched = Store.addSchedule({
+      id: 'SCH-EMG-' + Date.now().toString(36),
+      companyId: tenant.id,
+      vesselId: backupVessel.id,
+      vesselNameCustom: backupVessel.name,
+      originId: origId,
+      destinationId: destId,
+      departTime: firstBooking && firstBooking.departTime ? firstBooking.departTime : '09:00',
+      arrivalTime: firstBooking && firstBooking.arrivalTime ? firstBooking.arrivalTime : '10:30',
+      date: firstBooking && firstBooking.bookingDate ? firstBooking.bookingDate : new Date().toISOString().split('T')[0],
+      pier: 'Dermaga 2 (KSOP Standby)',
+      priceEconomy: firstBooking ? (firstBooking.totalFare || 250000) : 250000,
+      priceVip: 350000,
+      quotaTotal: 250,
+      quotaBooked: 0,
+      status: 'ACTIVE'
+    });
+
+    this.showToast('Armada Cadangan Siap!', `${backupName} telah aktif untuk rute ${origPort.city} ➔ ${destPort.city} (${newSched.departTime} WITA).`);
+
+    // Reload openTransferVesselModal with current checked items
+    const checkedBoxes = Array.from(document.querySelectorAll('#transferPaxListContainer .check-transfer-modal-pax:checked'));
+    const pnrList = Array.from(new Set(checkedBoxes.map(cb => cb.getAttribute('data-pnr'))));
+    this.openTransferVesselModal(pnrList.length > 0 ? pnrList : null);
+    
+    // Select the new schedule
+    const select = document.getElementById('transferTargetScheduleSelect');
+    if (select) {
+      select.value = `SCHED:${newSched.id}`;
+    }
+  },
+
   // Load KSOP & Maritime Settings to Form
   loadKsopSettingsToForm() {
     const s = Store.getKsopSettings();
@@ -2372,6 +2689,937 @@ const App = {
     document.getElementById('custSelectOrigin').value = from;
     document.getElementById('custSelectDest').value = to;
     this.renderCustomerSchedules();
+  },
+
+  // ================= LIVE SEAT MAP DASHBOARD =================
+  seatDashState: {
+    scheduleId: null,
+    classIdx: 0,
+    selectedSeat: null
+  },
+
+  initSeatDashboardEvents() {
+    if (this.seatDashEventsInitialized) return;
+    this.seatDashEventsInitialized = true;
+
+    const schedSelect = document.getElementById('seatDashScheduleSelect');
+    if (schedSelect) {
+      schedSelect.addEventListener('change', (e) => {
+        this.seatDashState.scheduleId = e.target.value;
+        this.seatDashState.selectedSeat = null;
+        this.renderSeatDeckGrid();
+      });
+    }
+
+    const btnRefresh = document.getElementById('btnRefreshSeatDash');
+    if (btnRefresh) {
+      btnRefresh.addEventListener('click', () => {
+        this.renderSeatDashboard();
+        this.showToast('Data Diperbarui', 'Peta alokasi kursi kapal berhasil disegarkan secara live.');
+      });
+    }
+
+    const classTabs = document.querySelectorAll('.seat-class-filter-btn');
+    classTabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        classTabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.seatDashState.classIdx = parseInt(btn.getAttribute('data-class-idx'), 10) || 0;
+        this.seatDashState.selectedSeat = null;
+        this.renderSeatDeckGrid();
+      });
+    });
+
+    const btnBookSeat = document.getElementById('btnBookThisSeatAction');
+    if (btnBookSeat) {
+      btnBookSeat.addEventListener('click', () => {
+        if (!this.seatDashState.selectedSeat || !this.seatDashState.scheduleId) return;
+        const tenant = Store.getCurrentTenant();
+        if (!tenant) return;
+        const scheds = Store.getSchedulesByCompany(tenant.id);
+        const sched = scheds.find(s => s.id === this.seatDashState.scheduleId);
+        if (!sched) return;
+
+        // Open booking modal with pre-selected class and seat
+        this.openCustomerBookingModal(sched);
+        this.selectedClassIndex = this.seatDashState.classIdx;
+        this.selectedSeats = [this.seatDashState.selectedSeat];
+        this.renderClassOptions();
+        this.renderSeatPickerGrid();
+        this.updateSeatPickerSummary();
+      });
+    }
+
+    const btnOpenTicketing = document.getElementById('btnOpenTicketingPaneDirect');
+    if (btnOpenTicketing) {
+      btnOpenTicketing.addEventListener('click', () => {
+        document.querySelectorAll('.dash-tab-btn').forEach(b => {
+          if (b.getAttribute('data-tab') === 'tabTicketing') b.click();
+        });
+      });
+    }
+  },
+
+  renderSeatDashboard() {
+    this.initSeatDashboardEvents();
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const schedSelect = document.getElementById('seatDashScheduleSelect');
+    if (!schedSelect) return;
+
+    schedSelect.innerHTML = '';
+    if (schedules.length === 0) {
+      schedSelect.innerHTML = `<option value="">-- Belum Ada Jadwal Pelayaran Aktif --</option>`;
+      this.seatDashState.scheduleId = null;
+    } else {
+      schedules.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.innerText = `${s.vesselName} • ${s.originCity} ➔ ${s.destinationCity} (${s.departDate} ${s.departTime})`;
+        schedSelect.appendChild(opt);
+      });
+
+      // Keep current selection if valid, else pick first
+      if (!schedules.some(s => s.id === this.seatDashState.scheduleId)) {
+        this.seatDashState.scheduleId = schedules[0].id;
+      }
+      schedSelect.value = this.seatDashState.scheduleId;
+    }
+
+    this.renderSeatDeckGrid();
+  },
+
+  renderSeatDeckGrid() {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const container = document.getElementById('seatDashGridContainer');
+    const deckLabel = document.getElementById('seatPlanCurrentDeckLabel');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const currentSched = schedules.find(s => s.id === this.seatDashState.scheduleId);
+
+    const classIdx = this.seatDashState.classIdx || 0;
+    const classNames = ['Ekonomi (Main Deck)', 'Bisnis / Executive (Upper Deck)', 'VIP Stateroom (Private Cabin)'];
+    const currentDeckName = classNames[classIdx];
+    if (deckLabel) deckLabel.innerText = currentDeckName.toUpperCase();
+
+    // Reset details panel
+    this.updateSeatDetailDisplay(null, currentDeckName);
+
+    if (!currentSched) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-dim);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚢</div>
+          <p style="font-size: 0.9rem; color: #0f172a; margin-bottom: 0.25rem;">Belum ada jadwal kapal yang dipilih.</p>
+          <span style="font-size: 0.78rem;">Silakan tambahkan jadwal pelayaran terlebih dahulu di menu Jadwal Pelayaran.</span>
+        </div>
+      `;
+      this.updateSeatDeckStats(0, 0, 0, currentDeckName, currentSched ? currentSched.vesselName : '-');
+      return;
+    }
+
+    // Map booked passengers for this schedule
+    const allBookings = Store.getBookingsByCompany(tenant.id);
+    const schedBookings = allBookings.filter(b => b.scheduleId === currentSched.id);
+    
+    // Map of seatCode -> passenger object
+    const occupiedMap = {};
+    schedBookings.forEach(b => {
+      b.passengers.forEach(p => {
+        if (p.seat) {
+          occupiedMap[p.seat.trim().toUpperCase()] = {
+            name: p.name,
+            pnr: b.pnr,
+            className: p.className || b.className,
+            docNumber: p.passportNo || p.nik || p.docNumber || '-',
+            boardingStatus: b.boardingStatus || 'NOT_CHECKED_IN',
+            origin: b.originCity,
+            dest: b.destinationCity
+          };
+        }
+      });
+    });
+
+    let totalDeckSeats = 0;
+    let occupiedDeckCount = 0;
+
+    if (classIdx === 2) {
+      // VIP Stateroom Layout (4 Cabins: VIP-01 s/d VIP-04)
+      totalDeckSeats = 4;
+      const vipRow = document.createElement('div');
+      vipRow.className = 'seat-row';
+      vipRow.style.gap = '1.25rem';
+      vipRow.style.justifyContent = 'center';
+
+      for (let i = 1; i <= 4; i++) {
+        const seatCode = `VIP-0${i}`;
+        const paxInfo = occupiedMap[seatCode];
+        const isOccupied = !!paxInfo;
+        if (isOccupied) occupiedDeckCount++;
+
+        const isSelected = this.seatDashState.selectedSeat === seatCode;
+
+        const seat = document.createElement('div');
+        seat.className = `seat-box vip ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+        seat.style.width = '100px';
+        seat.style.padding = '0.75rem 0.5rem';
+        seat.style.display = 'flex';
+        seat.style.flexDirection = 'column';
+        seat.style.alignItems = 'center';
+        seat.style.gap = '0.2rem';
+        seat.innerHTML = `
+          <span style="font-size: 1.1rem;">👑</span>
+          <strong style="font-size: 0.82rem;">${seatCode}</strong>
+          <span style="font-size: 0.65rem; color: ${isOccupied ? '#fca5a5' : '#38bdf8'};">
+            ${isOccupied ? 'TERISI' : 'TERSEDIA'}
+          </span>
+        `;
+
+        seat.addEventListener('click', () => {
+          this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+        });
+
+        vipRow.appendChild(seat);
+      }
+      container.appendChild(vipRow);
+
+    } else if (classIdx === 1) {
+      // Business Upper Deck (3 Rows: B1, B2, B3 x 4 seats = 12 seats)
+      totalDeckSeats = 12;
+      const rows = ['B1', 'B2', 'B3'];
+
+      rows.forEach(rPrefix => {
+        const rowWrap = document.createElement('div');
+        rowWrap.className = 'seat-row';
+
+        // Left 2 seats
+        for (let col = 1; col <= 2; col++) {
+          const seatCode = `${rPrefix}-0${col}`;
+          const paxInfo = occupiedMap[seatCode];
+          const isOccupied = !!paxInfo;
+          if (isOccupied) occupiedDeckCount++;
+          const isSelected = this.seatDashState.selectedSeat === seatCode;
+
+          const seat = document.createElement('div');
+          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+          seat.style.width = '52px';
+          seat.style.border = '1px solid rgba(56, 189, 248, 0.4)';
+          seat.innerHTML = `<span>⭐</span> ${seatCode}`;
+
+          seat.addEventListener('click', () => {
+            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+          });
+          rowWrap.appendChild(seat);
+        }
+
+        // Center Aisle
+        const aisle = document.createElement('div');
+        aisle.className = 'seat-aisle-gap';
+        aisle.style.width = '36px';
+        aisle.innerText = 'LORONG';
+        rowWrap.appendChild(aisle);
+
+        // Right 2 seats
+        for (let col = 3; col <= 4; col++) {
+          const seatCode = `${rPrefix}-0${col}`;
+          const paxInfo = occupiedMap[seatCode];
+          const isOccupied = !!paxInfo;
+          if (isOccupied) occupiedDeckCount++;
+          const isSelected = this.seatDashState.selectedSeat === seatCode;
+
+          const seat = document.createElement('div');
+          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+          seat.style.width = '52px';
+          seat.style.border = '1px solid rgba(56, 189, 248, 0.4)';
+          seat.innerHTML = `<span>⭐</span> ${seatCode}`;
+
+          seat.addEventListener('click', () => {
+            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+          });
+          rowWrap.appendChild(seat);
+        }
+
+        container.appendChild(rowWrap);
+      });
+
+    } else {
+      // Main Passenger Deck Economy (Rows A, B, C, D, E, F x 4 seats = 24 seats)
+      totalDeckSeats = 24;
+      const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+      rows.forEach(rPrefix => {
+        const rowWrap = document.createElement('div');
+        rowWrap.className = 'seat-row';
+
+        // Left 2 seats (Port)
+        for (let col = 1; col <= 2; col++) {
+          const seatCode = `${rPrefix}-0${col}`;
+          const paxInfo = occupiedMap[seatCode];
+          const isOccupied = !!paxInfo;
+          if (isOccupied) occupiedDeckCount++;
+          const isSelected = this.seatDashState.selectedSeat === seatCode;
+
+          const seat = document.createElement('div');
+          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+          seat.innerText = seatCode;
+
+          seat.addEventListener('click', () => {
+            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+          });
+          rowWrap.appendChild(seat);
+        }
+
+        // Center Aisle (Lorong)
+        const aisle = document.createElement('div');
+        aisle.className = 'seat-aisle-gap';
+        aisle.style.width = '36px';
+        aisle.innerText = 'LORONG';
+        rowWrap.appendChild(aisle);
+
+        // Right 2 seats (Starboard)
+        for (let col = 3; col <= 4; col++) {
+          const seatCode = `${rPrefix}-0${col}`;
+          const paxInfo = occupiedMap[seatCode];
+          const isOccupied = !!paxInfo;
+          if (isOccupied) occupiedDeckCount++;
+          const isSelected = this.seatDashState.selectedSeat === seatCode;
+
+          const seat = document.createElement('div');
+          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+          seat.innerText = seatCode;
+
+          seat.addEventListener('click', () => {
+            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+          });
+          rowWrap.appendChild(seat);
+        }
+
+        container.appendChild(rowWrap);
+      });
+    }
+
+    const availableCount = Math.max(0, totalDeckSeats - occupiedDeckCount);
+    this.updateSeatDeckStats(totalDeckSeats, availableCount, occupiedDeckCount, currentDeckName, currentSched.vesselName);
+  },
+
+  handleSeatClick(seatCode, paxInfo, deckName, sched) {
+    this.seatDashState.selectedSeat = seatCode;
+
+    // Refresh seat highlight
+    document.querySelectorAll('#seatDashGridContainer .seat-box').forEach(s => {
+      s.classList.remove('seat-box-selected');
+    });
+
+    const clickedEl = Array.from(document.querySelectorAll('#seatDashGridContainer .seat-box')).find(el => el.innerText.includes(seatCode));
+    if (clickedEl) clickedEl.classList.add('seat-box-selected');
+
+    this.updateSeatDetailDisplay(seatCode, deckName, paxInfo);
+  },
+
+  updateSeatDetailDisplay(seatCode, deckName, paxInfo) {
+    const codeDisplay = document.getElementById('seatDetailCodeDisplay');
+    const classDisplay = document.getElementById('seatDetailClassDisplay');
+    const statusBadge = document.getElementById('seatDetailStatusBadge');
+    const paxInfoBox = document.getElementById('seatDetailPassengerInfo');
+    const availPrompt = document.getElementById('seatDetailAvailablePrompt');
+    const btnBook = document.getElementById('btnBookThisSeatAction');
+
+    if (!codeDisplay) return;
+
+    if (!seatCode) {
+      codeDisplay.innerText = '-';
+      classDisplay.innerText = 'Klik salah satu kursi pada denah kapal';
+      statusBadge.innerText = 'PILIH KURSI';
+      statusBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+      statusBadge.style.color = '#38bdf8';
+      statusBadge.style.borderColor = '#38bdf8';
+      if (paxInfoBox) paxInfoBox.style.display = 'none';
+      if (availPrompt) availPrompt.style.display = 'block';
+      if (btnBook) btnBook.disabled = true;
+      return;
+    }
+
+    codeDisplay.innerText = seatCode;
+    classDisplay.innerText = deckName;
+
+    if (paxInfo) {
+      statusBadge.innerText = 'TERISI / BOOKED';
+      statusBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+      statusBadge.style.color = '#f87171';
+      statusBadge.style.borderColor = '#ef4444';
+
+      if (paxInfoBox) {
+        paxInfoBox.style.display = 'block';
+        document.getElementById('seatDetailPaxName').innerText = paxInfo.name || '-';
+        document.getElementById('seatDetailPnr').innerText = paxInfo.pnr || '-';
+        document.getElementById('seatDetailDoc').innerText = paxInfo.docNumber || '-';
+        const stBadge = document.getElementById('seatDetailBoardingStatus');
+        if (stBadge) {
+          stBadge.innerText = paxInfo.boardingStatus || 'NOT_CHECKED_IN';
+          stBadge.style.color = paxInfo.boardingStatus === 'BOARDED' ? '#10b981' : '#f59e0b';
+        }
+      }
+      if (availPrompt) availPrompt.style.display = 'none';
+      if (btnBook) btnBook.disabled = true;
+
+    } else {
+      statusBadge.innerText = 'TERSEDIA';
+      statusBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+      statusBadge.style.color = '#10b981';
+      statusBadge.style.borderColor = '#10b981';
+
+      if (paxInfoBox) paxInfoBox.style.display = 'none';
+      if (availPrompt) {
+        availPrompt.style.display = 'block';
+        availPrompt.innerText = `Kursi ${seatCode} (${deckName}) kosong dan siap dipesan.`;
+      }
+      if (btnBook) btnBook.disabled = false;
+    }
+  },
+
+  updateSeatDeckStats(total, available, occupied, deckName, vesselName) {
+    const elTotal = document.getElementById('statDeckTotal');
+    const elAvail = document.getElementById('statDeckAvailable');
+    const elOcc = document.getElementById('statDeckOccupied');
+    const elRate = document.getElementById('statDeckRate');
+    const elDeckNameSub = document.getElementById('statDeckNameSub');
+    const elVessel = document.getElementById('statDeckVesselName');
+
+    if (elTotal) elTotal.innerText = total;
+    if (elAvail) elAvail.innerText = available;
+    if (elOcc) elOcc.innerText = occupied;
+    if (elDeckNameSub) elDeckNameSub.innerText = deckName;
+    if (elVessel) elVessel.innerText = vesselName;
+
+    const rate = total > 0 ? ((occupied / total) * 100).toFixed(1) : '0';
+    if (elRate) elRate.innerText = `${rate}%`;
+  },
+
+  // ========================================================
+  // KALENDER PELAYARAN ARMADA (VOYAGE CALENDAR ENGINE)
+  // ========================================================
+  initCalendarEvents() {
+    const prevBtn = document.getElementById('btnCalPrevMonth');
+    const nextBtn = document.getElementById('btnCalNextMonth');
+    const todayBtn = document.getElementById('btnCalToday');
+    const filterVessel = document.getElementById('calFilterVesselSelect');
+    const filterRoute = document.getElementById('calFilterRouteSelect');
+    const toggleGrid = document.getElementById('btnCalToggleGrid');
+    const toggleAgenda = document.getElementById('btnCalToggleAgenda');
+    const btnOpenAdd = document.getElementById('btnCalOpenAddSchedule');
+    const btnCloseDetail = document.getElementById('btnCloseVoyageDetail');
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        this.calendarState.month--;
+        if (this.calendarState.month < 0) {
+          this.calendarState.month = 11;
+          this.calendarState.year--;
+        }
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        this.calendarState.month++;
+        if (this.calendarState.month > 11) {
+          this.calendarState.month = 0;
+          this.calendarState.year++;
+        }
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (todayBtn) {
+      todayBtn.addEventListener('click', () => {
+        const now = new Date();
+        this.calendarState.year = now.getFullYear();
+        this.calendarState.month = now.getMonth();
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (filterVessel) {
+      filterVessel.addEventListener('change', (e) => {
+        this.calendarState.filterVessel = e.target.value;
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (filterRoute) {
+      filterRoute.addEventListener('change', (e) => {
+        this.calendarState.filterRoute = e.target.value;
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (toggleGrid && toggleAgenda) {
+      toggleGrid.addEventListener('click', () => {
+        this.calendarState.viewMode = 'GRID';
+        toggleGrid.classList.add('active');
+        toggleAgenda.classList.remove('active');
+        document.getElementById('calContainerGrid').style.display = 'block';
+        document.getElementById('calContainerAgenda').style.display = 'none';
+      });
+
+      toggleAgenda.addEventListener('click', () => {
+        this.calendarState.viewMode = 'AGENDA';
+        toggleAgenda.classList.add('active');
+        toggleGrid.classList.remove('active');
+        document.getElementById('calContainerGrid').style.display = 'none';
+        document.getElementById('calContainerAgenda').style.display = 'block';
+        this.renderVoyageCalendar();
+      });
+    }
+
+    if (btnOpenAdd) {
+      btnOpenAdd.addEventListener('click', () => {
+        this.openAddScheduleModal();
+      });
+    }
+
+    if (btnCloseDetail) {
+      btnCloseDetail.addEventListener('click', () => {
+        document.getElementById('modalVoyageDetail')?.classList.remove('show');
+      });
+    }
+
+    // Voyage Detail Modal actions
+    document.getElementById('btnVoyageGoTicketing')?.addEventListener('click', () => {
+      document.getElementById('modalVoyageDetail')?.classList.remove('show');
+      const btn = document.querySelector('.dash-tab-btn[data-tab="tabTicketing"]');
+      if (btn) btn.click();
+    });
+
+    document.getElementById('btnVoyageGoSeats')?.addEventListener('click', () => {
+      document.getElementById('modalVoyageDetail')?.classList.remove('show');
+      const schId = this.calendarState.selectedVoyageId;
+      if (schId) {
+        this.seatDashState.scheduleId = schId;
+      }
+      const btn = document.querySelector('.dash-tab-btn[data-tab="tabSeats"]');
+      if (btn) btn.click();
+    });
+
+    document.getElementById('btnVoyageGoManifest')?.addEventListener('click', () => {
+      document.getElementById('modalVoyageDetail')?.classList.remove('show');
+      const btn = document.querySelector('.dash-tab-btn[data-tab="tabManifest"]');
+      if (btn) btn.click();
+    });
+  },
+
+  renderVoyageCalendar() {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const { year, month, filterVessel, filterRoute } = this.calendarState;
+    const monthNames = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    // Label month/year
+    const elMonthText = document.getElementById('calCurrentMonthText');
+    if (elMonthText) elMonthText.innerText = `${monthNames[month]} ${year}`;
+    const elPeriod = document.getElementById('calKpiPeriodLabel');
+    if (elPeriod) elPeriod.innerText = `${monthNames[month]} ${year}`;
+
+    // Get company fleet, schedules & bookings
+    const fleet = Store.getVesselsByCompany(tenant.id);
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const bookings = Store.getBookingsByCompany(tenant.id);
+
+    // Populate filter vessel dropdown if needed
+    const filterSelect = document.getElementById('calFilterVesselSelect');
+    if (filterSelect && filterSelect.options.length <= 1) {
+      filterSelect.innerHTML = '<option value="ALL">🚢 Semua Armada Kapal</option>';
+      fleet.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.innerText = `🚢 ${v.name} (${v.type || 'Kapal'})`;
+        filterSelect.appendChild(opt);
+      });
+      filterSelect.value = filterVessel;
+    }
+
+    // Days in current month
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    // Monday-based day of week for 1st of month: 0=Senin ... 6=Minggu
+    const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+    // Days in previous month
+    const prevMonthDays = new Date(year, month, 0).getDate();
+
+    const monthStr = String(month + 1).padStart(2, '0');
+    const dayVoyagesMap = {};
+    for (let d = 1; d <= totalDays; d++) {
+      const dStr = `${year}-${monthStr}-${String(d).padStart(2, '0')}`;
+      dayVoyagesMap[dStr] = [];
+    }
+
+    let totalMonthVoyages = 0;
+    const activeVesselIds = new Set();
+    let totalMonthCapacity = 0;
+    let totalMonthBooked = 0;
+
+    schedules.forEach(sch => {
+      // Filter vessel
+      if (filterVessel !== 'ALL' && sch.vesselId !== filterVessel) return;
+
+      // Filter route
+      const isIntl = sch.categoryType === 'INTERNATIONAL' || sch.originId === 'TWU' || sch.destinationId === 'TWU';
+      if (filterRoute === 'INTL' && !isIntl) return;
+      if (filterRoute === 'DOM' && isIntl) return;
+
+      const vessel = fleet.find(v => v.id === sch.vesselId) || {
+        name: sch.vesselNameCustom || 'KM Armada',
+        capacity: 120,
+        regNumber: 'REG-SEA'
+      };
+
+      // Determine which dates this schedule operates on
+      let datesToAssign = [];
+      if (sch.departDate) {
+        if (dayVoyagesMap[sch.departDate]) {
+          datesToAssign.push(sch.departDate);
+        }
+      } else {
+        // Recurring schedule: assign to every day of month
+        for (let d = 1; d <= totalDays; d++) {
+          const dStr = `${year}-${monthStr}-${String(d).padStart(2, '0')}`;
+          datesToAssign.push(dStr);
+        }
+      }
+
+      datesToAssign.forEach(dStr => {
+        // Calculate booked passengers on this schedule for this date
+        const voyBookings = bookings.filter(b => 
+          (b.scheduleId === sch.id || (b.originId === sch.originId && b.destinationId === sch.destinationId && b.vesselName === vessel.name)) &&
+          b.departDate === dStr
+        );
+        const bookedPax = voyBookings.reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
+        const capacity = vessel.capacity || 120;
+
+        const voyageObj = {
+          ...sch,
+          dateStr: dStr,
+          vessel,
+          bookedPax,
+          capacity,
+          isIntl
+        };
+
+        dayVoyagesMap[dStr].push(voyageObj);
+        totalMonthVoyages++;
+        activeVesselIds.add(vessel.id || vessel.name);
+        totalMonthCapacity += capacity;
+        totalMonthBooked += bookedPax;
+      });
+    });
+
+    // Update KPI Bar
+    const elTotVoyages = document.getElementById('calKpiTotalVoyages');
+    if (elTotVoyages) elTotVoyages.innerText = `${totalMonthVoyages} Jadwal`;
+    const elActFleet = document.getElementById('calKpiActiveFleet');
+    if (elActFleet) elActFleet.innerText = `${activeVesselIds.size} Kapal`;
+    const elTotCap = document.getElementById('calKpiTotalCapacity');
+    if (elTotCap) elTotCap.innerText = `${totalMonthCapacity.toLocaleString('id-ID')} Seat`;
+    const elTotBooked = document.getElementById('calKpiTotalBooked');
+    if (elTotBooked) elTotBooked.innerText = `${totalMonthBooked.toLocaleString('id-ID')} Pax`;
+    const elOccRate = document.getElementById('calKpiOccupancyRate');
+    if (elOccRate) {
+      const rate = totalMonthCapacity > 0 ? ((totalMonthBooked / totalMonthCapacity) * 100).toFixed(1) : '0';
+      elOccRate.innerText = `${rate}% Okupansi Rata-rata`;
+    }
+
+    // Update Badge in Sidebar
+    const elBadge = document.getElementById('countCalendarBadge');
+    if (elBadge) elBadge.innerText = totalMonthVoyages;
+
+    // 1. RENDER MONTHLY GRID CELLS
+    const gridCells = document.getElementById('calMonthlyGridCells');
+    if (gridCells) {
+      gridCells.innerHTML = '';
+      const realToday = new Date();
+      const realTodayStr = `${realToday.getFullYear()}-${String(realToday.getMonth() + 1).padStart(2, '0')}-${String(realToday.getDate()).padStart(2, '0')}`;
+
+      // A. Inactive days from previous month
+      for (let i = 0; i < firstDayIndex; i++) {
+        const prevDayNum = prevMonthDays - firstDayIndex + i + 1;
+        const cell = document.createElement('div');
+        cell.className = 'cal-day-cell inactive-month';
+        cell.innerHTML = `
+          <div class="cal-day-header">
+            <span class="cal-day-num">${prevDayNum}</span>
+          </div>
+        `;
+        gridCells.appendChild(cell);
+      }
+
+      // B. Days of the current month
+      for (let d = 1; d <= totalDays; d++) {
+        const dStr = `${year}-${monthStr}-${String(d).padStart(2, '0')}`;
+        const isToday = (dStr === realTodayStr);
+        const dayVoyages = dayVoyagesMap[dStr] || [];
+
+        const cell = document.createElement('div');
+        cell.className = `cal-day-cell ${isToday ? 'is-today' : ''}`;
+
+        let voyagesHtml = '';
+        dayVoyages.forEach((voy) => {
+          const isIntlClass = voy.isIntl ? 'intl' : 'domestic';
+          voyagesHtml += `
+            <div class="voyage-chip ${isIntlClass}" data-date="${dStr}" data-sch-id="${voy.id}">
+              <div class="voyage-chip-head">
+                <span class="voyage-chip-time">${voy.departTime || '08:00'}</span>
+                <span class="voyage-chip-route">${voy.originId}➔${voy.destinationId}</span>
+              </div>
+              <span class="voyage-chip-vessel">${voy.vessel.name}</span>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+                <span class="voyage-chip-pax">${voy.bookedPax}/${voy.capacity} Pax</span>
+                <span style="font-size:0.62rem;color:${voy.isIntl ? '#f59e0b' : '#0284c7'};font-weight:700;">${voy.isIntl ? 'LN' : 'DN'}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        cell.innerHTML = `
+          <div class="cal-day-header">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="cal-day-num">${d}</span>
+              ${isToday ? '<span style="font-size:0.6rem;background:#0284c7;color:#fff;padding:1px 4px;border-radius:4px;font-weight:800;">HARI INI</span>' : ''}
+            </div>
+            ${dayVoyages.length > 0 ? `<span class="cal-day-voyages-badge">${dayVoyages.length} Kapal</span>` : ''}
+          </div>
+          <div class="cal-voyages-list">
+            ${voyagesHtml}
+          </div>
+          <button type="button" class="btn-quick-add-voyage" data-date="${dStr}" title="Tambah Jadwal di Tanggal Ini">
+            + Jadwal
+          </button>
+        `;
+
+        // Click handlers on voyage chips
+        cell.querySelectorAll('.voyage-chip').forEach(chip => {
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const schId = chip.getAttribute('data-sch-id');
+            const voy = dayVoyages.find(v => v.id === schId);
+            if (voy) this.openVoyageDetailModal(voy, dStr);
+          });
+        });
+
+        // Click handler on quick add button
+        const btnAdd = cell.querySelector('.btn-quick-add-voyage');
+        if (btnAdd) {
+          btnAdd.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openAddScheduleModal(dStr);
+          });
+        }
+
+        gridCells.appendChild(cell);
+      }
+
+      // C. Padding days for next month to complete the grid
+      const currentCellCount = firstDayIndex + totalDays;
+      const totalGridCells = currentCellCount <= 35 ? 35 : 42;
+      const nextMonthPadding = totalGridCells - currentCellCount;
+      for (let n = 1; n <= nextMonthPadding; n++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-day-cell inactive-month';
+        cell.innerHTML = `
+          <div class="cal-day-header">
+            <span class="cal-day-num">${n}</span>
+          </div>
+        `;
+        gridCells.appendChild(cell);
+      }
+    }
+
+    // 2. RENDER AGENDA VIEW LIST
+    const agendaContainer = document.getElementById('calAgendaViewList');
+    if (agendaContainer) {
+      agendaContainer.innerHTML = '';
+      const datesWithVoyages = Object.keys(dayVoyagesMap).filter(d => dayVoyagesMap[d].length > 0).sort();
+
+      if (datesWithVoyages.length === 0) {
+        agendaContainer.innerHTML = `
+          <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:var(--radius-md);padding:2.5rem;text-align:center;color:#64748b;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" style="margin-bottom:0.75rem;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h5 style="color:#0f172a;font-size:1rem;margin-bottom:0.35rem;">Tidak Ada Jadwal Pelayaran di Bulan Ini</h5>
+            <p style="font-size:0.82rem;margin-bottom:1rem;">Gunakan tombol "+ Jadwal Baru" di atas untuk menambahkan jadwal keberangkatan armada kapal Anda.</p>
+            <button type="button" class="btn-primary-action" onclick="App.openAddScheduleModal()">+ Buka Jadwal Baru Sekarang</button>
+          </div>
+        `;
+      } else {
+        datesWithVoyages.forEach(dStr => {
+          const list = dayVoyagesMap[dStr];
+          const dObj = new Date(dStr);
+          const dayName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][dObj.getDay()];
+          const dayNum = dObj.getDate();
+          const monthName = monthNames[dObj.getMonth()];
+
+          const block = document.createElement('div');
+          block.className = 'agenda-day-block';
+
+          let rowsHtml = '';
+          list.forEach(voy => {
+            const origPort = MASTER_PORTS.find(p => p.id === voy.originId) || { name: voy.originId, city: '' };
+            const destPort = MASTER_PORTS.find(p => p.id === voy.destinationId) || { name: voy.destinationId, city: '' };
+            const minPrice = Math.min(...(voy.classes ? voy.classes.map(c => c.price) : [300000]));
+            const occPct = voy.capacity > 0 ? ((voy.bookedPax / voy.capacity) * 100).toFixed(0) : 0;
+
+            rowsHtml += `
+              <div class="agenda-voyage-row">
+                <div>
+                  <strong style="font-family:var(--font-mono);font-size:1.05rem;color:#0f172a;">${voy.departTime || '08:30'} WITA</strong>
+                  <span style="font-size:0.72rem;color:#64748b;display:block;">Tiba: ${voy.arrivalTime || '10:00'}</span>
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                    <strong style="color:#0369a1;font-size:0.92rem;">${voy.vessel.name}</strong>
+                    <span class="tag-badge" style="background:${voy.isIntl ? '#fef3c7' : '#ecfdf5'};color:${voy.isIntl ? '#d97706' : '#059669'};font-size:0.62rem;font-weight:700;">
+                      ${voy.isIntl ? 'Luar Negeri' : 'Domestik'}
+                    </span>
+                  </div>
+                  <span style="font-size:0.78rem;color:#334155;">${origPort.city} ➔ ${destPort.city}</span>
+                  <small style="font-size:0.7rem;color:#64748b;display:block;">${voy.pier || 'Dermaga Keberangkatan'}</small>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:2px;">
+                    <span style="color:#64748b;">Okupansi:</span>
+                    <strong style="color:#0f172a;">${voy.bookedPax} / ${voy.capacity} Pax (${occPct}%)</strong>
+                  </div>
+                  <div style="width:100%;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+                    <div style="width:${occPct}%;height:100%;background:${occPct > 80 ? '#ef4444' : '#0284c7'};border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:0.7rem;color:#10b981;font-weight:600;margin-top:2px;display:block;">Mulai ${formatRupiah(minPrice)}</span>
+                </div>
+                <div style="text-align:right;">
+                  <button type="button" class="btn-action-sm btn-agenda-detail" data-sch-id="${voy.id}" style="padding:0.4rem 0.8rem;font-weight:700;">
+                    🔍 Detail & Tiket
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+
+          block.innerHTML = `
+            <div class="agenda-day-header">
+              <span>📅 ${dayName}, ${dayNum} ${monthName} ${year}</span>
+              <span class="tag-badge" style="background:#e0f2fe;color:#0284c7;font-weight:700;">${list.length} Pelayaran Terjadwal</span>
+            </div>
+            <div>${rowsHtml}</div>
+          `;
+
+          block.querySelectorAll('.btn-agenda-detail').forEach(b => {
+            b.addEventListener('click', () => {
+              const schId = b.getAttribute('data-sch-id');
+              const voy = list.find(v => v.id === schId);
+              if (voy) this.openVoyageDetailModal(voy, dStr);
+            });
+          });
+
+          agendaContainer.appendChild(block);
+        });
+      }
+    }
+  },
+
+  openVoyageDetailModal(sch, dateStr) {
+    this.calendarState.selectedVoyageId = sch.id;
+    const modal = document.getElementById('modalVoyageDetail');
+    if (!modal) return;
+
+    const origPort = MASTER_PORTS.find(p => p.id === sch.originId) || { name: sch.originId, city: sch.originId };
+    const destPort = MASTER_PORTS.find(p => p.id === sch.destinationId) || { name: sch.destinationId, city: sch.destinationId };
+    const vessel = sch.vessel || Store.getVessels().find(v => v.id === sch.vesselId) || { name: 'KM Armada', capacity: 120, regNumber: 'REG-1284' };
+
+    document.getElementById('voyageModalTitle').innerText = vessel.name;
+    document.getElementById('voyageModalId').innerText = sch.id;
+    document.getElementById('voyageModalDate').innerText = dateStr;
+    document.getElementById('voyageModalOrigCity').innerText = `${origPort.city} (${sch.originId})`;
+    document.getElementById('voyageModalPier').innerText = sch.pier || 'Dermaga Tunon Taka';
+    document.getElementById('voyageModalDepartTime').innerText = `${sch.departTime} WITA`;
+    document.getElementById('voyageModalDestCity').innerText = `${destPort.city} (${sch.destinationId})`;
+    document.getElementById('voyageModalArrivalTime').innerText = `${sch.arrivalTime} WITA`;
+    document.getElementById('voyageModalDuration').innerText = sch.durationText || '1.5 Jam';
+    document.getElementById('voyageModalVesselName').innerText = vessel.name;
+    document.getElementById('voyageModalRegNum').innerText = vessel.regNumber || 'REG-KSOP';
+    document.getElementById('voyageModalCapacity').innerText = `${sch.capacity || vessel.capacity || 120} Seat`;
+    document.getElementById('voyageModalBookedPax').innerText = `${sch.bookedPax || 0} Pax`;
+
+    const cap = sch.capacity || vessel.capacity || 120;
+    const occ = sch.bookedPax || 0;
+    const pct = cap > 0 ? ((occ / cap) * 100).toFixed(1) : 0;
+    document.getElementById('voyageModalOccupancyRate').innerText = `${pct}% Terisi (${cap - occ} Kursi Sisa)`;
+
+    const catBadge = document.getElementById('voyageModalCategoryBadge');
+    if (catBadge) {
+      if (sch.isIntl) {
+        catBadge.innerText = '🌏 Rute Internasional (Tawau, Sabah)';
+        catBadge.style.background = '#fef3c7';
+        catBadge.style.color = '#d97706';
+      } else {
+        catBadge.innerText = '🇮🇩 Rute Domestik (Sulawesi / Kaltara)';
+        catBadge.style.background = '#ecfdf5';
+        catBadge.style.color = '#059669';
+      }
+    }
+
+    // Classes list
+    const classContainer = document.getElementById('voyageModalClassList');
+    if (classContainer) {
+      classContainer.innerHTML = '';
+      if (sch.classes && sch.classes.length > 0) {
+        sch.classes.forEach(c => {
+          const pill = document.createElement('div');
+          pill.style.cssText = 'background:#fff;border:1px solid #cbd5e1;padding:0.35rem 0.75rem;border-radius:6px;display:flex;align-items:center;gap:0.5rem;';
+          pill.innerHTML = `<span style="font-size:0.75rem;font-weight:700;color:#0f172a;">${c.name}:</span> <strong style="color:#0284c7;font-family:var(--font-mono);font-size:0.82rem;">${formatRupiah(c.price)}</strong>`;
+          classContainer.appendChild(pill);
+        });
+      }
+    }
+
+    modal.classList.add('show');
+  },
+
+  openAddScheduleModal(defaultDate = null) {
+    const modal = document.getElementById('modalAddSchedule');
+    if (!modal) return;
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    // Populate vessels in modal dropdown
+    const vesselSel = document.getElementById('schedVesselSelect');
+    if (vesselSel) {
+      vesselSel.innerHTML = '';
+      const fleet = Store.getVesselsByCompany(tenant.id);
+      if (fleet.length === 0) {
+        vesselSel.innerHTML = '<option value="">-- Daftarkan Armada Terlebih Dahulu --</option>';
+      } else {
+        fleet.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.id;
+          opt.innerText = `${v.name} (${v.type || 'Kapal'} • ${v.capacity} Seat)`;
+          vesselSel.appendChild(opt);
+        });
+      }
+    }
+
+    // Set default date
+    const dateInput = document.getElementById('schedDateInput');
+    if (dateInput) {
+      dateInput.value = defaultDate || new Date().toISOString().split('T')[0];
+    }
+
+    modal.classList.add('show');
   },
 
   // Global Toast
