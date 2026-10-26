@@ -15,6 +15,18 @@ const App = {
     filterRoute: 'ALL',
     selectedVoyageId: null
   },
+  bulkState: {
+    targetScheduleId: null,
+    selectedClass: 'EKONOMI',
+    farePerPax: 250000,
+    activeTab: 'PASTE',
+    paxList: [],
+    manualGridRows: []
+  },
+  directPrintState: {
+    items: [],
+    currentFormat: 'BOARDING_PASS' // 'BOARDING_PASS' | 'THERMAL_POS'
+  },
 
   init() {
     this.initDates();
@@ -25,6 +37,7 @@ const App = {
     this.initAuthEvents();
     this.initDashboardEvents();
     this.initCalendarEvents();
+    this.initBulkPassengerEvents();
     this.initModals();
 
     // Check if a company session already exists
@@ -129,6 +142,7 @@ const App = {
   // Auth Modal Controls
   openCompanyAuthModal() {
     this.renderCompanyAuthButtons();
+    document.getElementById('tabBtnLogin')?.click();
     const modal = document.getElementById('modalCompanyAuth');
     if (modal) modal.classList.add('show');
   },
@@ -393,7 +407,7 @@ const App = {
       const comp = Store.getCompanyById(sch.companyId) || { name: 'Operator Resmi', brandColor: '#0284c7' };
       const vessel = Store.getVessels().find(v => v.id === sch.vesselId);
       const vesselName = vessel ? vessel.name : (sch.vesselNameCustom || 'Kapal Penyeberangan');
-      const minPrice = Math.min(...sch.classes.map(c => c.price));
+      const minPrice = (sch.classes && sch.classes.length > 0) ? Math.min(...sch.classes.map(c => c.price)) : (sch.priceEconomy || 250000);
       const isIntl = sch.categoryType === 'INTERNATIONAL' || sch.originId === 'TWU' || sch.destinationId === 'TWU';
 
       const card = document.createElement('div');
@@ -513,26 +527,54 @@ const App = {
 
   // Open Customer Booking Modal
   openBookingModal(sch, comp, vesselName, origPort, destPort) {
+    if (typeof sch === 'string') {
+      const found = Store.getSchedules().find(s => s.id === sch);
+      if (found) sch = found;
+    }
+    if (!sch) return;
+    if (!comp) {
+      comp = Store.getCompanyById(sch.companyId) || Store.getCurrentTenant() || Store.getCompanies()[0] || { name: 'Operator Resmi', category: 'Operator' };
+    }
+    if (!vesselName) {
+      const v = Store.getVessels().find(v => v.id === sch.vesselId);
+      vesselName = v ? v.name : (sch.vesselNameCustom || 'Armada Kapal');
+    }
+    if (!origPort) {
+      origPort = MASTER_PORTS.find(p => p.id === (sch.originId || sch.originPortId)) || MASTER_PORTS[0];
+    }
+    if (!destPort) {
+      destPort = MASTER_PORTS.find(p => p.id === (sch.destinationId || sch.destinationPortId)) || MASTER_PORTS[1];
+    }
+
     this.currentBookingSchedule = { sch, comp, vesselName, origPort, destPort };
     this.selectedSeats = [];
     this.selectedClassIndex = 0;
 
-    const isIntl = (origPort.id === 'TWU' || destPort.id === 'TWU' || comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional'));
+    const isIntl = Boolean(
+      origPort?.id === 'TWU' ||
+      destPort?.id === 'TWU' ||
+      (comp?.category && (comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional')))
+    );
 
-    document.getElementById('bookModalVessel').innerText = `${vesselName}`;
-    document.getElementById('bookModalCompany').innerText = `Operator Resmi: ${comp.name} • ${comp.category}`;
+    const elVessel = document.getElementById('bookModalVessel');
+    if (elVessel) elVessel.innerText = `${vesselName}`;
+    const elComp = document.getElementById('bookModalCompany');
+    if (elComp) elComp.innerText = `Operator Resmi: ${comp.name} • ${comp.category || 'Pelayaran'}`;
 
-    document.getElementById('bookRouteStrip').innerHTML = `
-      <div class="flex-between align-center" style="flex-wrap: wrap; gap: 0.5rem;">
-        <div>
-          <strong style="font-size: 1.05rem;">${origPort.name} (${origPort.city}) ➔ ${destPort.name} (${destPort.city})</strong>
-          <div class="text-dim" style="font-size: 0.8rem; margin-top: 0.2rem;">Waktu: ${sch.departTime} - ${sch.arrivalTime} WITA • ${sch.pier}</div>
+    const elRouteStrip = document.getElementById('bookRouteStrip');
+    if (elRouteStrip) {
+      elRouteStrip.innerHTML = `
+        <div class="flex-between align-center" style="flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <strong style="font-size: 1.05rem;">${origPort.name} (${origPort.city}) ➔ ${destPort.name} (${destPort.city})</strong>
+            <div class="text-dim" style="font-size: 0.8rem; margin-top: 0.2rem;">Waktu: ${sch.departTime} - ${sch.arrivalTime} WITA • ${sch.pier}</div>
+          </div>
+          <div class="tag-badge" style="background: ${comp.brandColor || '#0284c7'}22; color: ${comp.brandColor || '#0284c7'}; border-color: ${comp.brandColor || '#0284c7'}; font-weight: 700;">
+            ${comp.shortName || comp.name}
+          </div>
         </div>
-        <div class="tag-badge" style="background: ${comp.brandColor}22; color: ${comp.brandColor}; border-color: ${comp.brandColor}; font-weight: 700;">
-          ${comp.shortName || comp.name}
-        </div>
-      </div>
-    `;
+      `;
+    }
 
     // Dynamic Route Compliance & Immigration Notice Banner
     const complianceBanner = document.getElementById('bookRouteComplianceBanner');
@@ -576,7 +618,7 @@ const App = {
     }
 
     // Configure Class Options (Ekonomi, Bisnis, VIP)
-    const basePrice = sch.classes[0].price;
+    const basePrice = (sch.classes && sch.classes[0]) ? sch.classes[0].price : (sch.priceEconomy || 250000);
     this.bookingClasses = [
       { name: 'Ekonomi (Main Deck)', price: basePrice, sub: 'Kursi Nyaman Ber-AC, Free Bagasi 20kg' },
       { name: 'Bisnis / Executive (Upper Deck)', price: basePrice + 75000, sub: 'Upper Deck View, Snack & Reclining Seat' },
@@ -587,7 +629,7 @@ const App = {
     this.renderSeatPickerGrid();
     this.updateSeatPickerSummary();
 
-    document.getElementById('modalCustomerBooking').classList.add('show');
+    document.getElementById('modalCustomerBooking')?.classList.add('show');
   },
 
   renderClassOptions() {
@@ -743,18 +785,18 @@ const App = {
       return;
     }
 
-    const paxType = document.getElementById('custPaxType') ? document.getElementById('custPaxType').value : 'Dewasa';
-    const paxName = document.getElementById('custPaxName').value.trim();
-    const gender = document.getElementById('custPaxGender').value;
-    const docNum = document.getElementById('custPaxDocNum').value.trim();
-    const dob = document.getElementById('custPaxDob').value;
-    const age = document.getElementById('custPaxAge') ? document.getElementById('custPaxAge').value : '';
-    const nationality = document.getElementById('custPaxNationality').value;
-    const remark = document.getElementById('custPaxRemark') ? document.getElementById('custPaxRemark').value.trim() : '-';
-    const docType = document.getElementById('custDocType') ? document.getElementById('custDocType').value : 'PASSPORT_RI';
-    const passportExp = document.getElementById('custPaxPassportExp') ? document.getElementById('custPaxPassportExp').value : '';
-    const paxPhone = document.getElementById('custPaxPhone').value.trim();
-    const paxEmail = document.getElementById('custPaxEmail').value.trim();
+    const paxType = document.getElementById('custPaxType')?.value || 'Dewasa';
+    const paxName = document.getElementById('custPaxName')?.value?.trim() || '';
+    const gender = document.getElementById('custPaxGender')?.value || 'L';
+    const docNum = document.getElementById('custPaxDocNum')?.value?.trim() || '';
+    const dob = document.getElementById('custPaxDob')?.value || '';
+    const age = document.getElementById('custPaxAge')?.value || '';
+    const nationality = document.getElementById('custPaxNationality')?.value || 'ID';
+    const remark = document.getElementById('custPaxRemark')?.value?.trim() || '-';
+    const docType = document.getElementById('custDocType')?.value || 'PASSPORT_RI';
+    const passportExp = document.getElementById('custPaxPassportExp')?.value || '';
+    const paxPhone = document.getElementById('custPaxPhone')?.value?.trim() || '';
+    const paxEmail = document.getElementById('custPaxEmail')?.value?.trim() || '';
 
     if (!paxName || !docNum) {
       this.showToast('Lengkapi Data', 'Nama lengkap dan nomor dokumen identitas wajib diisi.', 'warning');
@@ -829,7 +871,7 @@ const App = {
     Store.addBooking(newBooking);
 
     // Close booking modal
-    document.getElementById('modalCustomerBooking').classList.remove('show');
+    document.getElementById('modalCustomerBooking')?.classList.remove('show');
 
     // Open Boarding Pass Modal
     this.refreshCompanyDashboard();
@@ -838,18 +880,24 @@ const App = {
   },
 
   openBoardingPassModal(booking) {
+    if (!booking) return;
     const comp = Store.getCompanyById(booking.companyId) || { name: 'Perusahaan Pelayaran', shortName: 'Operator' };
-    const p0 = booking.passengers[0];
+    const p0 = (booking.passengers && booking.passengers[0]) || { name: 'Penumpang Resmi', docType: 'KTP', nationality: 'ID', gender: 'L' };
 
-    document.getElementById('ticketCompName').innerText = comp.name;
-    document.getElementById('ticketPnrVal').innerText = booking.pnr;
-    document.getElementById('ticketOriginCity').innerText = `${booking.originCity}`;
-    document.getElementById('ticketOriginCode').innerText = booking.originCode || 'NNK';
-    document.getElementById('ticketDestCity').innerText = `${booking.destinationCity}`;
-    document.getElementById('ticketDestCode').innerText = booking.destCode || 'TWU';
-    document.getElementById('ticketDepartTime').innerText = booking.departTime;
-    document.getElementById('ticketArrivalTime').innerText = 'Estimasi Tepat Waktu';
-    document.getElementById('ticketVesselVal').innerText = booking.vesselName;
+    const setTxt = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+
+    setTxt('ticketCompName', comp.name);
+    setTxt('ticketPnrVal', booking.pnr);
+    setTxt('ticketOriginCity', `${booking.originCity}`);
+    setTxt('ticketOriginCode', booking.originCode || 'NNK');
+    setTxt('ticketDestCity', `${booking.destinationCity}`);
+    setTxt('ticketDestCode', booking.destCode || 'TWU');
+    setTxt('ticketDepartTime', booking.departTime);
+    setTxt('ticketArrivalTime', 'Estimasi Tepat Waktu');
+    setTxt('ticketVesselVal', booking.vesselName);
 
     const routeBadge = document.getElementById('ticketRouteTypeBadge');
     if (routeBadge) {
@@ -857,34 +905,38 @@ const App = {
       routeBadge.style.color = booking.isIntl ? '#f59e0b' : '#10b981';
     }
 
-    document.getElementById('ticketPaxNameVal').innerText = p0.name;
+    setTxt('ticketPaxNameVal', p0.name);
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
-    document.getElementById('ticketPaxDocVal').innerText = `${docLabel}: ${p0.docNumber || p0.nik}`;
+    setTxt('ticketPaxDocVal', `${docLabel}: ${p0.docNumber || p0.nik || '-'}`);
 
     const natLabel = p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
-    document.getElementById('ticketPaxNationalityVal').innerText = natLabel;
-    document.getElementById('ticketPaxGenderDobVal').innerText = `${p0.gender === 'P' ? 'Perempuan' : 'Laki-laki'} • Lahir: ${p0.dob || '-'}`;
+    setTxt('ticketPaxNationalityVal', natLabel);
+    setTxt('ticketPaxGenderDobVal', `${p0.gender === 'P' ? 'Perempuan' : 'Laki-laki'} • Lahir: ${p0.dob || '-'}`);
 
-    document.getElementById('ticketSeatVal').innerText = booking.passengers.map(p => p.seat).join(', ');
-    document.getElementById('ticketClassVal').innerText = booking.className;
-    document.getElementById('ticketPierVal').innerText = booking.pier;
-    document.getElementById('ticketTotalAmountDisplay').innerHTML = `Total Tarif: <strong>${formatRupiah(booking.totalAmount)}</strong>`;
-    document.getElementById('ticketBarcodeNum').innerText = booking.barcode;
+    setTxt('ticketSeatVal', (booking.passengers || []).map(p => p.seat).join(', '));
+    setTxt('ticketClassVal', booking.className);
+    setTxt('ticketPierVal', booking.pier);
+    const totalEl = document.getElementById('ticketTotalAmountDisplay');
+    if (totalEl) totalEl.innerHTML = `Total Tarif: <strong>${formatRupiah(booking.totalAmount)}</strong>`;
+    setTxt('ticketBarcodeNum', booking.barcode);
 
     // Render Crisp SVG QR Code
     const qrWrap = document.getElementById('ticketQrCodeContainer');
     if (qrWrap) {
-      const qrPayload = `PNR:${booking.pnr};OP:${comp.code || 'SEA'};PAX:${p0.name};DOC:${p0.docNumber || p0.nik};ROUTE:${booking.originCode}-${booking.destCode};SEAT:${booking.passengers.map(p => p.seat).join(',')};STATUS:PAID`;
+      const seatStr = (booking.passengers || []).map(p => p.seat).join(',');
+      const qrPayload = `PNR:${booking.pnr};OP:${comp.code || 'SEA'};PAX:${p0.name};DOC:${p0.docNumber || p0.nik};ROUTE:${booking.originCode}-${booking.destCode};SEAT:${seatStr};STATUS:PAID`;
       qrWrap.innerHTML = this.generateSvgQrCode(qrPayload);
     }
 
     const statusPill = document.getElementById('ticketBoardingStatusPill');
-    if (booking.boardingStatus === 'BOARDED') {
-      statusPill.innerText = '✓ SUDAH BOARDING (CHECKED-IN)';
-      statusPill.style.background = '#0284c7';
-    } else {
-      statusPill.innerText = 'READY FOR BOARDING';
-      statusPill.style.background = '#10b981';
+    if (statusPill) {
+      if (booking.boardingStatus === 'BOARDED') {
+        statusPill.innerText = '✓ SUDAH BOARDING (CHECKED-IN)';
+        statusPill.style.background = '#0284c7';
+      } else {
+        statusPill.innerText = 'READY FOR BOARDING';
+        statusPill.style.background = '#10b981';
+      }
     }
 
     // Attach WhatsApp send handler
@@ -896,7 +948,7 @@ const App = {
       };
     }
 
-    document.getElementById('modalCustomerTicket').classList.add('show');
+    document.getElementById('modalCustomerTicket')?.classList.add('show');
   },
 
   // Render Dynamic Entry Portal Buttons for Registered Companies
@@ -941,11 +993,53 @@ const App = {
   initAuthEvents() {
     this.renderCompanyAuthButtons();
 
+    // Tab Switcher between Masuk Portal and Daftar Perusahaan Baru
+    const tabLogin = document.getElementById('tabBtnLogin');
+    const tabRegister = document.getElementById('tabBtnRegister');
+    const contentLogin = document.getElementById('tabContentLogin');
+    const contentRegister = document.getElementById('tabContentRegister');
+
+    if (tabLogin && tabRegister && contentLogin && contentRegister) {
+      tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabLogin.style.background = '#ffffff';
+        tabLogin.style.color = '#7c3aed';
+        tabLogin.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+        tabLogin.style.fontWeight = '700';
+
+        tabRegister.classList.remove('active');
+        tabRegister.style.background = 'transparent';
+        tabRegister.style.color = '#64748b';
+        tabRegister.style.boxShadow = 'none';
+        tabRegister.style.fontWeight = '600';
+
+        contentLogin.style.display = 'block';
+        contentRegister.style.display = 'none';
+      });
+
+      tabRegister.addEventListener('click', () => {
+        tabRegister.classList.add('active');
+        tabRegister.style.background = '#ffffff';
+        tabRegister.style.color = '#7c3aed';
+        tabRegister.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+        tabRegister.style.fontWeight = '700';
+
+        tabLogin.classList.remove('active');
+        tabLogin.style.background = 'transparent';
+        tabLogin.style.color = '#64748b';
+        tabLogin.style.boxShadow = 'none';
+        tabLogin.style.fontWeight = '600';
+
+        contentRegister.style.display = 'block';
+        contentLogin.style.display = 'none';
+      });
+    }
+
     // Login Form Submit
-    document.getElementById('formCompanyLogin').addEventListener('submit', (e) => {
+    document.getElementById('formCompanyLogin')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('loginCompEmail').value.trim();
-      const pass = document.getElementById('loginCompPassword').value;
+      const email = document.getElementById('loginCompEmail')?.value?.trim();
+      const pass = document.getElementById('loginCompPassword')?.value;
 
       const comp = Store.getCompanies().find(c => c.email.toLowerCase() === email.toLowerCase());
       if (comp) {
@@ -1037,30 +1131,179 @@ const App = {
     });
   },
 
+  // Helper function to switch tabs in company dashboard
+  switchDashboardTab(tabKey) {
+    document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.dash-tab-btn').forEach(b => {
+      if (b.getAttribute('data-tab') === tabKey) {
+        b.classList.add('active');
+        const parentGroup = b.closest('.dash-nav-group');
+        if (parentGroup) parentGroup.classList.add('open');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+
+    // Update Top Header Breadcrumb Title
+    const titleEl = document.getElementById('tickyCurrentTabTitle');
+    const tabTitles = {
+      tabOverview: 'Dashboard Loket',
+      tabManifest: 'Tagihan & Riwayat Tiket',
+      tabTicketing: 'Terbitkan Tiket Baru',
+      tabFleet: 'Armada Kapal Saya',
+      tabSchedules: 'Daftar Rute & Jadwal',
+      tabCalendar: 'Kalender Pelayaran',
+      tabScanner: 'Gate Scanner QR',
+      tabSeats: 'Denah Kursi & Seat',
+      tabSettings: 'Pengaturan KSOP & Pejabat'
+    };
+    if (titleEl && tabTitles[tabKey]) {
+      titleEl.innerText = tabTitles[tabKey];
+    }
+
+    if (tabKey === 'tabOverview') document.getElementById('paneOverview')?.classList.add('active');
+    if (tabKey === 'tabFleet') document.getElementById('paneFleet')?.classList.add('active');
+    if (tabKey === 'tabSchedules') document.getElementById('paneSchedules')?.classList.add('active');
+    if (tabKey === 'tabManifest') document.getElementById('paneManifest')?.classList.add('active');
+    if (tabKey === 'tabScanner') document.getElementById('paneScanner')?.classList.add('active');
+    if (tabKey === 'tabTicketing') document.getElementById('paneTicketing')?.classList.add('active');
+    if (tabKey === 'tabSeats') {
+      document.getElementById('paneSeats')?.classList.add('active');
+      this.renderSeatDashboard();
+    }
+    if (tabKey === 'tabCalendar') {
+      document.getElementById('paneCalendar')?.classList.add('active');
+      this.renderVoyageCalendar();
+    }
+    if (tabKey === 'tabSettings') {
+      document.getElementById('paneSettings')?.classList.add('active');
+      this.loadKsopSettingsToForm();
+    }
+  },
+
   // ================= COMPANY DASHBOARD =================
   initDashboardEvents() {
     // Helper function to switch tabs
-    const switchTab = (tabKey) => {
-      document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
-      if (tabKey === 'tabOverview') document.getElementById('paneOverview')?.classList.add('active');
-      if (tabKey === 'tabFleet') document.getElementById('paneFleet')?.classList.add('active');
-      if (tabKey === 'tabSchedules') document.getElementById('paneSchedules')?.classList.add('active');
-      if (tabKey === 'tabManifest') document.getElementById('paneManifest')?.classList.add('active');
-      if (tabKey === 'tabScanner') document.getElementById('paneScanner')?.classList.add('active');
-      if (tabKey === 'tabTicketing') document.getElementById('paneTicketing')?.classList.add('active');
-      if (tabKey === 'tabSeats') {
-        document.getElementById('paneSeats')?.classList.add('active');
-        this.renderSeatDashboard();
-      }
-      if (tabKey === 'tabCalendar') {
-        document.getElementById('paneCalendar')?.classList.add('active');
-        this.renderVoyageCalendar();
-      }
-      if (tabKey === 'tabSettings') {
-        document.getElementById('paneSettings')?.classList.add('active');
-        this.loadKsopSettingsToForm();
-      }
+    const switchTab = (tabKey) => this.switchDashboardTab(tabKey);
+
+    // Ticky Sidebar Collapse Toggle
+    document.getElementById('btnToggleSidebar')?.addEventListener('click', () => {
+      document.getElementById('tickySidebar')?.classList.toggle('collapsed');
+    });
+
+    // Ticky Brand Home link
+    document.getElementById('tickyBrandHome')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab('tabOverview');
+    });
+
+    // Ticky Switch Profile button
+    document.getElementById('btnSwitchProfile')?.addEventListener('click', () => {
+      this.openCompanyAuthModal();
+    });
+
+    // Ticky View All in Recently Registered
+    document.getElementById('btnViewAllPassengers')?.addEventListener('click', () => {
+      switchTab('tabManifest');
+    });
+
+    // Ticky Refresh Live Bookings button
+    document.getElementById('btnRefreshLiveBookings')?.addEventListener('click', () => {
+      this.refreshCompanyDashboard();
+      this.showToast('Sinkronisasi Berhasil', 'Data pemesanan dan manifest terupdate secara real-time.');
+    });
+
+    // ============================================
+    // TICKY TOP-HEADER BUTTON ACTIONS (Avatar, Notif, Settings, More)
+    // ============================================
+    const closeAllHeaderDropdowns = () => {
+      document.querySelectorAll('.ticky-header-dropdown').forEach(d => d.classList.remove('active'));
     };
+
+    // 1. Avatar Profile Toggle
+    const btnAvatar = document.getElementById('btnHeaderUserAvatar');
+    const ddProfile = document.getElementById('dropdownHeaderProfile');
+    btnAvatar?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = ddProfile?.classList.contains('active');
+      closeAllHeaderDropdowns();
+      if (!isOpen) {
+        const tenant = Store.getCurrentTenant();
+        const elName = document.getElementById('dropdownProfileCompanyName');
+        if (elName && tenant) elName.innerText = tenant.name;
+        ddProfile?.classList.add('active');
+      }
+    });
+
+    // 2. Bell Notifications Toggle
+    const btnNotif = document.getElementById('btnHeaderNotifications');
+    const ddNotif = document.getElementById('dropdownHeaderNotif');
+    btnNotif?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = ddNotif?.classList.contains('active');
+      closeAllHeaderDropdowns();
+      if (!isOpen) {
+        ddNotif?.classList.add('active');
+      }
+    });
+
+    // 3. Settings Gear Button -> Open Settings Tab directly
+    const btnSettings = document.getElementById('btnHeaderSettings');
+    btnSettings?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      switchTab('tabSettings');
+      this.showToast('Pengaturan KSOP & Pejabat', 'Silakan perbarui data syahbandar, inspektur keselamatan, atau regulasi.');
+    });
+
+    // 4. Three-Dots More Menu Toggle
+    const btnMore = document.getElementById('btnHeaderMoreMenu');
+    const ddMore = document.getElementById('dropdownHeaderMore');
+    btnMore?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = ddMore?.classList.contains('active');
+      closeAllHeaderDropdowns();
+      if (!isOpen) {
+        ddMore?.classList.add('active');
+      }
+    });
+
+    // Close header dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.ticky-header-actions')) {
+        closeAllHeaderDropdowns();
+      }
+    });
+
+    // Dropdown Action Buttons
+    document.getElementById('btnDropdownSwitchCompany')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.openCompanyAuthModal();
+    });
+    document.getElementById('btnDropdownOpenSettings')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      switchTab('tabSettings');
+    });
+    document.getElementById('btnMoreGoOverview')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      switchTab('tabOverview');
+    });
+    document.getElementById('btnMoreGoTicketing')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      switchTab('tabTicketing');
+    });
+    document.getElementById('btnMoreGoManifest')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      switchTab('tabManifest');
+    });
+    document.getElementById('btnMoreSyncData')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.refreshCompanyDashboard();
+      this.showToast('Sinkronisasi Berhasil', 'Data pemesanan dan manifest terupdate secara real-time.');
+    });
+    document.getElementById('btnMoreSwitchProfile')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.openCompanyAuthModal();
+    });
 
     // Sub-tabs switching
     document.querySelectorAll('.dash-tab-btn').forEach(btn => {
@@ -1295,11 +1538,11 @@ const App = {
     const badgeCal = document.getElementById('countCalendarBadge');
     if (badgeCal) badgeCal.innerText = schedules.length;
     const badgeManifest = document.getElementById('countManifestBadge');
-    if (badgeManifest) badgeManifest.innerText = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
+    if (badgeManifest) badgeManifest.innerText = bookings.reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
 
     // Calculate Financial KPIs
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
-    const totalTickets = bookings.reduce((sum, b) => sum + b.passengers.length, 0);
+    const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+    const totalTickets = bookings.reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
 
     const elRev = document.getElementById('kpiRevenue');
     if (elRev) elRev.innerText = formatRupiah(totalRevenue);
@@ -1307,6 +1550,87 @@ const App = {
     if (elTix) elTix.innerText = totalTickets;
     const elFleet = document.getElementById('kpiFleetCount');
     if (elFleet) elFleet.innerText = fleet.length;
+
+    // Update Ticky 8 KPI Cards with real company ticketing metrics
+    const elTotTix = document.getElementById('kpiTotalTickets');
+    if (elTotTix) elTotTix.innerText = totalTickets;
+
+    const waitingTix = bookings.filter(b => b.boardingStatus !== 'BOARDED').reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
+    const elOpenedTix = document.getElementById('kpiOpenedTickets');
+    if (elOpenedTix) elOpenedTix.innerText = waitingTix;
+
+    const closedTix = bookings.filter(b => b.boardingStatus === 'BOARDED').reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
+    const elClosedTix = document.getElementById('kpiClosedTickets');
+    if (elClosedTix) elClosedTix.innerText = closedTix;
+
+    const elTotUsers = document.getElementById('kpiTotalUsers');
+    if (elTotUsers) elTotUsers.innerText = totalTickets;
+
+    const elTotAgents = document.getElementById('kpiTotalAgents');
+    if (elTotAgents) elTotAgents.innerText = fleet.length;
+
+    const elTotAdmins = document.getElementById('kpiTotalAdmins');
+    if (elTotAdmins) elTotAdmins.innerText = schedules.length;
+
+    // Sisa Kuota Kursi across active schedules
+    const totalRemainingSeats = schedules.reduce((sum, s) => {
+      const v = fleet.find(item => item.id === s.vesselId);
+      const cap = v ? (v.capacity || 150) : (s.capacity || 150);
+      const bookedOnSched = bookings.filter(b => b.scheduleId === s.id).reduce((bSum, b) => bSum + (b.passengers ? b.passengers.length : 1), 0);
+      return sum + Math.max(0, cap - bookedOnSched);
+    }, 0);
+    const elWithdrawal = document.getElementById('kpiWithdrawalAmounts');
+    if (elWithdrawal) elWithdrawal.innerText = totalRemainingSeats;
+
+    const elTotTrans = document.getElementById('kpiTotalTransaction');
+    if (elTotTrans) elTotTrans.innerText = formatRupiah(totalRevenue);
+
+    // Render Ticky Recent Ticket Bookings List
+    const elRecentList = document.getElementById('tickyRecentUsersList');
+    if (elRecentList) {
+      elRecentList.innerHTML = '';
+      if (bookings.length === 0) {
+        elRecentList.innerHTML = `
+          <div style="text-align: center; padding: 2rem 1rem; color: #94a3b8;">
+            <p style="margin: 0; font-size: 0.88rem; font-weight: 600;">Belum ada aktivitas pemesanan tiket.</p>
+            <small>Tiket yang dipesan oleh penumpang atau loket akan muncul di sini.</small>
+          </div>
+        `;
+      } else {
+        bookings.slice(0, 4).forEach((b, idx) => {
+          const paxName = (b.passengers && b.passengers[0] && b.passengers[0].name)
+            ? b.passengers[0].name
+            : (b.contact?.name || b.groupName || 'Penumpang');
+          const paxCount = b.passengers ? b.passengers.length : 1;
+          const isBoarded = b.boardingStatus === 'BOARDED';
+          const avatarSvg = `assets/avatar-${(idx % 4) + 1}.svg`;
+
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'ticky-user-item';
+          itemDiv.innerHTML = `
+            <div class="ticky-user-item-left">
+              <img src="${avatarSvg}" alt="${paxName}" class="ticky-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'38\\' height=\\'38\\' fill=\\'%237c3aed\\' viewBox=\\'0 0 24 24\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'12\\' fill=\\'%23ede9fe\\'/><text x=\\'12\\' y=\\'16\\' text-anchor=\\'middle\\' font-size=\\'12\\' font-weight=\\'bold\\' fill=\\'%237c3aed\\'>${paxName.charAt(0).toUpperCase()}</text></svg>'">
+              <div>
+                <h5 class="ticky-user-name">${paxName} <span style="font-weight: normal; font-size: 0.75rem; color: #64748b;">(${b.pnr})</span></h5>
+                <span class="ticky-user-time">${b.originCity || 'Nunukan'} ➔ ${b.destinationCity || 'Tawau'} • ${paxCount} Tiket • ${b.departDate || 'Hari ini'}</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="status-pill ${isBoarded ? 'boarded' : 'waiting'}" style="font-size: 0.7rem; padding: 2px 7px;">
+                ${isBoarded ? 'Naik Kapal' : 'Menunggu'}
+              </span>
+              <button type="button" class="ticky-item-dots btn-quick-print-tix" title="Cetak Langsung Tiket Penumpang">🖨️</button>
+            </div>
+          `;
+
+          itemDiv.querySelector('.btn-quick-print-tix')?.addEventListener('click', () => {
+            this.openDirectTicketPrintModal(b.pnr);
+          });
+
+          elRecentList.appendChild(itemDiv);
+        });
+      }
+    }
 
     // Render Recent Bookings Table
     const tbodyRecent = document.getElementById('tbodyRecentBookings');
@@ -1316,16 +1640,21 @@ const App = {
     } else {
       bookings.slice(0, 5).forEach(b => {
         const tr = document.createElement('tr');
+        const contactName = b.contact ? b.contact.name : (b.groupName || '-');
+        const paxCount = b.passengers ? b.passengers.length : 1;
         tr.innerHTML = `
           <td><strong style="color: var(--primary-cyan); font-family: var(--font-mono);">${b.pnr}</strong></td>
           <td>${b.departDate}</td>
           <td>${b.originCity} ➔ ${b.destinationCity}<br><small class="text-dim">${b.vesselName}</small></td>
-          <td>${b.contact.name}</td>
-          <td>${b.passengers.length} Kursi</td>
+          <td>${contactName}</td>
+          <td>${paxCount} Kursi</td>
           <td class="text-gold"><strong>${formatRupiah(b.totalAmount)}</strong></td>
           <td><span class="status-pill ${b.boardingStatus === 'BOARDED' ? 'boarded' : 'waiting'}">${b.boardingStatus}</span></td>
           <td style="white-space: nowrap; text-align: center;">
             <div style="display: flex; gap: 4px; justify-content: center;">
+              <button type="button" class="btn-action-sm btn-print-booking-tickets" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid #a7f3d0; font-weight: 700;" title="Cetak Langsung Tiket Penumpang">
+                🖨️ Cetak
+              </button>
               <button type="button" class="btn-action-sm btn-edit-ticket" title="Edit Tiket & Kursi">
                 🎫 Tiket
               </button>
@@ -1336,6 +1665,9 @@ const App = {
           </td>
         `;
 
+        tr.querySelector('.btn-print-booking-tickets').addEventListener('click', () => {
+          this.openDirectTicketPrintModal(b.pnr);
+        });
         tr.querySelector('.btn-edit-ticket').addEventListener('click', () => {
           this.openEditTicketModal(b.pnr);
         });
@@ -1360,7 +1692,7 @@ const App = {
           <td><code style="color: var(--primary-cyan);">${v.regNumber}</code></td>
           <td>${v.type}</td>
           <td>${v.capacity} Penumpang</td>
-          <td><small class="text-dim">${v.facilities.join(', ')}</small></td>
+          <td><small class="text-dim">${(v.facilities && v.facilities.length > 0) ? v.facilities.join(', ') : 'Standar Penumpang, Life Jacket'}</small></td>
           <td><span class="status-pill paid">${v.status}</span></td>
         `;
         tbodyFleet.appendChild(tr);
@@ -1379,14 +1711,18 @@ const App = {
         const orig = MASTER_PORTS.find(p => p.id === s.originId);
         const dest = MASTER_PORTS.find(p => p.id === s.destinationId);
         const tr = document.createElement('tr');
+        const classesHtml = (s.classes && s.classes.length > 0)
+          ? s.classes.map(c => `<div>${c.name}: <strong>${formatRupiah(c.price)}</strong></div>`).join('')
+          : `<div>Ekonomi: <strong>${formatRupiah(s.priceEconomy || 250000)}</strong></div>`;
+
         tr.innerHTML = `
           <td><code>${s.id}</code></td>
           <td><strong>${vName}</strong></td>
           <td>${orig ? orig.name : s.originId} ➔ ${dest ? dest.name : s.destinationId}</td>
-          <td>${s.departTime} - ${s.arrivalTime} WIB</td>
-          <td><small class="text-dim">${s.pier}</small></td>
-          <td>${s.classes.map(c => `<div>${c.name}: <strong>${formatRupiah(c.price)}</strong></div>`).join('')}</td>
-          <td><span class="status-pill paid">${s.status}</span></td>
+          <td>${s.departTime} - ${s.arrivalTime || '10:30'} WIB</td>
+          <td><small class="text-dim">${s.pier || 'Dermaga Penumpang'}</small></td>
+          <td>${classesHtml}</td>
+          <td><span class="status-pill paid">${s.status || 'Aktif'}</span></td>
         `;
         tbodySched.appendChild(tr);
       });
@@ -1456,7 +1792,9 @@ const App = {
           const orig = MASTER_PORTS.find(p => p.id === sch.originId) || { name: sch.originId, city: '' };
           const dest = MASTER_PORTS.find(p => p.id === sch.destinationId) || { name: sch.destinationId, city: '' };
           const isIntl = sch.categoryType === 'INTERNATIONAL' || sch.originId === 'TWU' || sch.destinationId === 'TWU';
-          const minPrice = Math.min(...sch.classes.map(c => c.price));
+          const minPrice = (sch.classes && sch.classes.length > 0)
+            ? Math.min(...sch.classes.map(c => c.price))
+            : (sch.priceEconomy || 250000);
 
           const card = document.createElement('div');
           card.className = 'sched-card';
@@ -1549,7 +1887,17 @@ const App = {
     // Flatten all passengers
     let paxList = [];
     bookings.forEach(b => {
-      b.passengers.forEach((p, pIdx) => {
+      const paxArr = (Array.isArray(b.passengers) && b.passengers.length > 0) ? b.passengers : [{
+        name: b.passengerName || 'Penumpang',
+        gender: b.gender || 'L',
+        docType: b.docType || 'KTP',
+        docNumber: b.docNumber || b.nik || '-',
+        nationality: b.nationality || 'ID',
+        age: b.age || 30,
+        seat: b.seatNumber || 'A-01',
+        className: b.className || 'Ekonomi'
+      }];
+      paxArr.forEach((p, pIdx) => {
         paxList.push({
           booking: b,
           pax: p,
@@ -1620,39 +1968,48 @@ const App = {
           : '<span class="tag-badge" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border-color: #0284c7;">Dewasa</span>');
 
       tr.innerHTML = `
-        <td style="text-align: center;">
-          <input type="checkbox" class="check-pax-item" data-pnr="${b.pnr}" data-pax-idx="${item.paxIndex}" style="cursor: pointer; width: 16px; height: 16px;">
+        <td style="text-align: center; width: 28px; padding: 4px 3px;">
+          <input type="checkbox" class="check-pax-item" data-pnr="${b.pnr}" data-pax-idx="${item.paxIndex}" style="cursor: pointer; width: 15px; height: 15px;">
         </td>
-        <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
-        <td><strong style="color: var(--primary-cyan); font-family: var(--font-mono);">${b.pnr}</strong></td>
-        <td>${paxTypeBadge}</td>
-        <td><strong style="color: #0f172a;">${p.name}</strong></td>
-        <td style="text-align: center; font-weight: 600;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #0284c7;">L</span>'}</td>
-        <td><code style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #0f172a;">${docNum}</code></td>
-        <td>${p.dob || '-'} <small class="text-dim">(${p.age ? p.age + ' th' : '-'})</small></td>
-        <td>${p.nationality || 'Indonesia'}</td>
-        <td style="font-size: 0.8rem; color: var(--text-dim); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
-        <td><strong>${b.vesselName}</strong> <span style="color: var(--accent-gold); font-family: var(--font-mono); font-weight: bold;">(${p.seat})</span></td>
-        <td>
-          <span class="status-pill ${isBoarded ? 'boarded' : 'waiting'}">
-            ${isBoarded ? `✓ BOARDED (${b.boardedAt || 'ONBOARD'})` : 'MENUNGGU'}
+        <td style="color: var(--text-dim); text-align: center; width: 24px; padding: 4px 3px; font-size: 0.7rem;">${idx + 1}</td>
+        <td style="padding: 4px; white-space: nowrap;"><strong style="color: #0284c7; font-family: var(--font-mono); font-size: 0.72rem;">${b.pnr}</strong></td>
+        <td style="padding: 4px; white-space: nowrap;">${paxTypeBadge}</td>
+        <td style="padding: 4px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><strong style="color: #0f172a; font-size: 0.74rem;" title="${p.name}">${p.name}</strong></td>
+        <td style="text-align: center; font-weight: 700; width: 24px; padding: 4px 3px; font-size: 0.72rem;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #0284c7;">L</span>'}</td>
+        <td style="padding: 4px; white-space: nowrap;"><code style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; font-weight: 700; color: #0f172a; font-size: 0.68rem;">${docNum}</code></td>
+        <td style="padding: 4px; white-space: nowrap; font-size: 0.7rem;">${p.age ? p.age + ' th' : (p.dob || '-')}</td>
+        <td style="padding: 4px; font-size: 0.7rem; white-space: nowrap;">${p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : 'Indonesia')}</td>
+        <td style="padding: 4px; font-size: 0.68rem; color: var(--text-dim); max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
+        <td style="padding: 4px; white-space: nowrap;">
+          <span style="font-size: 0.68rem; font-weight: 600; color: #334155;" title="${b.vesselName}">${(b.vesselName || '').replace('PT ', '').replace('Express', 'Exp.').slice(0, 14)}</span>
+          <strong style="color: #0284c7; font-size: 0.72rem; margin-left: 2px;">(${p.seat})</strong>
+        </td>
+        <td style="padding: 4px; white-space: nowrap;">
+          <span class="status-pill ${isBoarded ? 'boarded' : 'waiting'}" style="font-size: 0.62rem; padding: 1px 5px;">
+            ${isBoarded ? 'BOARDED' : 'MENUNGGU'}
           </span>
         </td>
-        <td style="white-space: nowrap; text-align: center;">
-          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-            <button type="button" class="btn-action-sm btn-edit-manifest" title="Edit Data Manifest Penumpang (Nama, Dokumen, Umur, Remark)">
+        <td style="white-space: nowrap; text-align: center; padding: 4px;">
+          <div style="display: inline-flex; gap: 3px; justify-content: center; align-items: center;">
+            <button type="button" class="btn-action-sm btn-print-single-ticket" style="background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; padding: 2px 5px; font-size: 0.68rem;" title="Cetak Langsung Tiket / Boarding Pass Satuan">
+              🖨️ Tiket
+            </button>
+            <button type="button" class="btn-action-sm btn-edit-manifest" style="padding: 2px 5px; font-size: 0.68rem;" title="Edit Data Manifest Penumpang (Nama, Dokumen, Umur, Remark)">
               ✏️ Manifest
             </button>
-            <button type="button" class="btn-action-sm btn-edit-ticket" title="Edit Tiket (Nomor Kursi, Status Bayar & Boarding)">
-              🎫 Tiket
+            <button type="button" class="btn-action-sm btn-edit-ticket" style="padding: 2px 5px; font-size: 0.68rem;" title="Edit Tiket (Nomor Kursi, Status Bayar & Boarding)">
+              🎫
             </button>
-            <button type="button" class="btn-action-sm btn-transfer-vessel" title="Alihkan / Transfer Penumpang ke Kapal Lain">
-              🔄 Transfer
+            <button type="button" class="btn-action-sm btn-transfer-vessel" style="padding: 2px 5px; font-size: 0.68rem;" title="Alihkan / Transfer Penumpang ke Kapal Lain">
+              🔄
             </button>
           </div>
         </td>
       `;
 
+      tr.querySelector('.btn-print-single-ticket').addEventListener('click', () => {
+        this.openDirectTicketPrintModal({ pnr: b.pnr, paxIndex: item.paxIndex });
+      });
       tr.querySelector('.btn-edit-manifest').addEventListener('click', () => {
         this.openEditManifestModal(b.pnr, item.paxIndex);
       });
@@ -1674,6 +2031,32 @@ const App = {
         document.querySelectorAll('.check-pax-item').forEach(cb => {
           cb.checked = checkAllBox.checked;
         });
+      };
+    }
+
+    // Direct batch print selected tickets from manifest
+    const btnBatchPrint = document.getElementById('btnDirectPrintSelectedTickets');
+    if (btnBatchPrint) {
+      btnBatchPrint.onclick = () => {
+        const checkedBoxes = Array.from(document.querySelectorAll('.check-pax-item:checked'));
+        if (checkedBoxes.length > 0) {
+          const selectedItems = checkedBoxes.map(cb => ({
+            pnr: cb.getAttribute('data-pnr'),
+            paxIndex: parseInt(cb.getAttribute('data-pax-idx'), 10)
+          }));
+          this.openDirectTicketPrintModal(selectedItems);
+        } else {
+          // If none checked, print all visible passengers in manifest
+          const allPaxItems = paxList.map(item => ({
+            pnr: item.booking.pnr,
+            paxIndex: item.paxIndex
+          }));
+          if (allPaxItems.length === 0) {
+            this.showToast('Data Kosong', 'Tidak ada tiket penumpang pada manifest untuk dicetak.', 'warning');
+            return;
+          }
+          this.openDirectTicketPrintModal(allPaxItems);
+        }
       };
     }
 
@@ -1724,7 +2107,15 @@ const App = {
     rows.push(headers.map(h => `"${h}"`).join(','));
 
     bookings.forEach(b => {
-      b.passengers.forEach(p => {
+      const paxArr = (Array.isArray(b.passengers) && b.passengers.length > 0) ? b.passengers : [{
+        name: b.passengerName || '-',
+        gender: b.gender || 'L',
+        docNumber: b.docNumber || b.nik || '-',
+        nationality: b.nationality || 'Indonesia',
+        seat: b.seatNumber || 'A-01',
+        className: b.className || 'Ekonomi'
+      }];
+      paxArr.forEach(p => {
         const row = [
           rowIdx++,
           b.pnr,
@@ -1761,15 +2152,18 @@ const App = {
   },
 
   // Open Official KSOP Manifest Print Modal
-  openOfficialManifestPrintModal(bookings, tenant) {
+  openOfficialManifestPrintModal(bookings = null, tenant = null) {
     const modal = document.getElementById('modalOfficialManifestPrint');
     if (!modal) return;
 
+    if (!tenant) tenant = Store.getCurrentTenant() || Store.getCompanies()[0] || { name: 'Perusahaan Pelayaran Resmi', category: 'Operator Kapal Cepat', id: 'DEF' };
+    if (!bookings) bookings = Store.getBookingsByCompany(tenant.id) || [];
+
     const ksop = Store.getKsopSettings();
-    document.getElementById('docPrintCompanyTitle').innerText = tenant.name.toUpperCase();
-    document.getElementById('docPrintCompanySub').innerText = `Kategori: ${tenant.category} • Pangkalan Pelabuhan: ${ksop.ksopPort || 'Pelabuhan Tunon Taka Nunukan'}`;
+    document.getElementById('docPrintCompanyTitle').innerText = (tenant.name || 'PERUSAHAAN PELAYARAN').toUpperCase();
+    document.getElementById('docPrintCompanySub').innerText = `Kategori: ${tenant.category || 'Operator Resmi'} • Pangkalan Pelabuhan: ${ksop.ksopPort || 'Pelabuhan Tunon Taka Nunukan'}`;
     const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const prefix = ksop.spbPrefix || `MNF-${tenant.code || 'KSOP'}/`;
+    const prefix = ksop.spbPrefix || `MNF-${tenant.code || tenant.shortName || 'KSOP'}/`;
     document.getElementById('docPrintManifestRef').innerText = `${prefix}${dateCode}`;
 
     if (bookings.length > 0) {
@@ -1805,7 +2199,15 @@ const App = {
     } else {
       let count = 1;
       bookings.forEach(b => {
-        b.passengers.forEach(p => {
+        const paxArr = (Array.isArray(b.passengers) && b.passengers.length > 0) ? b.passengers : [{
+          name: b.passengerName || '-',
+          gender: b.gender || 'L',
+          docType: b.docType || 'KTP',
+          docNumber: b.docNumber || b.nik || '-',
+          nationality: b.nationality || 'Indonesia',
+          seat: b.seatNumber || 'A-01'
+        }];
+        paxArr.forEach(p => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">${count++}</td>
@@ -1825,6 +2227,432 @@ const App = {
     }
 
     modal.classList.add('show');
+  },
+
+  // ========================================================
+  // DIRECT TICKET & BOARDING PASS PRINTING ENGINE (SATUAN & MASSAL)
+  // ========================================================
+
+  normalizeTicketItems(target) {
+    const tenant = Store.getCurrentTenant() || Store.getCompanies()[0];
+    const allBookings = tenant ? Store.getBookingsByCompany(tenant.id) : Store.getBookings();
+    const ksop = Store.getKsopSettings();
+
+    let rawList = []; // Array of { booking, pax, paxIndex }
+
+    if (typeof target === 'string') {
+      const b = Store.getBookingByPnr(target) || allBookings.find(x => x.pnr === target);
+      if (b && Array.isArray(b.passengers)) {
+        b.passengers.forEach((p, pIdx) => {
+          rawList.push({ booking: b, pax: p, paxIndex: pIdx });
+        });
+      }
+    } else if (Array.isArray(target)) {
+      target.forEach(item => {
+        if (typeof item === 'string') {
+          const b = Store.getBookingByPnr(item) || allBookings.find(x => x.pnr === item);
+          if (b && Array.isArray(b.passengers)) {
+            b.passengers.forEach((p, pIdx) => {
+              rawList.push({ booking: b, pax: p, paxIndex: pIdx });
+            });
+          }
+        } else if (item && item.pnr) {
+          const b = Store.getBookingByPnr(item.pnr) || allBookings.find(x => x.pnr === item.pnr);
+          if (b && Array.isArray(b.passengers)) {
+            const pIdx = (typeof item.paxIndex === 'number' && item.paxIndex >= 0) ? item.paxIndex : 0;
+            const p = b.passengers[pIdx] || b.passengers[0];
+            if (p) {
+              rawList.push({ booking: b, pax: p, paxIndex: pIdx });
+            }
+          }
+        } else if (item && item.booking && item.pax) {
+          rawList.push(item);
+        }
+      });
+    } else if (target && typeof target === 'object') {
+      if (target.pnr) {
+        const b = Store.getBookingByPnr(target.pnr) || allBookings.find(x => x.pnr === target.pnr);
+        if (b && Array.isArray(b.passengers)) {
+          if (typeof target.paxIndex === 'number') {
+            const p = b.passengers[target.paxIndex];
+            if (p) rawList.push({ booking: b, pax: p, paxIndex: target.paxIndex });
+          } else {
+            b.passengers.forEach((p, pIdx) => {
+              rawList.push({ booking: b, pax: p, paxIndex: pIdx });
+            });
+          }
+        }
+      }
+    } else {
+      allBookings.forEach(b => {
+        if (Array.isArray(b.passengers)) {
+          b.passengers.forEach((p, pIdx) => {
+            rawList.push({ booking: b, pax: p, paxIndex: pIdx });
+          });
+        }
+      });
+    }
+
+    return rawList.map(item => this.buildTicketDescriptor(item.booking, item.pax, item.paxIndex, tenant, ksop));
+  },
+
+  buildTicketDescriptor(booking, pax, paxIndex, tenant, ksop) {
+    const isSingle = (!booking.passengers || booking.passengers.length <= 1);
+    const suffix = String(paxIndex + 1).padStart(2, '0');
+    const ticketNo = isSingle ? booking.pnr : `${booking.pnr}-${suffix}`;
+    const barcodeCode = (booking.barcode || '8910482019') + (isSingle ? '' : suffix);
+    const seatName = pax.seat || (booking.passengers && booking.passengers[0] ? booking.passengers[0].seat : `A-${suffix}`);
+    const className = pax.className || booking.className || 'Ekonomi (Main Deck)';
+    const fare = (booking.passengers && booking.passengers.length > 0)
+      ? Math.round((booking.totalAmount || 250000) / booking.passengers.length)
+      : (booking.totalAmount || 250000);
+    const docNum = pax.passportNo || pax.docNumber || pax.nik || '-';
+    const isIntl = booking.isIntl || booking.destCode === 'TWU' || booking.originCode === 'TWU';
+    const docLabel = (pax.nationality === 'MY' || isIntl) ? 'NO. PASPOR / PLB' : 'NO. KTP / NIK';
+
+    const qrData = JSON.stringify({
+      tkt: ticketNo,
+      pnr: booking.pnr,
+      pax: pax.name,
+      doc: docNum,
+      seat: seatName,
+      vessel: booking.vesselName,
+      route: `${booking.originCity}-${booking.destinationCity}`,
+      dep: `${booking.departDate} ${booking.departTime}`
+    });
+
+    return {
+      ticketNo,
+      pnr: booking.pnr,
+      paxIndex,
+      isBulkBooking: !isSingle,
+      totalPaxInBooking: booking.passengers ? booking.passengers.length : 1,
+      passengerName: pax.name || 'Penumpang Resmi',
+      paxType: pax.paxType || 'Dewasa',
+      gender: pax.gender || 'L',
+      genderText: pax.gender === 'P' ? 'Perempuan (P)' : 'Laki-laki (L)',
+      docType: pax.docType || (isIntl ? 'PASPOR' : 'KTP'),
+      docLabel,
+      docNum,
+      age: pax.age || (pax.dob ? '-' : 'Dewasa'),
+      nationality: pax.nationality === 'MY' ? 'Malaysia' : (pax.nationality === 'OTHER' ? 'WNA' : 'Indonesia (WNI)'),
+      seat: seatName,
+      className,
+      fare,
+      fareFormatted: formatRupiah(fare),
+      paymentMethod: booking.paymentMethod || 'CASH',
+      paymentStatus: booking.paymentStatus || 'PAID',
+      boardingStatus: booking.boardingStatus || 'NOT_CHECKED_IN',
+      boardedAt: booking.boardedAt || null,
+      vesselName: booking.vesselName || 'KM Hasna Express 01',
+      originCity: booking.originCity || 'Nunukan',
+      originCode: booking.originCode || 'NNK',
+      destCity: booking.destinationCity || 'Tawau',
+      destCode: booking.destCode || 'TWU',
+      departDate: booking.departDate || new Date().toISOString().split('T')[0],
+      departTime: booking.departTime || '08:30 WITA',
+      pier: booking.pier || 'Dermaga 3 Tunon Taka',
+      groupName: booking.groupName || (booking.contact ? booking.contact.name : '-'),
+      companyName: tenant?.name || 'PT HASNA EXPRESS NUNUKAN',
+      companyShort: tenant?.shortName || 'HASNA EXPRESS',
+      companyColor: tenant?.brandColor || '#0284c7',
+      ksopPort: ksop?.ksopPort || 'Pelabuhan Tunon Taka Nunukan',
+      spbRef: `${ksop?.spbPrefix || 'SPB-KSOP-NNK/'}${booking.pnr.replace(/[^0-9]/g, '').slice(-6) || '829104'}`,
+      barcodeCode,
+      qrData
+    };
+  },
+
+  openDirectTicketPrintModal(target = null, format = 'BOARDING_PASS') {
+    this.directPrintState.currentFormat = format;
+    const items = this.normalizeTicketItems(target);
+    if (!items || items.length === 0) {
+      this.showToast('Data Kosong', 'Tidak ada data tiket penumpang yang ditemukan untuk dicetak.', 'warning');
+      return;
+    }
+    this.directPrintState.items = items;
+
+    // Update Header and Format Buttons
+    const batchBadge = document.getElementById('directPrintBatchBadge');
+    if (batchBadge) {
+      batchBadge.innerText = `${items.length} Tiket Siap Cetak (${this.directPrintState.currentFormat === 'BOARDING_PASS' ? 'A4 Boarding Pass' : 'Struk Thermal POS'})`;
+    }
+
+    const printBtnText = document.getElementById('btnExecuteDirectPrintText');
+    if (printBtnText) {
+      printBtnText.innerText = `🖨️ Cetak Sekarang (${items.length} Tiket)`;
+    }
+
+    // Sync format buttons UI
+    document.querySelectorAll('.btn-toggle-print-format')?.forEach(btn => {
+      const btnFormat = btn.getAttribute('data-format');
+      if (btnFormat === format) {
+        btn.classList.add('active');
+        btn.style.background = '#ffffff';
+        btn.style.color = '#0284c7';
+        btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+      } else {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.color = '#64748b';
+        btn.style.boxShadow = 'none';
+      }
+    });
+
+    this.renderDirectTicketsArea();
+    document.getElementById('modalDirectTicketPrint')?.classList.add('show');
+  },
+
+  renderDirectTicketsArea() {
+    const area = document.getElementById('directBatchTicketPrintArea');
+    if (!area) return;
+    area.innerHTML = '';
+
+    const items = this.directPrintState.items || [];
+    const isThermal = (this.directPrintState.currentFormat === 'THERMAL_POS');
+
+    if (items.length === 0) {
+      area.innerHTML = `
+        <div style="padding: 2.5rem; text-align: center; color: #64748b; background: #ffffff; border-radius: 8px; border: 1px dashed #cbd5e1;">
+          Tidak ada tiket yang dimuat untuk dicetak.
+        </div>
+      `;
+      return;
+    }
+
+    items.forEach((t, idx) => {
+      const ticketHtml = isThermal
+        ? this.renderThermalPosTicket(t, idx, items.length)
+        : this.renderBoardingPassTicket(t, idx, items.length);
+
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = ticketHtml.trim();
+      area.appendChild(wrapper.firstElementChild);
+    });
+  },
+
+  renderBoardingPassTicket(t, idx, total) {
+    const qrSvg = this.generateSvgQrCode(t.qrData);
+    const barcodeLines = Array.from({ length: 32 }, (_, i) => {
+      const w = (i % 5 === 0) ? 3 : ((i % 3 === 0) ? 1 : 2);
+      const isSpace = (i % 7 === 0);
+      return `<span style="width: ${w}px; background: ${isSpace ? 'transparent' : '#0f172a'};"></span>`;
+    }).join('');
+
+    return `
+      <div class="direct-ticket-card">
+        <!-- Header -->
+        <div class="dt-header">
+          <div class="dt-company-name">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${t.companyColor}; display: inline-block;"></span>
+            <span>${t.companyName}</span>
+            <span class="dt-pass-title">• BOARDING PASS RESMI KAPAL LAUT</span>
+          </div>
+          <div class="dt-pnr-box">
+            <span class="dt-pnr-lbl">RESERVASI (PNR)</span>
+            <span class="dt-pnr-code">${t.pnr}</span>
+            <span class="dt-ticket-seq">(${idx + 1} / ${total})</span>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="dt-body">
+          <!-- Route strip -->
+          <div class="dt-route-row">
+            <div>
+              <span class="dt-city-code">${t.originCode}</span>
+              <span class="dt-city-name">${t.originCity}</span>
+              <span class="dt-time">${t.departTime}</span>
+            </div>
+
+            <div class="dt-arrow-cell">
+              <span class="dt-vessel-badge">🚢 ${t.vesselName}</span>
+              <div style="display: flex; align-items: center; gap: 4px; margin: 4px 0;">
+                <span style="width: 30px; height: 1.5px; background: #0284c7; display: inline-block;"></span>
+                <span style="color: #0284c7; font-size: 0.9rem;">➔</span>
+                <span style="width: 30px; height: 1.5px; background: #0284c7; display: inline-block;"></span>
+              </div>
+              <span style="font-size: 0.7rem; color: #64748b; font-weight: 600;">${t.pier}</span>
+            </div>
+
+            <div style="text-align: right;">
+              <span class="dt-city-code">${t.destCode}</span>
+              <span class="dt-city-name">${t.destCity}</span>
+              <span class="dt-time" style="color: #10b981;">Kedatangan Resmi</span>
+            </div>
+          </div>
+
+          <!-- Passenger and Fare Details -->
+          <div class="dt-grid-details">
+            <div class="dt-cell">
+              <span class="lbl">Nama Lengkap</span>
+              <span class="val" style="color: #0284c7;">${t.passengerName}</span>
+              <span class="sub">${t.paxType} • ${t.genderText}</span>
+            </div>
+
+            <div class="dt-cell">
+              <span class="lbl">${t.docLabel}</span>
+              <span class="val" style="font-family: monospace;">${t.docNum}</span>
+              <span class="sub">Warga: ${t.nationality}</span>
+            </div>
+
+            <div class="dt-cell">
+              <span class="lbl">Nomor Kursi (Seat)</span>
+              <span class="dt-seat-highlight">${t.seat}</span>
+              <span class="sub">${t.className}</span>
+            </div>
+
+            <div class="dt-cell">
+              <span class="lbl">Tarif & Pembayaran</span>
+              <span class="val" style="color: #b45309;">${t.fareFormatted}</span>
+              <span class="sub" style="color: #059669; font-weight: 700;">✓ ${t.paymentStatus} (${t.paymentMethod})</span>
+            </div>
+          </div>
+
+          <!-- Perforated Tear Line -->
+          <div class="dt-perforated">
+            <div class="circle-c c-left"></div>
+            <div class="dashes"></div>
+            <div class="circle-c c-right"></div>
+          </div>
+
+          <!-- Security Footer & Verification Seals -->
+          <div class="dt-security-foot">
+            <div class="dt-qr-wrap" title="Scan Validasi Boarding Pass Gate">
+              ${qrSvg}
+            </div>
+
+            <div>
+              <div style="font-size: 0.78rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">
+                DITJEN HUBLA & KSOP TERPADU • PASSENGER BOARDING CLEARANCE
+              </div>
+              <div style="font-size: 0.72rem; color: #475569;">
+                No. SPB: <strong style="color: #0284c7; font-family: monospace;">${t.spbRef}</strong> • 
+                No. Tiket: <strong style="font-family: monospace; color: #0f172a;">${t.ticketNo}</strong> • 
+                Pelabuhan: <span style="font-weight: 600;">${t.ksopPort}</span>
+              </div>
+              <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 3px;">
+                Wajib lapor di ruang tunggu terminal keberangkatan minimal 30 menit sebelum jadwal keberangkatan kapal.
+              </div>
+            </div>
+
+            <div class="dt-barcode-wrap" style="align-items: flex-end;">
+              <div class="dt-barcode-graphic">
+                ${barcodeLines}
+              </div>
+              <span style="font-family: monospace; font-size: 0.72rem; color: #475569; letter-spacing: 0.5px;">*${t.barcodeCode}*</span>
+            </div>
+          </div>
+
+          <!-- Notice Strip -->
+          <div class="dt-terms-notice">
+            <span>🛡️ Tiket ini sah dan dilindungi asuransi jasa raharja pelayaran resmi.</span>
+            <span>Pencetakan: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • Universal Ticketing SaaS</span>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderThermalPosTicket(t, idx, total) {
+    const qrSvg = this.generateSvgQrCode(t.qrData);
+
+    return `
+      <div class="direct-ticket-thermal">
+        <div class="th-center">
+          <div class="th-header-title">${t.companyName}</div>
+          <div class="th-sub">${t.ksopPort}</div>
+          <div class="th-sub">Layanan Penyeberangan & Kapal Cepat</div>
+        </div>
+
+        <div class="th-double-divider"></div>
+
+        <div class="th-center">
+          <div style="font-size: 0.88rem; font-weight: 900; letter-spacing: 0.5px;">BOARDING PASS KAPAL LAUT</div>
+          <div style="font-size: 0.68rem; color: #333333;">KEMENTERIAN PERHUBUNGAN - DITJEN HUBLA</div>
+          <div style="font-size: 0.68rem; color: #0284c7; font-weight: 700; margin-top: 2px;">TIKET #${idx + 1} DARI ${total} PENUMPANG</div>
+        </div>
+
+        <div class="th-divider"></div>
+
+        <div class="th-row">
+          <span>KODE RESERVASI (PNR)</span>
+          <strong style="font-family: monospace;">${t.pnr}</strong>
+        </div>
+        <div class="th-row">
+          <span>NO. TIKET PENUMPANG</span>
+          <strong style="font-family: monospace;">${t.ticketNo}</strong>
+        </div>
+        <div class="th-row">
+          <span>TANGGAL & WAKTU</span>
+          <span>${t.departDate} • ${t.departTime}</span>
+        </div>
+        <div class="th-row">
+          <span>RUTE PELAYARAN</span>
+          <strong>${t.originCity} ➔ ${t.destCity}</strong>
+        </div>
+        <div class="th-row">
+          <span>ARMADA KAPAL</span>
+          <strong>${t.vesselName}</strong>
+        </div>
+        <div class="th-row">
+          <span>DERMAGA</span>
+          <span>${t.pier}</span>
+        </div>
+
+        <div class="th-divider"></div>
+
+        <div class="th-row">
+          <span>NAMA PENUMPANG</span>
+          <strong>${t.passengerName}</strong>
+        </div>
+        <div class="th-row">
+          <span>${t.docLabel}</span>
+          <span style="font-family: monospace;">${t.docNum}</span>
+        </div>
+        <div class="th-row">
+          <span>KATEGORI / KEWARGANEGARAAN</span>
+          <span>${t.paxType} / ${t.nationality}</span>
+        </div>
+
+        <div class="th-seat-box">
+          <span class="th-seat-lbl">NOMOR KURSI / SEAT</span>
+          <span class="th-seat-num">${t.seat}</span>
+          <span style="font-size: 0.72rem; font-weight: 700; color: #000;">${t.className}</span>
+        </div>
+
+        <div class="th-row">
+          <span>TARIF TIKET</span>
+          <strong>${t.fareFormatted}</strong>
+        </div>
+        <div class="th-row">
+          <span>STATUS PEMBAYARAN</span>
+          <strong>✓ ${t.paymentStatus} (${t.paymentMethod})</strong>
+        </div>
+        <div class="th-row">
+          <span>REF CLEARANCE SPB</span>
+          <span style="font-size: 0.7rem; font-family: monospace;">${t.spbRef}</span>
+        </div>
+
+        <div class="th-double-divider"></div>
+
+        <div class="th-center">
+          <div style="display: flex; justify-content: center; margin: 0.5rem 0;">
+            ${qrSvg}
+          </div>
+          <div style="font-family: monospace; font-size: 0.75rem; font-weight: bold;">*${t.ticketNo}*</div>
+          <div style="font-size: 0.65rem; color: #333; margin-top: 0.5rem; line-height: 1.3;">
+            Tunjukkan struk ini pada petugas Gate & KSOP saat pemeriksaan manifest.
+          </div>
+          <div style="font-size: 0.65rem; color: #333; font-weight: 700;">
+            Pintu Gate ditutup 15 menit sebelum keberangkatan kapal.
+          </div>
+          <div style="font-size: 0.72rem; font-weight: 900; margin-top: 0.6rem;">
+            *** SEMOGA SELAMAT SAMPAI TUJUAN ***
+          </div>
+        </div>
+      </div>
+    `;
   },
 
   // Gate Scanner Execution (Anti-Duplicate Check-in Verification)
@@ -1847,7 +2675,14 @@ const App = {
       return;
     }
 
-    const p0 = booking.passengers[0];
+    const p0 = (booking.passengers && booking.passengers[0]) || {
+      name: booking.passengerName || 'Penumpang Resmi',
+      nationality: booking.nationality || 'ID',
+      docType: booking.docType || 'KTP',
+      docNumber: booking.docNumber || booking.nik || '-',
+      gender: booking.gender || 'L',
+      seat: booking.seatNumber || '-'
+    };
     const isAlreadyBoarded = booking.boardingStatus === 'BOARDED';
     const natBadge = p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
@@ -1861,7 +2696,7 @@ const App = {
 
         <h3 style="font-size: 1.35rem; margin: 0.25rem 0;">${p0.name}</h3>
         <p class="text-dim" style="font-size: 0.85rem;">
-          ${docLabel}: <code style="color: #0f172a; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${p0.docNumber || p0.nik}</code> • Kursi: <strong style="color: var(--primary-cyan);">${booking.passengers.map(p => p.seat).join(', ')}</strong> (${booking.className})
+          ${docLabel}: <code style="color: #0f172a; font-weight: bold; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${p0.docNumber || p0.nik || '-'}</code> • Kursi: <strong style="color: var(--primary-cyan);">${(booking.passengers || []).map(p => p.seat).filter(Boolean).join(', ') || booking.seatNumber || '-'}</strong> (${booking.className || 'Ekonomi'})
         </p>
 
         <div style="margin: 0.85rem 0; font-size: 0.84rem; background: #f8fafc; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--border-line);">
@@ -1961,6 +2796,41 @@ const App = {
       });
     }
 
+    // Direct Ticket & Boarding Pass Print Modal Listeners
+    document.getElementById('btnCloseDirectTicketPrint')?.addEventListener('click', () => {
+      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelDirectTicketPrint')?.addEventListener('click', () => {
+      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
+    });
+    document.getElementById('btnExecuteDirectPrint')?.addEventListener('click', () => {
+      window.print();
+    });
+    document.querySelectorAll('.btn-toggle-print-format')?.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const format = btn.getAttribute('data-format') || 'BOARDING_PASS';
+        this.directPrintState.currentFormat = format;
+
+        document.querySelectorAll('.btn-toggle-print-format').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = '#64748b';
+          b.style.boxShadow = 'none';
+        });
+        btn.classList.add('active');
+        btn.style.background = '#ffffff';
+        btn.style.color = '#0284c7';
+        btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+
+        const batchBadge = document.getElementById('directPrintBatchBadge');
+        if (batchBadge) {
+          batchBadge.innerText = `${this.directPrintState.items.length} Tiket Siap Cetak (${format === 'BOARDING_PASS' ? 'A4 Boarding Pass' : 'Struk Thermal POS'})`;
+        }
+
+        this.renderDirectTicketsArea();
+      });
+    });
+
     // Modal 1: Edit Manifest Listeners
     document.getElementById('btnCloseEditManifest')?.addEventListener('click', () => {
       document.getElementById('modalEditManifest').classList.remove('show');
@@ -1999,6 +2869,12 @@ const App = {
     });
     document.getElementById('btnCancelEditTicket')?.addEventListener('click', () => {
       document.getElementById('modalEditTicket').classList.remove('show');
+    });
+    document.getElementById('btnDirectPrintFromEditTicket')?.addEventListener('click', () => {
+      const pnr = document.getElementById('editTicketPnr')?.value;
+      if (pnr) {
+        this.openDirectTicketPrintModal(pnr);
+      }
     });
     document.getElementById('formEditTicket')?.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -2424,7 +3300,13 @@ const App = {
     container.innerHTML = '';
 
     allBookings.forEach(b => {
-      b.passengers.forEach((p, pIdx) => {
+      const pList = (Array.isArray(b.passengers) && b.passengers.length > 0) ? b.passengers : [{
+        name: b.passengerName || 'Penumpang Resmi',
+        paxType: b.paxType || 'Dewasa',
+        seat: b.seatNumber || 'A-01',
+        docNumber: b.docNumber || b.nik || '-'
+      }];
+      pList.forEach((p, pIdx) => {
         const isChecked = selectedPnrs.includes(b.pnr);
         const row = document.createElement('label');
         row.className = 'transfer-pax-row';
@@ -2741,7 +3623,7 @@ const App = {
         if (!sched) return;
 
         // Open booking modal with pre-selected class and seat
-        this.openCustomerBookingModal(sched);
+        this.openBookingModal(sched);
         this.selectedClassIndex = this.seatDashState.classIdx;
         this.selectedSeats = [this.seatDashState.selectedSeat];
         this.renderClassOptions();
@@ -2830,7 +3712,13 @@ const App = {
     // Map of seatCode -> passenger object
     const occupiedMap = {};
     schedBookings.forEach(b => {
-      b.passengers.forEach(p => {
+      const pArr = (b.passengers && b.passengers.length > 0) ? b.passengers : [{
+        name: b.passengerName || 'Penumpang',
+        seat: b.seatNumber,
+        className: b.className,
+        docNumber: b.docNumber || b.nik || '-'
+      }];
+      pArr.forEach(p => {
         if (p.seat) {
           occupiedMap[p.seat.trim().toUpperCase()] = {
             name: p.name,
@@ -3620,6 +4508,959 @@ const App = {
     }
 
     modal.classList.add('show');
+  },
+
+  // ========================================================
+  // FITUR: INPUT DATA PENUMPANG MASSAL (BULK & GROUP ENTRY)
+  // ========================================================
+
+  initBulkPassengerEvents() {
+    // Triggers to open bulk modal
+    document.getElementById('btnHeaderQuickBulkPax')?.addEventListener('click', () => {
+      this.openBulkPassengerModal();
+    });
+    document.getElementById('btnOpenBulkPassengerModal')?.addEventListener('click', () => {
+      this.openBulkPassengerModal();
+    });
+    document.getElementById('subBtnBulkPassenger')?.addEventListener('click', () => {
+      this.openBulkPassengerModal();
+    });
+    document.getElementById('btnOpenBulkPassengerFromTicketing')?.addEventListener('click', () => {
+      this.openBulkPassengerModal();
+    });
+    document.getElementById('btnVoyageGoBulkPax')?.addEventListener('click', () => {
+      const schId = document.getElementById('voyageModalId')?.innerText;
+      document.getElementById('modalVoyageDetail')?.classList.remove('show');
+      this.openBulkPassengerModal(schId);
+    });
+
+    // Close Modal
+    document.getElementById('btnCloseBulkPassengerEntry')?.addEventListener('click', () => {
+      document.getElementById('modalBulkPassengerEntry')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelBulkPassengerEntry')?.addEventListener('click', () => {
+      document.getElementById('modalBulkPassengerEntry')?.classList.remove('show');
+    });
+
+    // Close on backdrop click
+    const modalBulk = document.getElementById('modalBulkPassengerEntry');
+    if (modalBulk) {
+      modalBulk.addEventListener('click', (e) => {
+        if (e.target === modalBulk) {
+          modalBulk.classList.remove('show');
+        }
+      });
+    }
+
+    // Target Schedule & Class Changes
+    document.getElementById('bulkTargetScheduleSelect')?.addEventListener('change', (e) => {
+      this.bulkState.targetScheduleId = e.target.value;
+      this.updateBulkScheduleInfo();
+      this.reallocateBulkSeats();
+    });
+
+    document.getElementById('bulkClassSelect')?.addEventListener('change', (e) => {
+      const sel = e.target;
+      const opt = sel.options[sel.selectedIndex];
+      this.bulkState.selectedClass = sel.value;
+      this.bulkState.farePerPax = opt ? parseInt(opt.getAttribute('data-fare') || '250000', 10) : 250000;
+      this.renderBulkPassengerPreview();
+    });
+
+    // Input Tabs Switching
+    const tabBtns = document.querySelectorAll('#bulkInputTabs .bulk-tab-btn');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.getAttribute('data-mode');
+        this.bulkState.activeTab = mode;
+
+        const panePaste = document.getElementById('bulkPanePaste');
+        const paneFile = document.getElementById('bulkPaneFile');
+        const paneGrid = document.getElementById('bulkPaneGrid');
+
+        if (panePaste) panePaste.style.display = (mode === 'PASTE') ? 'block' : 'none';
+        if (paneFile) paneFile.style.display = (mode === 'FILE') ? 'block' : 'none';
+        if (paneGrid) paneGrid.style.display = (mode === 'GRID') ? 'block' : 'none';
+
+        if (mode === 'GRID' && (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0)) {
+          this.initManualGridRows(3);
+        }
+      });
+    });
+
+    // Download CSV Template
+    document.getElementById('btnDownloadBulkCsvTemplate')?.addEventListener('click', () => {
+      this.downloadBulkPassengerTemplate();
+    });
+
+    // Parse Pasted Text Button & Live Input
+    document.getElementById('btnParsePastedText')?.addEventListener('click', () => {
+      const text = document.getElementById('bulkPasteTextarea')?.value || '';
+      this.parseAndSetBulkPassengers(text, true);
+    });
+    document.getElementById('bulkPasteTextarea')?.addEventListener('input', () => {
+      const text = document.getElementById('bulkPasteTextarea')?.value || '';
+      if (text.trim().length > 0) {
+        this.parseAndSetBulkPassengers(text, false);
+      }
+    });
+
+    // Load Demo Data Button
+    document.getElementById('btnLoadBulkDemoData')?.addEventListener('click', () => {
+      const demoData = 
+`Ahmad Dahlan\tA9128374\tL\tDewasa\t35\tID\tA-01\tRombongan Kerja Nunukan
+Siti Rahmawati\t6401024508900001\tP\tDewasa\t30\tID\tA-02\tWisata Keluarga
+Hafiz bin Ismail\tMYB582910\tL\tDewasa\t42\tMY\tA-03\tWNA Tawau Malaysia
+Muhammad Rizki\t6401021204150003\tL\tAnak\t8\tID\tA-04\tAnak Pendamping
+Nurul Hidayah\t6401028910950002\tP\tDewasa\t28\tID\tA-05\tRombongan Mandiri
+Bambang Suryono\t6401031507850004\tL\tDewasa\t39\tID\tA-06\tTeknisi Pelayaran
+Faridah binti Osman\tMYC910283\tP\tDewasa\t37\tMY\tA-07\tTamu Perusahaan
+Faisal Tanjung\t6401042003920005\tL\tDewasa\t32\tID\tA-08\tKunjungan Dinas
+Dewi Lestari\t6401055511980006\tP\tDewasa\t26\tID\tA-09\tWisatawan
+Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`;
+      
+      const ta = document.getElementById('bulkPasteTextarea');
+      if (ta) ta.value = demoData;
+      this.parseAndSetBulkPassengers(demoData, true);
+    });
+
+    // File Upload via Input & Drag-and-drop
+    const fileInput = document.getElementById('bulkFileInput');
+    const dropArea = document.getElementById('bulkDropzoneArea');
+
+    document.getElementById('btnBrowseBulkFile')?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) this.handleBulkUploadedFile(file);
+    });
+
+    if (dropArea) {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropArea.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropArea.classList.remove('dragover');
+        });
+      });
+      dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (file) this.handleBulkUploadedFile(file);
+      });
+    }
+
+    // Grid row buttons
+    document.getElementById('btnAddGridRow')?.addEventListener('click', () => {
+      this.addManualGridRow();
+    });
+    document.getElementById('btnAdd5GridRows')?.addEventListener('click', () => {
+      for (let i = 0; i < 5; i++) this.addManualGridRow();
+    });
+    document.getElementById('btnClearGridRows')?.addEventListener('click', () => {
+      this.initManualGridRows(3);
+      this.syncGridToPaxList();
+    });
+
+    // Clear All Bulk Data
+    document.getElementById('btnClearBulkData')?.addEventListener('click', () => {
+      this.resetBulkPassengerState();
+      this.showToast('Data Dibersihkan', 'Seluruh input data penumpang massal telah direset.', 'warning');
+    });
+
+    // Reallocate Seats
+    document.getElementById('btnReallocateBulkSeats')?.addEventListener('click', () => {
+      this.reallocateBulkSeats(true);
+      this.showToast('Kursi Dialokasikan', 'Seluruh alokasi nomor kursi berhasil diurutkan kembali.');
+    });
+
+    // Submit Bulk Passenger
+    document.getElementById('btnSubmitBulkPassenger')?.addEventListener('click', () => {
+      this.processBulkPassengerSubmit();
+    });
+
+    // Success Modal Actions
+    document.getElementById('btnBulkSuccessClose')?.addEventListener('click', () => {
+      document.getElementById('modalBulkSuccess')?.classList.remove('show');
+    });
+    document.getElementById('btnBulkSuccessGoManifest')?.addEventListener('click', () => {
+      document.getElementById('modalBulkSuccess')?.classList.remove('show');
+      this.switchDashboardTab('tabManifest');
+    });
+    document.getElementById('btnBulkSuccessPrintManifest')?.addEventListener('click', () => {
+      document.getElementById('modalBulkSuccess')?.classList.remove('show');
+      this.openOfficialManifestPrintModal();
+    });
+    document.getElementById('btnBulkSuccessPrintTickets')?.addEventListener('click', () => {
+      const pnr = document.getElementById('bulkSuccessPnr')?.innerText?.trim();
+      document.getElementById('modalBulkSuccess')?.classList.remove('show');
+      if (pnr && pnr !== '-') {
+        this.openDirectTicketPrintModal(pnr);
+      } else {
+        this.openDirectTicketPrintModal();
+      }
+    });
+  },
+
+  openBulkPassengerModal(preselectedScheduleId = null) {
+    let tenant = Store.getCurrentTenant();
+    if (!tenant) {
+      const companies = Store.getCompanies();
+      if (companies && companies.length > 0) {
+        tenant = companies[0];
+      } else {
+        // Auto-provision default official operator tenant
+        tenant = {
+          id: 'COMP-HASNA-01',
+          name: 'PT Hasna Express Nunukan',
+          shortName: 'Hasna Express',
+          category: 'Operator Kapal Cepat Lintas Batas (Nunukan - Tawau)',
+          brandColor: '#0284c7',
+          email: 'operasional@hasnaexpress.co.id',
+          phone: '+62 811-540-8899',
+          activeVesselsCount: 1,
+          createdAt: new Date().toISOString()
+        };
+        Store.saveCompanies([tenant]);
+
+        const initialVessel = {
+          id: 'VES-HASNA-01',
+          companyId: tenant.id,
+          name: 'KM Hasna Express 01',
+          regNumber: 'GT.148/No.2881/PPm',
+          type: 'Kapal Cepat Penumpang (High Speed Craft)',
+          capacity: 250,
+          facilities: ['AC Reclining Seat', 'Toilet Bersih', 'Life Jacket KSOP'],
+          status: 'READY'
+        };
+        Store.saveVessels([initialVessel]);
+      }
+      Store.setCurrentTenant(tenant);
+      this.updateHeaderTenantUI(tenant);
+    }
+
+    // Ensure we are inside company dashboard view
+    if (this.activeView !== 'companyDashboard') {
+      this.switchView('companyDashboard');
+    }
+
+    // Ensure manifest tab is selected in background
+    this.switchDashboardTab('tabManifest');
+
+    // Ensure company has fleet
+    let fleet = Store.getVesselsByCompany(tenant.id);
+    if (!fleet || fleet.length === 0) {
+      const v = {
+        id: `VES-${tenant.id}-01`,
+        companyId: tenant.id,
+        name: `${tenant.shortName || tenant.name} Express 01`,
+        regNumber: `GT.150/No.3190/PPm`,
+        type: 'Kapal Cepat Penumpang',
+        capacity: 250,
+        facilities: ['AC Reclining Seat', 'Toilet Bersih', 'Life Jacket KSOP'],
+        status: 'READY'
+      };
+      fleet = [v];
+      const allVessels = Store.getVessels();
+      allVessels.push(v);
+      Store.saveVessels(allVessels);
+    }
+
+    // Ensure company has schedules
+    let companySchedules = Store.getSchedulesByCompany(tenant.id);
+    if (!companySchedules || companySchedules.length === 0) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const defaultSchedule = {
+        id: `SCH-${tenant.id}-AUTO`,
+        companyId: tenant.id,
+        vesselId: fleet[0].id,
+        vesselNameCustom: fleet[0].name,
+        originId: 'NNK',
+        destinationId: 'TWU',
+        date: todayStr,
+        departTime: '08:30',
+        arrivalTime: '10:30',
+        pier: 'Dermaga 3 Tunon Taka',
+        quotaTotal: fleet[0].capacity || 250,
+        quotaBooked: 0,
+        priceEconomy: 250000,
+        priceBisnis: 350000,
+        priceVip: 500000,
+        status: 'ON_TIME',
+        classes: [
+          { name: 'Ekonomi', price: 250000, quota: 160, available: 160 },
+          { name: 'Bisnis', price: 350000, quota: 60, available: 60 },
+          { name: 'VIP', price: 500000, quota: 30, available: 30 }
+        ]
+      };
+      Store.addSchedule(defaultSchedule);
+      companySchedules = Store.getSchedulesByCompany(tenant.id);
+    }
+
+    const select = document.getElementById('bulkTargetScheduleSelect');
+    if (select) {
+      select.innerHTML = '';
+      companySchedules.forEach((s, idx) => {
+        const v = fleet.find(f => f.id === s.vesselId);
+        const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
+        const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
+        const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
+        const booked = s.quotaBooked || 0;
+        const total = s.quotaTotal || (v ? v.capacity : 250);
+        const sisa = Math.max(0, total - booked);
+        const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [Sisa: ${sisa} Seat]`;
+        const opt = new Option(label, s.id);
+        if (preselectedScheduleId && s.id === preselectedScheduleId) {
+          opt.selected = true;
+        } else if (!preselectedScheduleId && idx === 0) {
+          opt.selected = true;
+        }
+        select.add(opt);
+      });
+      this.bulkState.targetScheduleId = select.value;
+    }
+
+    this.updateBulkScheduleInfo();
+
+    // Default group name with company
+    const groupInput = document.getElementById('bulkGroupNameInput');
+    if (groupInput && (!groupInput.value || groupInput.value === 'Rombongan Penumpang Resmi')) {
+      groupInput.value = `Rombongan ${tenant.shortName || tenant.name} (Tawau/Parepare)`;
+    }
+
+    // Initialize manual grid rows if empty
+    if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
+      this.initManualGridRows(3);
+    }
+
+    // Render initial state
+    this.renderBulkPassengerPreview();
+
+    // Show modal
+    document.getElementById('modalBulkPassengerEntry')?.classList.add('show');
+  },
+
+  updateBulkScheduleInfo() {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+    const companySchedules = Store.getSchedulesByCompany(tenant.id);
+    const targetSched = companySchedules.find(s => s.id === this.bulkState.targetScheduleId);
+    const classSelect = document.getElementById('bulkClassSelect');
+
+    if (targetSched && classSelect) {
+      const priceEko = targetSched.priceEconomy || 250000;
+      const priceVip = targetSched.priceVip || (priceEko + 100000);
+      const priceBisnis = Math.round((priceEko + priceVip) / 2);
+
+      if (classSelect.options[0]) {
+        classSelect.options[0].text = `Ekonomi — ${formatRupiah(priceEko)} / Pax`;
+        classSelect.options[0].setAttribute('data-fare', priceEko);
+      }
+      if (classSelect.options[1]) {
+        classSelect.options[1].text = `Bisnis — ${formatRupiah(priceBisnis)} / Pax`;
+        classSelect.options[1].setAttribute('data-fare', priceBisnis);
+      }
+      if (classSelect.options[2]) {
+        classSelect.options[2].text = `VIP Stateroom — ${formatRupiah(priceVip)} / Pax`;
+        classSelect.options[2].setAttribute('data-fare', priceVip);
+      }
+
+      const curOpt = classSelect.options[classSelect.selectedIndex] || classSelect.options[0];
+      this.bulkState.farePerPax = parseInt(curOpt?.getAttribute('data-fare') || priceEko, 10);
+    }
+  },
+
+  downloadBulkPassengerTemplate() {
+    const csvContent = "Nama Lengkap,No Dokumen (NIK/Paspor),Jenis Kelamin (L/P),Jenis Penumpang (Dewasa/Anak),Umur,Kewarganegaraan,No Kursi (Opsional),Catatan\n" +
+      "Ahmad Dahlan,A9128374,L,Dewasa,35,ID,,Rombongan Kerja Nunukan\n" +
+      "Siti Rahmawati,6401024508900001,P,Dewasa,30,ID,,Wisata Keluarga\n" +
+      "Hafiz bin Ismail,MYB582910,L,Dewasa,42,MY,,WNA Tawau Malaysia\n" +
+      "Muhammad Rizki,6401021204150003,L,Anak,8,ID,,Anak Pendamping\n" +
+      "Nurul Hidayah,6401028910950002,P,Dewasa,28,ID,,Rombongan Mandiri\n";
+    
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `template_manifes_penumpang_massal_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.showToast('Template Diunduh', 'Berkas template CSV berhasil diunduh. Silakan isi dan unggah kembali.', 'success');
+  },
+
+  handleBulkUploadedFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      const ta = document.getElementById('bulkPasteTextarea');
+      if (ta) ta.value = content;
+      this.parseAndSetBulkPassengers(content, true);
+      this.showToast('File Berhasil Dibaca', `${file.name} berhasil diuraikan. Menampilkan pratinjau data.`);
+    };
+    reader.readAsText(file);
+  },
+
+  parseBulkPassengerText(rawText) {
+    if (!rawText || !rawText.trim()) return [];
+    const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('#') && !l.startsWith('//'));
+    if (lines.length === 0) return [];
+
+    const passengers = [];
+    const headerKeywords = ['nama', 'name', 'lengkap', 'dokumen', 'nik', 'paspor', 'passport', 'jenis kelamin'];
+
+    lines.forEach((line, idx) => {
+      // Determine delimiter per-line
+      let delim = '\t';
+      if (line.includes('\t')) delim = '\t';
+      else if (line.includes(';')) delim = ';';
+      else if (line.includes('|')) delim = '|';
+      else if (line.includes(',')) delim = ',';
+
+      let cols = [];
+      if (delim === ',') {
+        cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
+      } else {
+        cols = line.split(delim).map(c => c.replace(/^"|"$/g, '').trim());
+      }
+
+      if (cols.length === 0 || !cols[0]) return;
+
+      const isHeader = cols.some(c => headerKeywords.some(kw => c.toLowerCase() === kw || c.toLowerCase().includes(kw)));
+      if (idx === 0 && isHeader) return;
+
+      // Clean name: remove leading index like "1. ", "01) ", "- "
+      let name = (cols[0] || '').replace(/^[\d]+[\.\-\)]\s*/, '').replace(/^[-*•]\s*/, '').trim();
+      if (!name || name.length < 2) return;
+
+      // Document Number
+      let docNum = (cols[1] || '').trim();
+      if (!docNum || docNum.length === 0) {
+        docNum = `KTP-${Math.floor(10000000 + Math.random() * 90000000)}`;
+      }
+
+      // Gender
+      let gender = (cols[2] || 'L').toUpperCase().trim();
+      if (!['L', 'P', 'M', 'F'].includes(gender)) gender = 'L';
+      if (gender === 'M') gender = 'L';
+      if (gender === 'F') gender = 'P';
+
+      // Pax Type
+      let paxType = (cols[3] || 'Dewasa').trim();
+      if (paxType.toLowerCase().includes('anak') || paxType.toLowerCase().includes('child')) paxType = 'Anak';
+      else if (paxType.toLowerCase().includes('bayi') || paxType.toLowerCase().includes('infant')) paxType = 'Bayi';
+      else paxType = 'Dewasa';
+
+      // Age
+      const age = parseInt(cols[4] || (paxType === 'Anak' ? '8' : '30'), 10) || 30;
+
+      // Nationality
+      let nationality = (cols[5] || 'ID').toUpperCase().trim();
+      if (!['ID', 'MY', 'OTHER'].includes(nationality)) {
+        if (nationality.includes('MAL') || nationality.includes('MY')) nationality = 'MY';
+        else nationality = 'ID';
+      }
+
+      const manualSeat = cols[6] ? cols[6].trim().toUpperCase() : '';
+      const remark = cols[7] ? cols[7].trim() : '';
+
+      passengers.push({
+        name,
+        docNum,
+        gender,
+        paxType,
+        age,
+        nationality,
+        manualSeat,
+        remark
+      });
+    });
+
+    return passengers;
+  },
+
+  parseAndSetBulkPassengers(rawText, notify = false) {
+    const list = this.parseBulkPassengerText(rawText);
+    this.bulkState.paxList = list;
+    this.reallocateBulkSeats(false);
+    this.renderBulkPassengerPreview();
+
+    if (notify && list.length > 0) {
+      this.showToast('Data Diproses', `${list.length} Data penumpang berhasil diuraikan dan divalidasi.`);
+    }
+  },
+
+  reallocateBulkSeats(forceReset = false) {
+    if (!this.bulkState.paxList || this.bulkState.paxList.length === 0) return;
+    const scheduleId = this.bulkState.targetScheduleId;
+    const manualSeats = this.bulkState.paxList.map(p => forceReset ? '' : p.manualSeat);
+    const allocated = this.generateSequentialSeats(scheduleId, this.bulkState.paxList.length, manualSeats);
+
+    this.bulkState.paxList.forEach((p, idx) => {
+      p.seat = allocated[idx] || `S-${idx + 1}`;
+    });
+
+    this.renderBulkPassengerPreview();
+  },
+
+  getOccupiedSeatsForSchedule(scheduleId) {
+    const allBookings = Store.getBookings();
+    const schedBookings = allBookings.filter(b => b.scheduleId === scheduleId);
+    const occupied = new Set();
+    schedBookings.forEach(b => {
+      if (b.passengers) {
+        b.passengers.forEach(p => {
+          if (p.seat) occupied.add(p.seat.toUpperCase().trim());
+        });
+      }
+    });
+    return occupied;
+  },
+
+  generateSequentialSeats(scheduleId, count, manualSeats = []) {
+    const occupied = this.getOccupiedSeatsForSchedule(scheduleId);
+    const allocated = [];
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
+    let rowIndex = 0;
+    let seatNum = 1;
+
+    for (let i = 0; i < count; i++) {
+      const manual = manualSeats[i];
+      if (manual && !occupied.has(manual.toUpperCase().trim()) && !allocated.includes(manual.toUpperCase().trim())) {
+        allocated.push(manual.toUpperCase().trim());
+        occupied.add(manual.toUpperCase().trim());
+      } else {
+        while (rowIndex < rows.length) {
+          const candidate = `${rows[rowIndex]}-${String(seatNum).padStart(2, '0')}`;
+          seatNum++;
+          if (seatNum > 30) {
+            seatNum = 1;
+            rowIndex++;
+          }
+          if (!occupied.has(candidate) && !allocated.includes(candidate)) {
+            allocated.push(candidate);
+            occupied.add(candidate);
+            break;
+          }
+        }
+        if (allocated.length <= i) {
+          allocated.push(`S-${i + 1}`);
+        }
+      }
+    }
+    return allocated;
+  },
+
+  initManualGridRows(rowCount = 3) {
+    this.bulkState.manualGridRows = [];
+    for (let i = 0; i < rowCount; i++) {
+      this.bulkState.manualGridRows.push({
+        name: '',
+        docNum: '',
+        gender: 'L',
+        paxType: 'Dewasa',
+        nationality: 'ID',
+        seat: ''
+      });
+    }
+    this.renderManualGridTable();
+  },
+
+  addManualGridRow() {
+    this.bulkState.manualGridRows.push({
+      name: '',
+      docNum: '',
+      gender: 'L',
+      paxType: 'Dewasa',
+      nationality: 'ID',
+      seat: ''
+    });
+    this.renderManualGridTable();
+  },
+
+  renderManualGridTable() {
+    const tbody = document.getElementById('tbodyBulkManualGrid');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    this.bulkState.manualGridRows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; color: #64748b; font-weight: 700;">${idx + 1}</td>
+        <td>
+          <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="name" value="${row.name || ''}" placeholder="Nama lengkap...">
+        </td>
+        <td>
+          <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="docNum" value="${row.docNum || ''}" placeholder="NIK / Paspor...">
+        </td>
+        <td>
+          <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="gender">
+            <option value="L" ${row.gender === 'L' ? 'selected' : ''}>L</option>
+            <option value="P" ${row.gender === 'P' ? 'selected' : ''}>P</option>
+          </select>
+        </td>
+        <td>
+          <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="paxType">
+            <option value="Dewasa" ${row.paxType === 'Dewasa' ? 'selected' : ''}>Dewasa</option>
+            <option value="Anak" ${row.paxType === 'Anak' ? 'selected' : ''}>Anak</option>
+            <option value="Bayi" ${row.paxType === 'Bayi' ? 'selected' : ''}>Bayi</option>
+          </select>
+        </td>
+        <td>
+          <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="nationality">
+            <option value="ID" ${row.nationality === 'ID' ? 'selected' : ''}>WNI (ID)</option>
+            <option value="MY" ${row.nationality === 'MY' ? 'selected' : ''}>WNA (MY)</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="seat" value="${row.seat || ''}" placeholder="Otomatis">
+        </td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-del-grid-row" data-idx="${idx}" style="background: transparent; border: none; color: #ef4444; font-weight: bold; cursor: pointer;">&times;</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.grid-field').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        const field = e.target.getAttribute('data-field');
+        if (this.bulkState.manualGridRows[idx]) {
+          this.bulkState.manualGridRows[idx][field] = e.target.value;
+          this.syncGridToPaxList();
+        }
+      });
+    });
+
+    tbody.querySelectorAll('.btn-del-grid-row').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        this.bulkState.manualGridRows.splice(idx, 1);
+        this.renderManualGridTable();
+        this.syncGridToPaxList();
+      });
+    });
+  },
+
+  syncGridToPaxList() {
+    const valid = this.bulkState.manualGridRows
+      .filter(r => r.name && r.name.trim().length > 0)
+      .map(r => ({
+        name: r.name.trim(),
+        docNum: r.docNum ? r.docNum.trim() : `NIK-${Math.floor(10000000 + Math.random() * 90000000)}`,
+        gender: r.gender || 'L',
+        paxType: r.paxType || 'Dewasa',
+        age: r.paxType === 'Anak' ? 8 : 30,
+        nationality: r.nationality || 'ID',
+        manualSeat: r.seat ? r.seat.trim().toUpperCase() : '',
+        remark: 'Entri Manual Grid'
+      }));
+
+    this.bulkState.paxList = valid;
+    this.reallocateBulkSeats(false);
+    this.renderBulkPassengerPreview();
+  },
+
+  renderBulkPassengerPreview() {
+    const list = this.bulkState.paxList || [];
+    const tbody = document.getElementById('tbodyBulkPreview');
+    const kpiTotal = document.getElementById('kpiBulkTotalPax');
+    const kpiValid = document.getElementById('kpiBulkValidPax');
+    const kpiFare = document.getElementById('kpiBulkTotalFare');
+    const btnSubmit = document.getElementById('btnSubmitBulkPassenger');
+    const btnSubmitText = document.getElementById('btnSubmitBulkPassengerText');
+
+    const totalFare = list.length * (this.bulkState.farePerPax || 250000);
+
+    if (kpiTotal) kpiTotal.innerText = `${list.length} Orang`;
+    if (kpiValid) kpiValid.innerText = `${list.length} Lolos`;
+    if (kpiFare) kpiFare.innerText = formatRupiah(totalFare);
+
+    if (btnSubmitText) {
+      btnSubmitText.innerText = list.length > 0
+        ? `Terbitkan Tiket Massal (${list.length} Penumpang)`
+        : 'Masukkan Data Penumpang Terlebih Dahulu';
+    }
+    if (btnSubmit) {
+      btnSubmit.disabled = (list.length === 0);
+      btnSubmit.style.opacity = (list.length === 0) ? '0.6' : '1';
+    }
+
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+            Belum ada data penumpang dimasukkan. Tempel data teks di atas atau unggah file.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    list.forEach((p, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
+        <td><strong style="color: #0f172a;">${p.name}</strong></td>
+        <td><code style="color: #0284c7; font-weight: 700;">${p.docNum || '-'}</code></td>
+        <td><span class="tag-badge" style="padding: 2px 6px; font-size: 0.72rem;">${p.gender}</span></td>
+        <td>${p.paxType}</td>
+        <td><span class="tag-badge" style="background:#f1f5f9;color:#334155;border-color:#cbd5e1;padding:2px 6px;font-size:0.72rem;">${p.nationality}</span></td>
+        <td>
+          <span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: #fde68a; font-weight: 800; font-size: 0.76rem;">
+            ${p.seat || 'OTOMATIS'}
+          </span>
+        </td>
+        <td>
+          <span style="color: #16a34a; font-weight: 700; font-size: 0.75rem;">✓ Siap Terbit</span>
+        </td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-remove-preview-pax" data-idx="${idx}" style="background: transparent; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer;" title="Hapus penumpang ini">&times;</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.btn-remove-preview-pax').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        this.bulkState.paxList.splice(idx, 1);
+        this.reallocateBulkSeats(false);
+        this.renderBulkPassengerPreview();
+      });
+    });
+  },
+
+  resetBulkPassengerState() {
+    this.bulkState.paxList = [];
+    this.bulkState.manualGridRows = [];
+    const ta = document.getElementById('bulkPasteTextarea');
+    if (ta) ta.value = '';
+    const fi = document.getElementById('bulkFileInput');
+    if (fi) fi.value = '';
+    this.renderManualGridTable();
+    this.renderBulkPassengerPreview();
+  },
+
+  processBulkPassengerSubmit() {
+    try {
+      let tenant = Store.getCurrentTenant();
+      if (!tenant) {
+        tenant = Store.getCompanies()[0];
+        if (tenant) Store.setCurrentTenant(tenant);
+      }
+      if (!tenant) {
+        this.showToast('Akses Ditolak', 'Silakan pilih atau daftarkan perusahaan terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const scheduleId = this.bulkState.targetScheduleId;
+      if (!scheduleId) {
+        this.showToast('Jadwal Kosong', 'Pilih jadwal kapal tujuan terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const list = this.bulkState.paxList;
+      if (!list || list.length === 0) {
+        this.showToast('Data Kosong', 'Masukkan data penumpang minimal satu orang (atau klik tombol "+ Muat 10 Contoh Data Demo").', 'warning');
+        return;
+      }
+
+      const companySchedules = Store.getSchedulesByCompany(tenant.id);
+      const targetSched = (companySchedules && companySchedules.length > 0)
+        ? (companySchedules.find(s => s.id === scheduleId) || companySchedules[0])
+        : {
+          id: scheduleId || `SCH-${tenant.id}-AUTO`,
+          companyId: tenant.id,
+          date: new Date().toISOString().split('T')[0],
+          departTime: '08:30',
+          originId: 'NNK',
+          destinationId: 'TWU',
+          pier: 'Dermaga 3 Tunon Taka',
+          quotaTotal: 250,
+          quotaBooked: 0,
+          classes: [{ id: 'cls-eko', name: 'Ekonomi', price: 250000, quota: 250, available: 250 }]
+        };
+
+      const fleet = Store.getVesselsByCompany(tenant.id);
+      const vessel = (fleet && fleet.length > 0)
+        ? (fleet.find(f => f.id === targetSched?.vesselId) || fleet[0])
+        : { name: 'KM Hasna Express 01', capacity: 250 };
+      const vesselName = vessel ? vessel.name : (targetSched?.vesselNameCustom || 'Armada Reguler');
+
+      const origPort = MASTER_PORTS.find(pt => pt.id === targetSched?.originId) || { city: 'Nunukan', id: 'NNK', country: 'Indonesia' };
+      const destPort = MASTER_PORTS.find(pt => pt.id === targetSched?.destinationId) || { city: 'Tawau', id: 'TWU', country: 'Malaysia' };
+      const isIntl = (origPort.country !== destPort.country);
+
+      const groupName = document.getElementById('bulkGroupNameInput')?.value.trim() || 'Rombongan Penumpang Resmi';
+      const payMethod = document.getElementById('bulkPaymentMethodSelect')?.value || 'CASH';
+      const picName = document.getElementById('bulkPicNameInput')?.value.trim() || (list[0]?.name || 'Koordinator Rombongan');
+      const picPhone = document.getElementById('bulkPicPhoneInput')?.value.trim() || '-';
+      const pnrMode = document.querySelector('input[name="bulkPnrGroupingMode"]:checked')?.value || 'GROUP';
+
+      const className = this.bulkState.selectedClass || 'EKONOMI';
+      const fare = this.bulkState.farePerPax || 250000;
+      const totalFare = list.length * fare;
+
+      let mainPnr = '';
+
+      if (pnrMode === 'GROUP') {
+        const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+        mainPnr = `OMNI-GRP-${randomSuffix}`;
+        const barcode = `8910${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+        const booking = {
+          pnr: mainPnr,
+          barcode,
+          companyId: tenant.id,
+          scheduleId: targetSched.id,
+          vesselName,
+          originCity: origPort.city,
+          originCode: origPort.id || 'NNK',
+          destinationCity: destPort.city,
+          destCode: destPort.id || 'TWU',
+          departDate: targetSched.date || new Date().toISOString().split('T')[0],
+          departTime: `${targetSched.departTime || '08:30'} WITA`,
+          className,
+          pier: targetSched.pier || 'Dermaga Keberangkatan',
+          isIntl,
+          groupName,
+          contact: { name: picName, phone: picPhone, email: '' },
+          passengers: list.map((p, idx) => ({
+            paxType: p.paxType || 'Dewasa',
+            name: p.name,
+            gender: p.gender || 'L',
+            docType: p.nationality === 'MY' || isIntl ? 'PASPOR' : 'KTP',
+            passportNo: p.docNum,
+            docNumber: p.docNum,
+            nik: p.docNum,
+            dob: '1990-01-01',
+            age: p.age || 30,
+            nationality: p.nationality || 'ID',
+            remark: p.remark || `Rombongan: ${groupName}`,
+            passportExp: '2029-01-01',
+            seat: p.seat || `B-${String(idx + 1).padStart(2, '0')}`,
+            className
+          })),
+          totalAmount: totalFare,
+          paymentMethod: payMethod,
+          paymentStatus: 'PAID',
+          boardingStatus: 'NOT_CHECKED_IN',
+          createdAt: new Date().toISOString()
+        };
+
+        Store.addBooking(booking);
+      } else {
+        mainPnr = `OMNI-${tenant.shortName || 'TKT'}-${Math.floor(100000 + Math.random() * 900000)}`;
+        list.forEach((p, idx) => {
+          const indPnr = `OMNI-${tenant.shortName || 'TKT'}-${Math.floor(100000 + Math.random() * 900000)}`;
+          const barcode = `8910${Math.floor(10000000 + Math.random() * 90000000)}`;
+          const booking = {
+            pnr: indPnr,
+            barcode,
+            companyId: tenant.id,
+            scheduleId: targetSched.id,
+            vesselName,
+            originCity: origPort.city,
+            originCode: origPort.id || 'NNK',
+            destinationCity: destPort.city,
+            destCode: destPort.id || 'TWU',
+            departDate: targetSched.date || new Date().toISOString().split('T')[0],
+            departTime: `${targetSched.departTime || '08:30'} WITA`,
+            className,
+            pier: targetSched.pier || 'Dermaga Keberangkatan',
+            isIntl,
+            groupName,
+            contact: { name: picName, phone: picPhone, email: '' },
+            passengers: [{
+              paxType: p.paxType || 'Dewasa',
+              name: p.name,
+              gender: p.gender || 'L',
+              docType: p.nationality === 'MY' || isIntl ? 'PASPOR' : 'KTP',
+              passportNo: p.docNum,
+              docNumber: p.docNum,
+              nik: p.docNum,
+              dob: '1990-01-01',
+              age: p.age || 30,
+              nationality: p.nationality || 'ID',
+              remark: p.remark || `Rombongan: ${groupName}`,
+              passportExp: '2029-01-01',
+              seat: p.seat || `B-${String(idx + 1).padStart(2, '0')}`,
+              className
+            }],
+            totalAmount: fare,
+            paymentMethod: payMethod,
+            paymentStatus: 'PAID',
+            boardingStatus: 'NOT_CHECKED_IN',
+            createdAt: new Date().toISOString()
+          };
+          Store.addBooking(booking);
+        });
+      }
+
+      // Update schedule quota
+      if (targetSched && targetSched.id) {
+        targetSched.quotaBooked = (targetSched.quotaBooked || 0) + list.length;
+        const allSchedules = Store.getSchedules();
+        const sIdx = allSchedules.findIndex(s => s.id === targetSched.id);
+        if (sIdx !== -1) {
+          allSchedules[sIdx].quotaBooked = targetSched.quotaBooked;
+          Store.saveSchedules(allSchedules);
+        } else {
+          targetSched.companyId = tenant.id;
+          targetSched.classes = targetSched.classes || [{ id: 'cls-eko', name: 'Ekonomi', price: fare, quota: 250, available: 250 }];
+          Store.addSchedule(targetSched);
+        }
+      }
+
+      // Close entry modal
+      document.getElementById('modalBulkPassengerEntry')?.classList.remove('show');
+
+      // Refresh UI
+      this.refreshCompanyDashboard();
+      if (typeof this.renderVoyageCalendar === 'function') {
+        this.renderVoyageCalendar();
+      }
+
+      // Show Success Modal
+      const pnrEl = document.getElementById('bulkSuccessPnr');
+      const grpEl = document.getElementById('bulkSuccessGroup');
+      const paxEl = document.getElementById('bulkSuccessPaxCount');
+      const vesEl = document.getElementById('bulkSuccessVessel');
+      const fareEl = document.getElementById('bulkSuccessTotalFare');
+
+      if (pnrEl) pnrEl.innerText = mainPnr;
+      if (grpEl) grpEl.innerText = groupName;
+      if (paxEl) paxEl.innerText = `${list.length} Orang Terdaftar`;
+      if (vesEl) vesEl.innerText = `${vesselName} (${origPort.city} ➔ ${destPort.city})`;
+      if (fareEl) fareEl.innerText = formatRupiah(totalFare);
+
+      document.getElementById('modalBulkSuccess')?.classList.add('show');
+
+      // Toast
+      this.showToast('Entri Massal Berhasil!', `${list.length} Penumpang resmi diterbitkan tiketnya (PNR: ${mainPnr}).`);
+      this.resetBulkPassengerState();
+    } catch (err) {
+      console.error('Error in processBulkPassengerSubmit:', err);
+      this.showToast('Terjadi Kesalahan', err.message || 'Gagal menyimpan data penumpang massal.', 'warning');
+    }
   },
 
   // Global Toast

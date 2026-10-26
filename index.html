@@ -47,9 +47,17 @@
 
 
 
-      <!-- Right Header Status / Tenant Badge -->
-      <div class="header-tenant-box" id="headerTenantBox">
-        <!-- Rendered dynamically (Login button OR Logged in Company Badge) -->
+      <!-- Quick Header Actions -->
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button type="button" id="btnHeaderQuickBulkPax" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35); transition: all 0.2s ease;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+          <span>📥 Input Penumpang Massal</span>
+        </button>
+
+        <!-- Right Header Status / Tenant Badge -->
+        <div class="header-tenant-box" id="headerTenantBox">
+          <!-- Rendered dynamically (Login button OR Logged in Company Badge) -->
+        </div>
       </div>
     </div>
   </header>
@@ -282,116 +290,132 @@
 
   <!-- ========================================================
        MODAL LOGIN & REGISTRASI PERUSAHAAN (TENANTS)
-       (Hanya Muncul Saat Mengklik Tombol "Masuk Mitra Operator")
+       (Satu Modal dengan Tab Switcher & Desain Ticky)
        ======================================================== -->
   <div class="modal-layer" id="modalCompanyAuth">
-    <div class="modal-window modal-wide" style="max-width: 860px; padding: 0; background: transparent; border: none; box-shadow: none;">
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
-        <button type="button" class="btn-close-modal-auth" id="btnCloseCompanyAuth" style="background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; transition: var(--transition); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-          &times;
-        </button>
+    <div class="modal-window" style="max-width: 540px; padding: 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25); overflow: hidden; position: relative;">
+      
+      <!-- Close Button -->
+      <button type="button" class="btn-close-modal-auth" id="btnCloseCompanyAuth" style="position: absolute; top: 16px; right: 16px; z-index: 10; background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Tutup Modal">
+        &times;
+      </button>
+
+      <!-- Modal Header matching Ticky Theme -->
+      <div style="padding: 1.75rem 1.75rem 0.75rem; text-align: center;">
+        <div style="width: 46px; height: 46px; margin: 0 auto 0.65rem; background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(99, 102, 241, 0.18) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; letter-spacing: -0.3px;">Portal Operator Perusahaan</h3>
+        <p style="font-size: 0.78rem; color: #64748b; margin: 0 auto; max-width: 400px;">Kelola armada kapal, rute pelayaran, manifes KSOP & penjualan tiket resmi.</p>
       </div>
 
-      <div class="auth-box-grid" style="margin: 0;">
-        <!-- Left: Company Login Form -->
-        <div class="auth-card" style="box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12);">
-          <div class="auth-card-header">
-            <div class="auth-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-            </div>
-            <div>
-              <h3>Masuk Portal Perusahaan</h3>
-              <p>Kelola armada, jadwal rute, manifest penumpang, dan proses tiket.</p>
-            </div>
-          </div>
+      <!-- Pill Tab Switcher -->
+      <div style="padding: 0 1.75rem 1.25rem;">
+        <div style="background: #f1f5f9; padding: 4px; border-radius: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+          <button type="button" class="auth-tab-btn active" id="tabBtnLogin" style="padding: 0.55rem 0.75rem; border-radius: 9px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #ffffff; color: #7c3aed; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Masuk Portal</span>
+          </button>
+          <button type="button" class="auth-tab-btn" id="tabBtnRegister" style="padding: 0.55rem 0.75rem; border-radius: 9px; border: none; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            <span>Daftar Perusahaan Baru</span>
+          </button>
+        </div>
+      </div>
 
+      <!-- Tab Content Area -->
+      <div style="padding: 0 1.75rem 1.75rem; max-height: calc(85vh - 180px); overflow-y: auto;">
+        
+        <!-- TAB 1: Masuk Portal Perusahaan -->
+        <div id="tabContentLogin" style="display: block;">
           <!-- Quick One-Click Enterprise Demo Logins -->
-          <div class="quick-demo-logins">
-            <span class="demo-lead">⚡ Masuk Instan Portal Perusahaan Terdaftar:</span>
-            <div class="demo-buttons-grid" id="demoButtonsGrid">
+          <div class="quick-demo-logins" style="margin-bottom: 1.15rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.85rem 1rem;">
+            <span class="demo-lead" style="font-size: 0.76rem; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.55rem;">
+              ⚡ Masuk Instan Portal Perusahaan Terdaftar:
+            </span>
+            <div class="demo-buttons-grid" id="demoButtonsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
               <!-- Rendered dynamically for registered companies -->
             </div>
           </div>
 
-          <div class="divider-text"><span>Atau Masuk dengan Kredensial Email</span></div>
+          <div class="divider-text" style="margin: 1rem 0; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 0.75rem;">
+            <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
+            <span>Atau Masuk dengan Kredensial Email</span>
+            <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
+          </div>
 
           <form id="formCompanyLogin">
-            <div class="input-block">
-              <label>Email Perusahaan / Admin</label>
-              <input type="email" id="loginCompEmail" class="form-input" placeholder="contoh: admin@pelni.co.id" required>
+            <div class="input-block" style="margin-bottom: 0.85rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Email Perusahaan / Admin</label>
+              <input type="email" id="loginCompEmail" class="form-input" placeholder="contoh: admin@pelni.co.id" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
-            <div class="input-block">
-              <label>Password</label>
-              <input type="password" id="loginCompPassword" class="form-input" placeholder="••••••••" required>
+            <div class="input-block" style="margin-bottom: 1.15rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Password</label>
+              <input type="password" id="loginCompPassword" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
-            <button type="submit" class="btn-primary-block" id="btnLoginSubmit">
+            <button type="submit" class="btn-primary-block" id="btnLoginSubmit" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); transition: all 0.2s;">
               <span>Masuk ke Dashboard Perusahaan</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
             </button>
           </form>
         </div>
 
-        <!-- Right: Register New Company -->
-        <div class="auth-card register-card" style="box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12);">
-          <div class="auth-card-header">
-            <div class="auth-icon-wrap icon-purple">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-            </div>
-            <div>
-              <h3>Daftarkan Perusahaan Baru</h3>
-              <p>Daftarkan operator Anda untuk otomatis mengaktifkan portal masuk resmi.</p>
-            </div>
-          </div>
-
+        <!-- TAB 2: Daftarkan Perusahaan Baru -->
+        <div id="tabContentRegister" style="display: none;">
           <form id="formCompanyRegister">
-            <div class="input-block">
-              <label>Nama Perusahaan / Operator *</label>
-              <input type="text" id="regCompName" class="form-input" placeholder="Contoh: PT Samudera Maju Bahari" required>
+            <div class="input-block" style="margin-bottom: 0.85rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Nama Perusahaan / Operator *</label>
+              <input type="text" id="regCompName" class="form-input" placeholder="Contoh: PT Samudera Maju Bahari" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
-            <div class="input-block">
-              <label>Kategori Layanan *</label>
-              <select id="regCompCategory" class="form-input" required>
+            <div class="input-block" style="margin-bottom: 0.85rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Kategori Layanan *</label>
+              <select id="regCompCategory" class="form-input" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: #ffffff;" required>
                 <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
                 <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
               </select>
             </div>
 
-            <div class="form-row-2">
+            <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
               <div class="input-block">
-                <label>Email Resmi Perusahaan *</label>
-                <input type="email" id="regCompEmail" class="form-input" placeholder="admin@perusahaan.co.id" required>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Email Resmi Perusahaan *</label>
+                <input type="email" id="regCompEmail" class="form-input" placeholder="admin@perusahaan.co.id" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
               </div>
               <div class="input-block">
-                <label>Password Akun *</label>
-                <input type="password" id="regCompPassword" class="form-input" placeholder="Minimal 6 karakter" required>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Password Akun *</label>
+                <input type="password" id="regCompPassword" class="form-input" placeholder="Minimal 6 karakter" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
               </div>
             </div>
 
-            <div class="form-row-2">
+            <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.15rem;">
               <div class="input-block">
-                <label>Nomor Telepon Kantor / WA</label>
-                <input type="tel" id="regCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Nomor Telepon Kantor / WA</label>
+                <input type="tel" id="regCompPhone" class="form-input" placeholder="08xxxxxxxxxx" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
               </div>
               <div class="input-block">
-                <label>Warna Brand Utama</label>
-                <select id="regCompColor" class="form-input">
+                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Warna Brand Utama</label>
+                <select id="regCompColor" class="form-input" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: #ffffff;">
+                  <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
                   <option value="#0284c7">Biru Samudera (#0284c7)</option>
                   <option value="#0d9488">Teal Pesisir (#0d9488)</option>
                   <option value="#f59e0b">Amber Emas (#f59e0b)</option>
-                  <option value="#8b5cf6">Ungu Eksekutif (#8b5cf6)</option>
                   <option value="#e11d48">Merah Marun (#e11d48)</option>
                 </select>
               </div>
             </div>
 
-            <button type="submit" class="btn-secondary-block" id="btnRegisterSubmit">
+            <button type="submit" class="btn-secondary-block" id="btnRegisterSubmit" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); transition: all 0.2s;">
               <span>Daftarkan Perusahaan & Buat Portal</span>
             </button>
           </form>
         </div>
+
       </div>
     </div>
   </div>
@@ -400,254 +424,414 @@
        VIEW 3: DASHBOARD ADMIN PERUSAHAAN (TENANT DASHBOARD)
        ======================================================== -->
   <main class="view-panel" id="viewCompanyDashboard">
-    <!-- Tenant Top Profile Banner -->
-    <section class="tenant-banner">
-      <div class="site-container flex-between align-center">
-        <div class="tenant-info-cell">
-          <div class="tenant-avatar" id="dashTenantAvatar">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/></svg>
-          </div>
-          <div>
-            <div class="tenant-name-row">
-              <h2 id="dashTenantName">PT PELNI (Persero)</h2>
-              <span class="badge-verified">✓ TERVERIFIKASI RESMI</span>
-            </div>
-            <p class="tenant-meta" id="dashTenantMeta">Kategori: Pelayaran Samudera • ID: COMP-PELNI • Email: admin@pelni.co.id</p>
-          </div>
-        </div>
+    <!-- Hidden compatibility bridge for existing company session scripts -->
+    <div style="display:none;" aria-hidden="true">
+      <div id="dashTenantAvatar"></div>
+      <h2 id="dashTenantName">Ticky Logistics</h2>
+      <p id="dashTenantMeta">Operator Utama</p>
+      <button type="button" id="dashBtnLogout"></button>
+    </div>
 
-        <div class="tenant-actions-cell">
-          <button type="button" class="btn-tenant-logout" id="dashBtnLogout">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-            <span>Keluar Akun</span>
-          </button>
-        </div>
-      </div>
-    </section>
+    <!-- Modern Ticky Dashboard Shell (Matching Reference Photo) -->
+    <div class="ticky-dashboard-canvas">
+      <div class="ticky-dashboard-window">
 
-    <!-- Dashboard Sub-Tabs -->
-    <!-- Dashboard Main 2-Column Grid: Left Navigation (Persis Foto 2) + Right Content Panes -->
-    <div class="site-container dashboard-main-grid">
-
-      <!-- Left Navigation Menu (Persis Foto 2) -->
-      <aside class="dash-sidebar-nav">
-        <!-- 1. Dashboard Loket (Active) -->
-        <button type="button" class="dash-nav-pill dash-tab-btn active" data-tab="tabOverview">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #0284c7;">
-              <!-- 4-square grid icon -->
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-              </svg>
-            </span>
-            <span class="dash-nav-text">Dashboard Loket</span>
-          </div>
-        </button>
-
-        <!-- 2. Tagihan & Riwayat Tiket -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabManifest">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #0ea5e9;">
-              <!-- Invoice / Receipt Icon -->
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <line x1="10" y1="9" x2="8" y2="9" />
-              </svg>
-            </span>
-            <span class="dash-nav-text">Tagihan & Riwayat Tiket</span>
-          </div>
-        </button>
-
-        <!-- SECTION: TIKET & JADWAL -->
-        <div class="dash-nav-section-title">TIKET & JADWAL</div>
-
-        <!-- 3. Daftar Rute & Jadwal (Accordion) -->
-        <div class="dash-nav-group" id="groupNavSchedules">
-          <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabSchedules">
-            <div class="dash-nav-left">
-              <span class="dash-nav-icon" style="color: #f97316;">
-                <!-- Orange Calendar Icon -->
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
+        <!-- Left Navigation Sidebar (Persis Foto Ticky) -->
+        <aside class="ticky-sidebar" id="tickySidebar">
+          <!-- Logo & Collapse Button Row -->
+          <div class="ticky-brand-row">
+            <a href="#" class="ticky-brand-logo" id="tickyBrandHome">
+              <div class="ticky-brand-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
                 </svg>
-              </span>
-              <span class="dash-nav-text">Daftar Rute & Jadwal</span>
-            </div>
-            <svg class="dash-nav-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="dash-sub-menu">
-            <a href="javascript:void(0)" class="dash-sub-item active" data-tab="tabSchedules">
-              <span class="sub-dot"></span>
-              <span>Lihat Semua Jadwal Rute</span>
+              </div>
+              <span class="ticky-brand-title">Ticky</span>
             </a>
-            <a href="javascript:void(0)" class="dash-sub-item" data-tab="tabCalendar">
-              <span class="sub-dot" style="background:#0284c7;"></span>
-              <span style="color:#0284c7;font-weight:700;">📅 Kalender Pelayaran</span>
-            </a>
-            <a href="javascript:void(0)" class="dash-sub-item" id="subBtnAddSchedule">
-              <span class="sub-dot" style="background:#10b981;"></span>
-              <span style="color:#10b981;font-weight:700;">+ Buka Jadwal Baru</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- 3B. Kalender Pelayaran Armada (Dedicated Tab) -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabCalendar" id="btnNavCalendar">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #0284c7;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
+            <button type="button" class="ticky-collapse-btn" id="btnToggleSidebar" title="Ciutkan Sidebar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
               </svg>
-            </span>
-            <span class="dash-nav-text">Kalender Pelayaran</span>
+            </button>
           </div>
-        </button>
 
-        <!-- 4. Armada Kapal Saya (Accordion) -->
-        <div class="dash-nav-group" id="groupNavFleet">
-          <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabFleet">
-            <div class="dash-nav-left">
-              <span class="dash-nav-icon" style="color: #8b5cf6;">
-                <!-- Purple Ship Icon -->
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
-                  <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
+          <!-- Sidebar Navigation Items -->
+          <!-- Sidebar Navigation Items (Nama-nama Tab Desain Sebelumnya dengan Gaya Ticky) -->
+          <nav class="ticky-nav-list">
+            <!-- 1. Dashboard Loket (Active) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn active" data-tab="tabOverview" title="Dashboard Loket">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Dashboard Loket</span>
+              </div>
+            </button>
+
+            <!-- 2. Tagihan & Riwayat Tiket -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" title="Tagihan & Riwayat Tiket">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <line x1="10" y1="9" x2="8" y2="9"></line>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Tagihan & Riwayat Tiket</span>
+              </div>
+            </button>
+
+            <!-- SECTION: TIKET & JADWAL -->
+            <div class="ticky-nav-section-title">TIKET & JADWAL</div>
+
+            <!-- 3. Daftar Rute & Jadwal (Accordion) -->
+            <div class="ticky-nav-group dash-nav-group" id="groupNavSchedules">
+              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSchedules" title="Daftar Rute & Jadwal">
+                <div class="ticky-nav-left">
+                  <span class="ticky-nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </span>
+                  <span class="ticky-nav-label">Daftar Rute & Jadwal</span>
+                </div>
+                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <div class="ticky-sub-menu dash-sub-menu">
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabSchedules">
+                  <span class="ticky-sub-dot"></span>
+                  <span>Lihat Semua Jadwal Rute</span>
+                </a>
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" data-tab="tabCalendar">
+                  <span class="ticky-sub-dot" style="background:#7c3aed;"></span>
+                  <span style="color:#7c3aed;font-weight:700;">📅 Kalender Pelayaran</span>
+                </a>
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnAddSchedule">
+                  <span class="ticky-sub-dot" style="background:#10b981;"></span>
+                  <span style="color:#10b981;font-weight:700;">+ Buka Jadwal Baru</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- 4. Kalender Pelayaran (Dedicated Tab) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCalendar" id="btnNavCalendar" title="Kalender Pelayaran">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Kalender Pelayaran</span>
+              </div>
+            </button>
+
+            <!-- 5. Armada Kapal Saya (Accordion) -->
+            <div class="ticky-nav-group dash-nav-group" id="groupNavFleet">
+              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabFleet" title="Armada Kapal Saya">
+                <div class="ticky-nav-left">
+                  <span class="ticky-nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
+                      <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
+                    </svg>
+                  </span>
+                  <span class="ticky-nav-label">Armada Kapal Saya</span>
+                </div>
+                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <div class="ticky-sub-menu dash-sub-menu">
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabFleet">
+                  <span class="ticky-sub-dot"></span>
+                  <span>Daftar Armada Kapal</span>
+                </a>
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnAddVessel">
+                  <span class="ticky-sub-dot" style="background:#0284c7;"></span>
+                  <span style="color:#0284c7;font-weight:700;">+ Tambah Armada Baru</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- SECTION: OPERASIONAL PELABUHAN -->
+            <div class="ticky-nav-section-title">OPERASIONAL PELABUHAN</div>
+
+            <!-- 6. Terbitkan Tiket Baru -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabTicketing" title="Terbitkan Tiket Baru">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Terbitkan Tiket Baru</span>
+              </div>
+            </button>
+
+            <!-- 7. Denah Kursi & Seat -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSeats" title="Denah Kursi & Seat">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <line x1="4" y1="10" x2="20" y2="10"></line>
+                    <line x1="10" y1="4" x2="10" y2="20"></line>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Denah Kursi & Seat</span>
+              </div>
+            </button>
+
+            <!-- 8. Gate Scanner QR -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabScanner" title="Gate Scanner QR">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M7 7h.01"></path>
+                    <path d="M17 7h.01"></path>
+                    <path d="M7 17h.01"></path>
+                    <path d="M17 17h.01"></path>
+                    <path d="M7 12h10"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Gate Scanner QR</span>
+              </div>
+            </button>
+
+            <!-- 9. Manajemen KSOP & Cuaca (Accordion) -->
+            <div class="ticky-nav-group dash-nav-group" id="groupNavKsop">
+              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus" title="Manajemen KSOP & Cuaca">
+                <div class="ticky-nav-left">
+                  <span class="ticky-nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                  </span>
+                  <span class="ticky-nav-label">Manajemen KSOP & Cuaca</span>
+                </div>
+                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <div class="ticky-sub-menu dash-sub-menu">
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabManifest">
+                  <span class="ticky-sub-dot"></span>
+                  <span>Manifest Penumpang Resmi</span>
+                </a>
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnBulkPassenger">
+                  <span class="ticky-sub-dot" style="background:#0284c7;"></span>
+                  <span style="color:#0284c7;font-weight:700;">📥 Input Penumpang Massal</span>
+                </a>
+                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnExportCsv">
+                  <span class="ticky-sub-dot" style="background:#10b981;"></span>
+                  <span style="color:#10b981;font-weight:700;">⬇ Unduh CSV Manifest</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- SECTION: PENGATURAN & REGULASI -->
+            <div class="ticky-nav-section-title">PENGATURAN & REGULASI</div>
+
+            <!-- 10. Pengaturan KSOP & Pejabat -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSettings" title="Pengaturan KSOP & Pejabat">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Pengaturan KSOP & Pejabat</span>
+              </div>
+            </button>
+          </nav>
+
+          <!-- Sidebar Footer -->
+          <div class="ticky-sidebar-footer">
+            <!-- Switch Profile -->
+            <button type="button" class="ticky-profile-card" id="btnSwitchProfile" title="Ganti Profil Perusahaan">
+              <div class="ticky-profile-left">
+                <img src="assets/avatar-header.svg" alt="Jacob Martinez" class="ticky-profile-avatar-img">
+                <div class="ticky-profile-meta">
+                  <span class="ticky-profile-name">Switch Profile</span>
+                </div>
+              </div>
+              <svg class="ticky-switch-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"></path>
+              </svg>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Right Workspace -->
+        <div class="ticky-workspace">
+          <!-- Top Header Navigation Bar (Persis Foto Ticky) -->
+          <header class="ticky-top-header">
+            <div class="ticky-breadcrumb">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+              </svg>
+              <span id="tickyCurrentTabTitle">Dashboard Loket</span>
+            </div>
+
+            <div class="ticky-header-actions" style="position: relative;">
+              <!-- 1. Avatar Button -->
+              <div class="ticky-header-avatar" id="btnHeaderUserAvatar" title="Profil Operator & Perusahaan" role="button" tabindex="0">
+                <img src="assets/avatar-header.svg" alt="Avatar Operator" class="ticky-header-avatar-img" id="imgHeaderUserAvatar">
+              </div>
+
+              <!-- 2. Bell Notification Button -->
+              <button type="button" class="ticky-icon-btn" id="btnHeaderNotifications" title="Notifikasi Operasional Pelayaran" style="position: relative;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
-              </span>
-              <span class="dash-nav-text">Armada Kapal Saya</span>
-            </div>
-            <svg class="dash-nav-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="dash-sub-menu">
-            <a href="javascript:void(0)" class="dash-sub-item active" data-tab="tabFleet">
-              <span class="sub-dot"></span>
-              <span>Daftar Armada Kapal</span>
-            </a>
-            <a href="javascript:void(0)" class="dash-sub-item" id="subBtnAddVessel">
-              <span class="sub-dot" style="background:#38bdf8;"></span>
-              <span style="color:#38bdf8;font-weight:700;">+ Tambah Armada Baru</span>
-            </a>
-          </div>
-        </div>
+                <span class="ticky-notif-badge" id="tickyNotifBadge"></span>
+              </button>
 
-        <!-- SECTION: OPERASIONAL PELABUHAN -->
-        <div class="dash-nav-section-title">OPERASIONAL PELABUHAN</div>
-
-        <!-- 5. Terbitkan Tiket Baru -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabTicketing">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #10b981;">
-              <!-- Green Ticket Icon -->
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-              </svg>
-            </span>
-            <span class="dash-nav-text">Terbitkan Tiket Baru</span>
-          </div>
-        </button>
-
-        <!-- 6. Denah Kursi & Seat -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabSeats">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #f97316;">
-              <!-- Orange Seat Grid Icon -->
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                <line x1="4" y1="10" x2="20" y2="10"></line>
-                <line x1="10" y1="4" x2="10" y2="20"></line>
-              </svg>
-            </span>
-            <span class="dash-nav-text">Denah Kursi & Seat</span>
-          </div>
-        </button>
-
-        <!-- 7. Gate Scanner QR -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabScanner">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #06b6d4;">
-              <!-- Cyan QR Scanner Icon -->
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                <path d="M7 7h.01"></path>
-                <path d="M17 7h.01"></path>
-                <path d="M7 17h.01"></path>
-                <path d="M17 17h.01"></path>
-                <path d="M7 12h10"></path>
-              </svg>
-            </span>
-            <span class="dash-nav-text">Gate Scanner QR</span>
-          </div>
-        </button>
-
-        <!-- 8. Manajemen KSOP & Cuaca (Accordion) -->
-        <div class="dash-nav-group" id="groupNavKsop">
-          <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus">
-            <div class="dash-nav-left">
-              <span class="dash-nav-icon" style="color: #10b981;">
-                <!-- Green Shield Icon -->
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <!-- 3. Settings Gear Button -->
+              <button type="button" class="ticky-icon-btn" id="btnHeaderSettings" title="Pengaturan KSOP & Pejabat Syahbandar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
-              </span>
-              <span class="dash-nav-text">Manajemen KSOP & Cuaca</span>
+              </button>
+
+              <!-- 4. Three-Dots More Menu Button -->
+              <button type="button" class="ticky-icon-btn" id="btnHeaderMoreMenu" title="Menu Opsi Cepat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"></circle>
+                  <circle cx="12" cy="5" r="1"></circle>
+                  <circle cx="12" cy="19" r="1"></circle>
+                </svg>
+              </button>
+
+              <!-- Dropdown 1: Profile Popover -->
+              <div class="ticky-header-dropdown" id="dropdownHeaderProfile">
+                <div class="ticky-dd-header">
+                  <div class="ticky-dd-avatar-lg">
+                    <img src="assets/avatar-header.svg" alt="Avatar">
+                  </div>
+                  <div>
+                    <h5 id="dropdownProfileCompanyName" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #0f172a;">Ticky Logistics & Maritime</h5>
+                    <span id="dropdownProfileRole" style="font-size: 0.75rem; color: #0284c7; font-weight: 600;">Operator Loket Resmi</span>
+                  </div>
+                </div>
+                <div class="ticky-dd-divider"></div>
+                <div class="ticky-dd-body" style="padding: 0.5rem 0.85rem; font-size: 0.78rem; color: #64748b;">
+                  <div>Pelabuhan: <strong style="color: #1e293b;">Tunon Taka Nunukan</strong></div>
+                  <div>Status: <span style="color: #10b981; font-weight: 700;">● Terverifikasi KSOP</span></div>
+                </div>
+                <div class="ticky-dd-divider"></div>
+                <div class="ticky-dd-actions">
+                  <button type="button" class="ticky-dd-item" id="btnDropdownSwitchCompany">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Ganti / Masuk Perusahaan Lain</span>
+                  </button>
+                  <button type="button" class="ticky-dd-item" id="btnDropdownOpenSettings">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Pengaturan KSOP & Regulasi</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dropdown 2: Notifications Popover -->
+              <div class="ticky-header-dropdown" id="dropdownHeaderNotif" style="width: 320px;">
+                <div class="ticky-dd-header" style="justify-content: space-between;">
+                  <h5 style="margin: 0; font-size: 0.88rem; font-weight: 700; color: #0f172a;">Notifikasi Pelayaran</h5>
+                  <span class="status-pill boarded" style="font-size: 0.68rem; padding: 1px 6px;">Aktif</span>
+                </div>
+                <div class="ticky-dd-divider"></div>
+                <div class="ticky-notif-list">
+                  <div class="ticky-notif-item">
+                    <div class="ticky-notif-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">🌊</div>
+                    <div>
+                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Kondisi Cuaca Nunukan - Tawau</strong>
+                      <span style="font-size: 0.74rem; color: #64748b;">Gelombang 0.5 - 1.25m, Kecepatan angin 8 knot. Status: Aman Berlayar (Hijau).</span>
+                    </div>
+                  </div>
+                  <div class="ticky-notif-item">
+                    <div class="ticky-notif-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">🚢</div>
+                    <div>
+                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Kesiapan Gate Scanner</strong>
+                      <span style="font-size: 0.74rem; color: #64748b;">Gate scanner QR Dermaga Tunon Taka siap memvalidasi tiket manifest.</span>
+                    </div>
+                  </div>
+                  <div class="ticky-notif-item">
+                    <div class="ticky-notif-icon" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;">📋</div>
+                    <div>
+                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Integrasi Manifest Hubla</strong>
+                      <span style="font-size: 0.74rem; color: #64748b;">Sistem terhubung otomatis dengan format manifest KSOP Nunukan.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dropdown 3: More Options Menu -->
+              <div class="ticky-header-dropdown" id="dropdownHeaderMore" style="width: 220px;">
+                <div class="ticky-dd-actions" style="padding: 0.35rem 0;">
+                  <button type="button" class="ticky-dd-item" id="btnMoreGoOverview">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>Dashboard Utama</span>
+                  </button>
+                  <button type="button" class="ticky-dd-item" id="btnMoreGoTicketing">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
+                    <span>Terbitkan Tiket Baru</span>
+                  </button>
+                  <button type="button" class="ticky-dd-item" id="btnMoreGoManifest">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>Daftar Manifest Pelayaran</span>
+                  </button>
+                  <button type="button" class="ticky-dd-item" id="btnMoreSyncData">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>Sinkronisasi Data Tiket</span>
+                  </button>
+                  <div class="ticky-dd-divider"></div>
+                  <button type="button" class="ticky-dd-item" id="btnMoreSwitchProfile" style="color: #ef4444;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Ganti Akun Operator</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <svg class="dash-nav-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="dash-sub-menu">
-            <a href="javascript:void(0)" class="dash-sub-item active" data-tab="tabManifest">
-              <span class="sub-dot"></span>
-              <span>Manifest Penumpang Resmi</span>
-            </a>
-            <a href="javascript:void(0)" class="dash-sub-item" id="subBtnExportCsv">
-              <span class="sub-dot" style="background:#10b981;"></span>
-              <span style="color:#10b981;font-weight:700;">⬇ Unduh CSV Manifest</span>
-            </a>
-          </div>
-        </div>
+          </header>
 
-        <!-- SECTION: PENGATURAN & REGULASI PELAYARAN -->
-        <div class="dash-nav-section-title">PENGATURAN & REGULASI</div>
-
-        <!-- 9. Pengaturan KSOP & Pejabat Pelayaran -->
-        <button type="button" class="dash-nav-pill dash-tab-btn" data-tab="tabSettings">
-          <div class="dash-nav-left">
-            <span class="dash-nav-icon" style="color: #c084fc;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
-            </span>
-            <span class="dash-nav-text">Pengaturan KSOP & Pejabat</span>
-          </div>
-        </button>
-      </aside>
-
-      <!-- Right Column: Content Area with Panes -->
-      <div class="dash-content-area">
+          <!-- Content Panes Container -->
+          <div class="dash-content-area ticky-content-area">
 
       <!-- SUBTAB: PROSES TIKET BARU (LOKET PERUSAHAAN) -->
       <div class="dash-pane" id="paneTicketing">
         <div class="dash-block-panel">
-          <div class="block-header flex-between align-center">
+          <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem;">
             <div>
               <h4>Loket Pemrosesan & Penerbitan Tiket Resmi</h4>
               <p class="text-dim">Pilih jadwal kapal dan terbitkan tiket penumpang sesuai ketentuan operasional dan tarif resmi perusahaan Anda.</p>
             </div>
-            <span class="tag-badge" id="ticketingCompBadge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">Ketentuan Operator Resmi</span>
+            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn-primary-action" id="btnOpenBulkPassengerFromTicketing" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 0.95rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+                <span>+ Entri Penumpang Massal</span>
+              </button>
+              <span class="tag-badge" id="ticketingCompBadge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">Ketentuan Operator Resmi</span>
+            </div>
           </div>
 
           <div class="schedules-deck" id="companyTicketingSchedulesList">
@@ -831,60 +1015,327 @@
         </div>
       </div>
 
-      <!-- SUBTAB 1: OVERVIEW & KPIS -->
+      <!-- SUBTAB 1: OVERVIEW & KPIS (PERSIS FOTO TICKY) -->
       <div class="dash-pane active" id="paneOverview">
-        <!-- KPI Cards Grid -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-icon-cell icon-blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <!-- 8 KPI Cards Grid (2 rows x 4 columns) -->
+        <div class="ticky-kpi-grid">
+          <!-- 1. Total Tiket Terbit -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+              </svg>
             </div>
-            <div>
-              <span class="kpi-lbl">Total Pendapatan Kotor</span>
-              <h3 class="kpi-val" id="kpiRevenue">Rp 0</h3>
-              <span class="kpi-trend positive">↑ Real-Time Sync</span>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-icon-cell icon-green">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-            </div>
-            <div>
-              <span class="kpi-lbl">Tiket Terjual</span>
-              <h3 class="kpi-val" id="kpiTicketsSold">0</h3>
-              <span class="kpi-trend">Lunas / Terkonfirmasi</span>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Total Tiket Terbit</span>
+              <span class="ticky-kpi-val" id="kpiTotalTickets">0</span>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-icon-cell icon-amber">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <!-- 2. Menunggu Boarding -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-lime">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
             </div>
-            <div>
-              <span class="kpi-lbl">Okupansi Rata-rata</span>
-              <h3 class="kpi-val" id="kpiOccupancy">74.5%</h3>
-              <span class="kpi-trend positive">Optimal</span>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Menunggu Boarding</span>
+              <span class="ticky-kpi-val" id="kpiOpenedTickets">0</span>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-icon-cell icon-purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+          <!-- 3. Sudah Naik Kapal (Boarded) -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-red">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
             </div>
-            <div>
-              <span class="kpi-lbl">Armada Aktif</span>
-              <h3 class="kpi-val" id="kpiFleetCount">0</h3>
-              <span class="kpi-trend">Siap Berlayar</span>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Sudah Naik Kapal</span>
+              <span class="ticky-kpi-val" id="kpiClosedTickets">0</span>
+            </div>
+          </div>
+
+          <!-- 4. Total Penumpang -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-olive">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Total Penumpang</span>
+              <span class="ticky-kpi-val" id="kpiTotalUsers">0</span>
+            </div>
+          </div>
+
+          <!-- 5. Armada Kapal Aktif -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-teal">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 20a2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1"></path>
+                <path d="M4 17l1.5-11h13L20 17"></path>
+                <path d="M9 6v4"></path>
+                <path d="M15 6v4"></path>
+              </svg>
+            </div>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Armada Kapal Aktif</span>
+              <span class="ticky-kpi-val" id="kpiTotalAgents">0</span>
+            </div>
+          </div>
+
+          <!-- 6. Jadwal Pelayaran -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-indigo">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Jadwal Pelayaran</span>
+              <span class="ticky-kpi-val" id="kpiTotalAdmins">0</span>
+            </div>
+          </div>
+
+          <!-- 7. Sisa Kuota Kursi -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-emerald">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 18v3"></path>
+                <path d="M20 18v3"></path>
+                <path d="M6 18h12"></path>
+                <rect x="6" y="5" width="12" height="10" rx="3"></rect>
+              </svg>
+            </div>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Sisa Kuota Kursi</span>
+              <span class="ticky-kpi-val" id="kpiWithdrawalAmounts">0</span>
+            </div>
+          </div>
+
+          <!-- 8. Total Pendapatan Tiket -->
+          <div class="ticky-kpi-card">
+            <div class="ticky-sq-icon ticky-sq-violet">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+                <path d="M7 15h2"></path>
+              </svg>
+            </div>
+            <div class="ticky-kpi-info">
+              <span class="ticky-kpi-lbl">Total Pendapatan Tiket</span>
+              <span class="ticky-kpi-val" id="kpiTotalTransaction">Rp 0</span>
             </div>
           </div>
         </div>
 
-        <!-- Recent Booking Activity in this Tenant -->
-        <div class="dash-block-panel">
-          <div class="block-header flex-between align-center">
-            <h4>Transaksi Pemesanan Tiket Terkini (Khusus Perusahaan Anda)</h4>
-            <span class="text-dim">Sinkronisasi Instan</span>
+        <!-- Hidden Compatibility elements for existing financial logic -->
+        <div style="display: none;" aria-hidden="true">
+          <span id="kpiRevenue">Rp 0</span>
+          <span id="kpiTicketsSold">0</span>
+          <span id="kpiOccupancy">74.5%</span>
+          <span id="kpiFleetCount">0</span>
+        </div>
+
+        <!-- Middle Row: Pemesanan Tiket Terbaru (Left) & Statistik Penjualan Tiket (Right) -->
+        <div class="ticky-mid-row">
+          <!-- Left: Pemesanan Tiket Terbaru Card -->
+          <div class="ticky-white-card ticky-recent-card">
+            <div class="ticky-card-header">
+              <h3 class="ticky-card-title">Pemesanan Tiket Terbaru</h3>
+              <button type="button" class="ticky-btn-view-all" id="btnViewAllPassengers">Lihat Semua</button>
+            </div>
+
+            <div class="ticky-user-list" id="tickyRecentUsersList">
+              <div style="text-align: center; padding: 2rem 1rem; color: #94a3b8;">
+                <p style="margin: 0; font-size: 0.88rem; font-weight: 600;">Memuat aktivitas tiket...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Statistik Penjualan Tiket Area Line Chart Card -->
+          <div class="ticky-white-card ticky-chart-card">
+            <div class="ticky-card-header">
+              <h3 class="ticky-card-title">Statistik Penjualan Tiket</h3>
+              <button type="button" class="ticky-dropdown-btn">
+                <span>7 Hari Terakhir</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+            </div>
+
+            <div class="ticky-chart-container" style="position: relative;">
+              <!-- Tooltip on Thursday -->
+              <div class="ticky-chart-tooltip" style="position: absolute; top: 12px; right: 12%; transform: translateX(50%);">
+                <span class="ticky-tooltip-val">48 Tiket</span>
+                <span class="ticky-tooltip-sub">Kamis, Keberangkatan Puncak</span>
+              </div>
+
+              <!-- Area Line Chart SVG -->
+              <svg viewBox="0 0 720 230" class="ticky-svg-chart" preserveAspectRatio="none" style="width: 100%; height: 215px; overflow: visible;">
+                <defs>
+                  <pattern id="userStatsHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="0" y2="8" stroke="#ede9fe" stroke-width="1.8"></line>
+                  </pattern>
+                </defs>
+
+                <!-- Horizontal Grid Lines -->
+                <g stroke="#f1f5f9" stroke-width="1">
+                  <line x1="45" y1="20" x2="710" y2="20"></line>
+                  <line x1="45" y1="56" x2="710" y2="56"></line>
+                  <line x1="45" y1="92" x2="710" y2="92"></line>
+                  <line x1="45" y1="128" x2="710" y2="128"></line>
+                  <line x1="45" y1="164" x2="710" y2="164"></line>
+                  <line x1="45" y1="195" x2="710" y2="195"></line>
+                </g>
+
+                <!-- Y-Labels (Skala Tiket) -->
+                <g fill="#94a3b8" font-size="11" font-weight="500" text-anchor="end">
+                  <text x="35" y="24">120</text>
+                  <text x="35" y="60">100</text>
+                  <text x="35" y="96">80</text>
+                  <text x="35" y="132">60</text>
+                  <text x="35" y="168">40</text>
+                  <text x="35" y="199">20</text>
+                </g>
+
+                <!-- Area Fill with Hatch Pattern -->
+                <path d="M 55 195 L 55 178 C 100 178, 115 162, 145 162 C 175 162, 205 170, 235 170 C 265 170, 295 125, 325 125 C 355 125, 385 95, 415 95 C 445 95, 475 120, 505 120 C 535 120, 545 60, 565 60 L 665 175 L 665 195 Z" fill="url(#userStatsHatch)"></path>
+
+                <!-- Smooth Purple Stroke Line -->
+                <path d="M 55 178 C 100 178, 115 162, 145 162 C 175 162, 205 170, 235 170 C 265 170, 295 125, 325 125 C 355 125, 385 95, 415 95 C 445 95, 475 120, 505 120 C 535 120, 545 60, 565 60 L 665 175" fill="none" stroke="#7c3aed" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                <!-- Thursday Guide Line -->
+                <line x1="565" y1="60" x2="565" y2="195" stroke="#c4b5fd" stroke-width="1.2" stroke-dasharray="3 3"></line>
+
+                <!-- Data Vertices -->
+                <circle cx="145" cy="162" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+                <circle cx="235" cy="170" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+                <circle cx="325" cy="125" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+                <circle cx="415" cy="95" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+                <circle cx="505" cy="120" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+                <circle cx="565" cy="60" r="4.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2.8"></circle>
+                <circle cx="665" cy="175" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
+
+                <!-- X-Axis Labels (Hari dalam Seminggu) -->
+                <g fill="#94a3b8" font-size="10.5" font-weight="500" text-anchor="middle">
+                  <text x="60" y="215">Sabtu</text>
+                  <text x="145" y="215">Minggu</text>
+                  <text x="235" y="215">Senin</text>
+                  <text x="325" y="215">Selasa</text>
+                  <text x="415" y="215">Rabu</text>
+                  <text x="565" y="215">Kamis</text>
+                  <text x="665" y="215">Jumat</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Tickets Statistics Monthly Bar Chart Card -->
+        <div class="ticky-white-card ticky-chart-card">
+          <div class="ticky-card-header">
+            <h3 class="ticky-card-title">Tren Penjualan Bulanan</h3>
+            <button type="button" class="ticky-dropdown-btn">
+              <span>Tahun Berjalan</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+          </div>
+
+          <div class="ticky-chart-container" style="position: relative;">
+            <!-- Active Tooltip Floating Above June Bar -->
+            <div class="ticky-chart-tooltip" style="position: absolute; top: 12px; left: 47.3%; transform: translateX(-50%);">
+              <span class="ticky-tooltip-val">240 Tiket</span>
+              <span class="ticky-tooltip-sub">Juni, Puncak Liburan</span>
+            </div>
+
+            <!-- Bar Chart SVG -->
+            <svg viewBox="0 0 1000 250" class="ticky-svg-chart" preserveAspectRatio="none" style="width: 100%; height: 235px; overflow: visible;">
+              <defs>
+                <pattern id="ticketStatsHatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.4)" stroke-width="2"></line>
+                </pattern>
+              </defs>
+
+              <!-- Horizontal Grid Lines -->
+              <g stroke="#f1f5f9" stroke-width="1">
+                <line x1="45" y1="20" x2="980" y2="20"></line>
+                <line x1="45" y1="56" x2="980" y2="56"></line>
+                <line x1="45" y1="92" x2="980" y2="92"></line>
+                <line x1="45" y1="128" x2="980" y2="128"></line>
+                <line x1="45" y1="164" x2="980" y2="164"></line>
+                <line x1="45" y1="195" x2="980" y2="195"></line>
+              </g>
+
+              <!-- Y-Labels -->
+              <g fill="#94a3b8" font-size="11" font-weight="500" text-anchor="end">
+                <text x="35" y="24">600</text>
+                <text x="35" y="60">500</text>
+                <text x="35" y="96">400</text>
+                <text x="35" y="132">300</text>
+                <text x="35" y="168">200</text>
+                <text x="35" y="199">100</text>
+              </g>
+
+              <!-- 12 Monthly Bars -->
+              <rect x="75" y="147" width="46" height="48" rx="4" fill="#f5f3ff"></rect>
+              <rect x="150" y="107" width="46" height="88" rx="4" fill="#f5f3ff"></rect>
+              <rect x="225" y="123" width="46" height="72" rx="4" fill="#f5f3ff"></rect>
+              <rect x="300" y="91" width="46" height="104" rx="4" fill="#f5f3ff"></rect>
+              <rect x="375" y="117" width="46" height="78" rx="4" fill="#f5f3ff"></rect>
+
+              <!-- June Active Highlighted Bar -->
+              <g>
+                <rect x="450" y="91" width="46" height="104" rx="4" fill="#7c3aed"></rect>
+                <rect x="450" y="91" width="46" height="104" rx="4" fill="url(#ticketStatsHatch)"></rect>
+                <circle cx="473" cy="91" r="4.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2.5"></circle>
+              </g>
+
+              <rect x="525" y="117" width="46" height="78" rx="4" fill="#f5f3ff"></rect>
+              <rect x="600" y="81" width="46" height="114" rx="4" fill="#f5f3ff"></rect>
+              <rect x="675" y="89" width="46" height="106" rx="4" fill="#f5f3ff"></rect>
+              <rect x="750" y="103" width="46" height="92" rx="4" fill="#f5f3ff"></rect>
+              <rect x="825" y="75" width="46" height="120" rx="4" fill="#f5f3ff"></rect>
+              <rect x="900" y="51" width="46" height="144" rx="4" fill="#f5f3ff"></rect>
+
+              <!-- X-Axis Labels -->
+              <g fill="#94a3b8" font-size="10.5" font-weight="500" text-anchor="middle">
+                <text x="98" y="218">Januari</text>
+                <text x="173" y="218">Februari</text>
+                <text x="248" y="218">Maret</text>
+                <text x="323" y="218">April</text>
+                <text x="398" y="218">Mei</text>
+                <text x="473" y="218" fill="#7c3aed" font-weight="700">Juni</text>
+                <text x="548" y="218">Juli</text>
+                <text x="623" y="218">Agustus</text>
+                <text x="698" y="218">September</text>
+                <text x="773" y="218">Oktober</text>
+                <text x="848" y="218">November</text>
+                <text x="923" y="218">Desember</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Operational Section Below Charts: Live Bookings & Direct Print Action -->
+        <div class="ticky-white-card" style="margin-top: 1rem;">
+          <div class="ticky-card-header flex-between align-center" style="margin-bottom: 0.85rem;">
+            <div>
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: #1e293b;">Transaksi Pemesanan Tiket Terkini (Live Manifest)</h4>
+              <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Cetak langsung boarding pass atau tiket thermal POS untuk manifest penumpang aktif.</p>
+            </div>
+            <button type="button" class="ticky-btn-view-all" id="btnRefreshLiveBookings">Sinkronisasi Real-Time</button>
           </div>
           <div class="table-responsive">
             <table class="dash-table" id="tableRecentBookings">
@@ -1107,6 +1558,10 @@
               <p class="text-dim">Daftar nama dan identitas seluruh penumpang kapal rute Nunukan - Tawau & Nunukan - Parepare.</p>
             </div>
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+              <button type="button" class="btn-primary-action" id="btnOpenBulkPassengerModal" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+                <span>+ Input Penumpang Massal</span>
+              </button>
               <button type="button" class="btn-secondary-action" id="btnExportManifestCsv" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span>Ekspor CSV Manifest</span>
@@ -1118,6 +1573,10 @@
               <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--accent-purple); color: #c084fc; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                 <span>🔄 Transfer Antar Kapal</span>
+              </button>
+              <button type="button" class="btn-secondary-action" id="btnDirectPrintSelectedTickets" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #059669; padding: 0.45rem 0.95rem; border-radius: var(--radius-sm); font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                <span>🖨️ Cetak Tiket Terpilih (Massal)</span>
               </button>
             </div>
           </div>
@@ -1154,24 +1613,24 @@
           </div>
 
           <div class="table-responsive">
-            <table class="dash-table">
+            <table class="dash-table compact-manifest-table" style="width: 100%; table-layout: auto;">
               <thead>
                 <tr>
-                  <th style="width: 38px; text-align: center;">
+                  <th style="width: 28px; text-align: center; padding: 6px 3px;">
                     <input type="checkbox" id="checkAllManifestTable" title="Pilih Semua Penumpang untuk Ditransfer">
                   </th>
-                  <th>No</th>
-                  <th>Kode PNR</th>
-                  <th>Jenis</th>
-                  <th>Nama Lengkap Penumpang</th>
-                  <th>L/P</th>
-                  <th>No. Passport</th>
-                  <th>Tgl Lahir / Umur</th>
-                  <th>Negara</th>
-                  <th>Remark</th>
-                  <th>Kapal & Kursi</th>
-                  <th>Status Boarding</th>
-                  <th style="text-align: center;">Aksi Operasional</th>
+                  <th style="width: 24px; text-align: center; padding: 6px 3px;">No</th>
+                  <th style="padding: 6px 4px;">Kode PNR</th>
+                  <th style="padding: 6px 4px;">Jenis</th>
+                  <th style="padding: 6px 4px;">Nama Penumpang</th>
+                  <th style="width: 24px; text-align: center; padding: 6px 3px;">L/P</th>
+                  <th style="padding: 6px 4px;">No. Dokumen</th>
+                  <th style="padding: 6px 4px;">Umur</th>
+                  <th style="padding: 6px 4px;">Negara</th>
+                  <th style="padding: 6px 4px;">Remark</th>
+                  <th style="padding: 6px 4px;">Kapal & Seat</th>
+                  <th style="padding: 6px 4px;">Status</th>
+                  <th style="text-align: center; padding: 6px 4px;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbodyManifestList">
@@ -1396,11 +1855,14 @@
           </form>
 
         </div>
+          </div>
+          <!-- End .ticky-content-area -->
+        </div>
+        <!-- End .ticky-workspace -->
       </div>
-      <!-- End .dash-content-area -->
-
+      <!-- End .ticky-dashboard-window -->
     </div>
-    <!-- End .dashboard-main-grid -->
+    <!-- End .ticky-dashboard-canvas -->
   </main>
 
   <!-- ========================================================
@@ -1917,6 +2379,75 @@
     </div>
   </div>
 
+  <!-- MODAL: CETAK LANGSUNG TIKET & BOARDING PASS RESMI (SATUAN & MASSAL) -->
+  <div class="modal-layer" id="modalDirectTicketPrint">
+    <div class="modal-window modal-wide" style="max-width: 920px; max-height: 94vh; background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);">
+      
+      <!-- Modal Top Bar -->
+      <div class="modal-top" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 1.15rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <h4 style="color: #0f172a; margin: 0; font-size: 1.2rem; font-weight: 800;">Cetak Langsung Tiket & Boarding Pass Resmi</h4>
+            <span class="tag-badge" id="directPrintBatchBadge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.75rem;">
+              0 Tiket Siap Cetak
+            </span>
+            <span class="tag-badge" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-weight: 700; font-size: 0.75rem;">
+              KSOP & Ditjen Hubla Validated
+            </span>
+          </div>
+          <p class="text-dim" style="color: #64748b; margin: 0.25rem 0 0 0; font-size: 0.84rem;">
+            Dukungan cetak tiket satuan per-penumpang atau tiket massal seluruh rombongan dengan barcode dan kode QR otentik.
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <button type="button" class="btn-close-x" id="btnCloseDirectTicketPrint" style="color: #64748b; font-size: 1.5rem; line-height: 1; border: none; background: transparent; cursor: pointer;">&times;</button>
+        </div>
+      </div>
+
+      <!-- Controls Strip: Layout Selector & Info -->
+      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <!-- Format Selector -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Format Cetak:</span>
+          <div class="direct-print-format-toggle" style="display: inline-flex; background: #e2e8f0; padding: 3px; border-radius: 8px;">
+            <button type="button" class="btn-toggle-print-format active" data-format="BOARDING_PASS" style="border: none; background: #ffffff; color: #0284c7; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              🎫 Boarding Pass Resmi (A4)
+            </button>
+            <button type="button" class="btn-toggle-print-format" data-format="THERMAL_POS" style="border: none; background: transparent; color: #64748b; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+              🧾 Struk Thermal POS (80mm)
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Summary & Instructions -->
+        <div style="font-size: 0.78rem; color: #64748b;">
+          💡 Gunakan setelan <strong style="color: #0f172a;">Save as PDF</strong> atau printer thermal untuk cetak fisik.
+        </div>
+      </div>
+
+      <!-- Scrollable Ticket List Area (PRINT TARGET) -->
+      <div class="modal-body-scroll" id="directBatchTicketPrintArea" style="padding: 1.5rem; overflow-y: auto; max-height: calc(94vh - 210px); background: #f1f5f9; display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Bottom Actions -->
+      <div class="modal-bottom-actions" style="background: #ffffff; border-top: 1px solid #e2e8f0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <button type="button" class="btn-cancel" id="btnCancelDirectTicketPrint" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: 8px; cursor: pointer;">
+          Tutup
+        </button>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <button type="button" class="btn-submit-action" id="btnExecuteDirectPrint" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.65rem 1.6rem; border-radius: 8px; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+            <span id="btnExecuteDirectPrintText">🖨️ Cetak Sekarang (Semua Tiket)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MODAL 1: EDIT MANIFEST PENUMPANG (KSOP & IMIGRASI) -->
   <div class="modal-layer" id="modalEditManifest">
     <div class="modal-window" style="max-width: 680px;">
@@ -2080,7 +2611,13 @@
         </div>
 
         <div class="modal-bottom-actions">
-          <button type="button" class="btn-cancel" id="btnCancelEditTicket">Batal</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn-cancel" id="btnCancelEditTicket">Batal</button>
+            <button type="button" class="btn-secondary-action" id="btnDirectPrintFromEditTicket" style="background: rgba(2, 132, 199, 0.12); border: 1px solid #bae6fd; color: #0284c7; padding: 0.6rem 1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+              <span>🖨️ Cetak Tiket Ini</span>
+            </button>
+          </div>
           <button type="submit" class="btn-submit-action">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             <span>Simpan Perubahan Tiket</span>
@@ -2283,6 +2820,10 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
             <span>Terbitkan Tiket di Loket</span>
           </button>
+          <button type="button" class="btn-primary-action" id="btnVoyageGoBulkPax" style="flex: 1; justify-content: center; font-size: 0.82rem; padding: 0.65rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+            <span>+ Input Massal</span>
+          </button>
           <button type="button" class="btn-secondary-action" id="btnVoyageGoSeats" style="flex: 1; justify-content: center; font-size: 0.82rem; padding: 0.65rem; background: #fff; border-color: #cbd5e1; color: #334155;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="10" y1="4" x2="10" y2="20"/></svg>
             <span>Denah Kursi (Seat Map)</span>
@@ -2291,6 +2832,343 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             <span>Manifest KSOP</span>
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INPUT PENUMPANG MASSAL / BULK & GROUP PASSENGER ENTRY -->
+  <div class="modal-layer" id="modalBulkPassengerEntry">
+    <div class="modal-window modal-wide" style="max-width: 980px; max-height: 94vh; background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border-radius: 14px;">
+      
+      <!-- Modal Top -->
+      <div class="modal-top" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 1.15rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <h4 style="color: #0f172a; margin: 0; font-size: 1.2rem; font-weight: 800;">Entri & Input Data Penumpang Massal (Bulk / Group)</h4>
+            <span class="tag-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.75rem;">KSOP & Ditjen Hubla Ready</span>
+          </div>
+          <p class="text-dim" style="color: #64748b; margin: 0.25rem 0 0 0; font-size: 0.84rem;">
+            Impor atau input data banyak penumpang sekaligus untuk tiket rombongan, charter instansi, turis, atau tenaga kerja perbatasan.
+          </p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseBulkPassengerEntry" style="color: #64748b; font-size: 1.5rem; line-height: 1; border: none; background: transparent; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Scrollable Modal Body -->
+      <div class="modal-body-scroll" style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto;">
+        
+        <!-- STEP 1: Konfigurasi Pelayaran, Rombongan & Tarif -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>1️⃣</span> Pengaturan Jadwal Pelayaran & Rombongan
+            </strong>
+            <span class="text-dim" style="font-size: 0.78rem; color: #64748b;">Pilih armada kapal yang akan menampung rombongan</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.85rem;">
+            <!-- Pilih Jadwal Pelayaran -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Jadwal Kapal Tujuan *</label>
+              <select id="bulkTargetScheduleSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <!-- Injected dynamically -->
+              </select>
+            </div>
+
+            <!-- Pilih Kelas & Tarif -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Kelas & Tarif Tiket *</label>
+              <select id="bulkClassSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <option value="EKONOMI" data-fare="250000">Ekonomi — Rp 250.000 / Pax</option>
+                <option value="BISNIS" data-fare="350000">Bisnis — Rp 350.000 / Pax</option>
+                <option value="VIP" data-fare="500000">VIP Stateroom — Rp 500.000 / Pax</option>
+              </select>
+            </div>
+
+            <!-- Nama Grup / Rombongan -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Nama Rombongan / Instansi *</label>
+              <input type="text" id="bulkGroupNameInput" class="form-input" placeholder="Contoh: Rombongan TKI Mandiri / Wisatawan" value="Rombongan Penumpang Resmi" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Status & Metode Bayar *</label>
+              <select id="bulkPaymentMethodSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <option value="CASH">Lunas Tunai (Cash Loket)</option>
+                <option value="TRANSFER">Lunas Transfer Bank / QRIS</option>
+                <option value="INVOICE">Tagihan Rombongan / Invoice Agen</option>
+                <option value="CHARTER">Charter Resmi Perusahaan</option>
+              </select>
+            </div>
+
+            <!-- PIC Koordinator -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Nama Koordinator / PIC</label>
+              <input type="text" id="bulkPicNameInput" class="form-input" placeholder="Nama Ketua Rombongan" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+
+            <!-- Kontak Telepon PIC -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">No. WhatsApp / HP PIC</label>
+              <input type="tel" id="bulkPicPhoneInput" class="form-input" placeholder="08xxxxxxxxxx" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+          </div>
+
+          <!-- Opsi Penomoran Tiket -->
+          <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">Model Penomoran Tiket:</div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #0f172a; cursor: pointer;">
+                <input type="radio" name="bulkPnrGroupingMode" value="GROUP" checked>
+                <span>👥 1 PNR Grup Rombongan (Kolektif)</span>
+              </label>
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #0f172a; cursor: pointer;">
+                <input type="radio" name="bulkPnrGroupingMode" value="INDIVIDUAL">
+                <span>🎫 PNR Terpisah Per Penumpang</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Pilih Metode Input Data Penumpang -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>2️⃣</span> Masukkan Data Penumpang
+            </strong>
+            <button type="button" id="btnDownloadBulkCsvTemplate" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <span>⬇ Unduh Format Template Excel / CSV Resmi</span>
+            </button>
+          </div>
+
+          <!-- Nav Tabs: 3 Opsi Input -->
+          <div class="bulk-input-tabs" id="bulkInputTabs">
+            <button type="button" class="bulk-tab-btn active" data-mode="PASTE">
+              📋 Copy-Paste Cepat dari Excel
+            </button>
+            <button type="button" class="bulk-tab-btn" data-mode="FILE">
+              📂 Unggah File CSV / Excel
+            </button>
+            <button type="button" class="bulk-tab-btn" data-mode="GRID">
+              ✍️ Tabel Grid Interaktif
+            </button>
+          </div>
+
+          <!-- PANE 1: COPY-PASTE DARI SPREADSHEET -->
+          <div id="bulkPanePaste" class="bulk-input-pane">
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.78rem; color: #64748b;">
+                Salin baris data dari Excel/Google Sheets dan tempel (Paste) langsung ke kotak di bawah.
+              </span>
+              <button type="button" id="btnLoadBulkDemoData" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                + Muat 10 Contoh Data Demo
+              </button>
+            </div>
+            <textarea id="bulkPasteTextarea" class="form-input" rows="5" placeholder="Contoh format kolom:&#10;Ahmad Dahlan	A1234567	L	Dewasa	ID&#10;Siti Fatimah	6401024508900001	P	Dewasa	ID&#10;Muhammad Rizki	B8765432	L	Anak	ID&#10;&#10;*Format otomatis membaca pemisah Tab, Koma, atau Titik Koma." style="width: 100%; font-family: monospace; font-size: 0.8rem; background: #ffffff; color: #0f172a; border-color: #cbd5e1;"></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem; gap: 0.5rem;">
+              <button type="button" class="btn-action-sm" id="btnParsePastedText" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
+                ⚡ Proses & Analisis Teks Tempel
+              </button>
+            </div>
+          </div>
+
+          <!-- PANE 2: UPLOAD FILE CSV -->
+          <div id="bulkPaneFile" class="bulk-input-pane" style="display: none;">
+            <div class="bulk-dropzone" id="bulkDropzoneArea">
+              <input type="file" id="bulkFileInput" accept=".csv,.txt,.tsv" style="display: none;">
+              <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">📂</div>
+              <strong style="color: #0f172a; font-size: 0.95rem; display: block;">Pilih atau Tarik Berkas CSV / Excel ke Sini</strong>
+              <span style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Mendukung format .csv, .tsv, dan .txt dengan pemisah koma atau tab</span>
+              <div style="margin-top: 0.85rem;">
+                <button type="button" class="btn-action-sm" id="btnBrowseBulkFile" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+                  Pilih File dari Komputer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 3: TABEL GRID INTERAKTIF -->
+          <div id="bulkPaneGrid" class="bulk-input-pane" style="display: none;">
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.78rem; color: #64748b;">Ketik langsung data penumpang pada tabel baris demi baris:</span>
+              <div style="display: flex; gap: 0.4rem;">
+                <button type="button" class="btn-action-sm" id="btnAddGridRow" style="background: #0284c7; color: #ffffff; border: none; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 1 Baris</button>
+                <button type="button" class="btn-action-sm" id="btnAdd5GridRows" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 5 Baris</button>
+                <button type="button" class="btn-action-sm" id="btnClearGridRows" style="background: #ffffff; color: #dc2626; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">Bersihkan</button>
+              </div>
+            </div>
+            <div style="max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <table class="bulk-grid-table" id="tableBulkManualGrid">
+                <thead>
+                  <tr>
+                    <th style="width: 36px; text-align: center;">No</th>
+                    <th>Nama Lengkap Penumpang *</th>
+                    <th style="width: 170px;">No. Paspor / NIK *</th>
+                    <th style="width: 80px;">L/P</th>
+                    <th style="width: 110px;">Jenis Pax</th>
+                    <th style="width: 80px;">Warga</th>
+                    <th style="width: 90px;">Kursi</th>
+                    <th style="width: 45px; text-align: center;">Hapus</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyBulkManualGrid">
+                  <!-- Injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Live Preview & Ringkasan Validasi Data -->
+        <div class="bulk-preview-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>3️⃣</span> Hasil Analisis & Pratinjau Penumpang Siap Terbit
+            </strong>
+            <button type="button" id="btnReallocateBulkSeats" class="btn-action-sm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+              🔄 Alokasikan Ulang Kursi Otomatis
+            </button>
+          </div>
+
+          <!-- KPI Summary Strip -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-bottom: 0.85rem;">
+            <div class="bulk-kpi-badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;">
+              <span>👥</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #0369a1;">Total Penumpang:</span>
+                <strong id="kpiBulkTotalPax" style="font-size: 1.05rem;">0 Orang</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;">
+              <span>✓</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #166534;">Validasi KSOP:</span>
+                <strong id="kpiBulkValidPax" style="font-size: 1.05rem;">0 Lolos</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe;">
+              <span>💺</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #6d28d9;">Alokasi Kursi:</span>
+                <strong id="kpiBulkSeatMode" style="font-size: 0.88rem;">Otomatis (Berurutan)</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+              <span>💰</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #92400e;">Total Nilai Tiket:</span>
+                <strong id="kpiBulkTotalFare" style="font-size: 1.05rem;">Rp 0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scrollable Live Preview Table -->
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+            <table class="dash-table" style="font-size: 0.8rem; margin: 0;">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th style="width: 32px; text-align: center;">No</th>
+                  <th>Nama Lengkap</th>
+                  <th>No. Dokumen / NIK / Paspor</th>
+                  <th>L/P</th>
+                  <th>Jenis</th>
+                  <th>Warga</th>
+                  <th>Alokasi Kursi</th>
+                  <th>Status</th>
+                  <th style="width: 40px; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyBulkPreview">
+                <tr>
+                  <td colspan="9" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+                    Belum ada data penumpang dimasukkan. Tempel data teks di atas atau unggah file.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Bottom Actions -->
+      <div class="modal-bottom-actions" style="background: #ffffff; border-top: 1px solid #e2e8f0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <button type="button" class="btn-cancel" id="btnCancelBulkPassengerEntry" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: 8px; cursor: pointer;">
+            Batal
+          </button>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <button type="button" id="btnClearBulkData" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.65rem 1.1rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer;">
+            Bersihkan
+          </button>
+          <button type="button" class="btn-submit-action" id="btnSubmitBulkPassenger" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 700; padding: 0.65rem 1.5rem; border-radius: 8px; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span id="btnSubmitBulkPassengerText">Terbitkan Tiket Massal (0 Penumpang)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: SUKSES PENERBITAN TIKET MASSAL -->
+  <div class="modal-layer" id="modalBulkSuccess">
+    <div class="modal-window" style="max-width: 580px; background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);">
+      <div style="padding: 1.75rem 1.5rem; text-align: center;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #ecfdf5; border: 2px solid #a7f3d0; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem auto;">
+          ✓
+        </div>
+        <h4 style="color: #0f172a; margin: 0 0 0.35rem 0; font-size: 1.3rem; font-weight: 800;">Tiket Massal Berhasil Diterbitkan!</h4>
+        <p style="color: #64748b; font-size: 0.85rem; margin: 0 0 1.25rem 0;">
+          Seluruh data penumpang telah resmi didaftarkan ke manifest pelayaran kapal dan siap untuk boarding pass.
+        </p>
+
+        <!-- Summary Info Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem; text-align: left; margin-bottom: 1.5rem; font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Kode Reservasi (PNR):</span>
+            <strong id="bulkSuccessPnr" style="color: #0284c7; font-family: monospace; font-size: 0.95rem;">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Rombongan / Instansi:</span>
+            <strong id="bulkSuccessGroup">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Jumlah Penumpang:</span>
+            <strong id="bulkSuccessPaxCount" style="color: #059669;">0 Orang</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Armada Kapal & Jadwal:</span>
+            <strong id="bulkSuccessVessel">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Total Biaya Tiket:</span>
+            <strong id="bulkSuccessTotalFare" style="color: #b45309; font-size: 0.95rem;">Rp 0</strong>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <button type="button" class="btn-primary-action" id="btnBulkSuccessPrintTickets" style="width: 100%; justify-content: center; padding: 0.75rem; font-weight: 800; font-size: 0.92rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+            <span>🎫 Cetak Langsung Seluruh Tiket Massal</span>
+          </button>
+          <button type="button" class="btn-secondary-action" id="btnBulkSuccessPrintManifest" style="width: 100%; justify-content: center; padding: 0.65rem; font-weight: 700; font-size: 0.84rem; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+            <span>🖨️ Cetak Dokumen Manifest Rombongan KSOP</span>
+          </button>
+          <div style="display: flex; gap: 0.6rem;">
+            <button type="button" class="btn-secondary-action" id="btnBulkSuccessGoManifest" style="flex: 1; justify-content: center; padding: 0.6rem; font-weight: 700; font-size: 0.82rem; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
+              📋 Buka Manifest Penumpang
+            </button>
+            <button type="button" class="btn-secondary-action" id="btnBulkSuccessClose" style="flex: 1; justify-content: center; padding: 0.6rem; font-weight: 700; font-size: 0.82rem; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>

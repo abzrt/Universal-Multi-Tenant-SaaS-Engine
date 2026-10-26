@@ -50,8 +50,18 @@ const DEFAULT_KSOP_SETTINGS = {
   regulationNotice: 'Diterbitkan sesuai ketentuan Undang-Undang No. 17 Tahun 2008 tentang Pelayaran dan Peraturan Direktur Jenderal Perhubungan Laut.'
 };
 
-// Initial Registered Companies (Kosong / Tanpa Demo - Siap didaftarkan oleh pengguna)
-const DEFAULT_COMPANIES = [];
+// Initial Registered Companies (Default Ticky Operator)
+const DEFAULT_COMPANIES = [
+  {
+    id: 'COMP-TICKY',
+    name: 'Ticky Logistics & Maritime',
+    shortName: 'Ticky',
+    category: 'Operator Utama',
+    email: 'admin@ticky.com',
+    brandColor: '#7c3aed',
+    verified: true
+  }
+];
 
 // Master Ports: HANYA Nunukan, Tawau (Luar Negeri), dan Parepare (Dalam Negeri)
 const MASTER_PORTS = [
@@ -126,7 +136,13 @@ const Store = {
       localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify(DEFAULT_VESSELS));
       return DEFAULT_VESSELS;
     }
-    return JSON.parse(raw);
+    const list = JSON.parse(raw) || [];
+    return list.map(v => {
+      if (!Array.isArray(v.facilities) || v.facilities.length === 0) {
+        v.facilities = ['AC Reclining', 'Toilet Bersih', 'Life Jacket KSOP'];
+      }
+      return v;
+    });
   },
 
   saveVessels(vessels) {
@@ -134,6 +150,9 @@ const Store = {
   },
 
   addVessel(vessel) {
+    if (!Array.isArray(vessel.facilities) || vessel.facilities.length === 0) {
+      vessel.facilities = ['AC Reclining', 'Toilet Bersih', 'Life Jacket KSOP'];
+    }
     const list = this.getVessels();
     list.push(vessel);
     this.saveVessels(list);
@@ -151,7 +170,15 @@ const Store = {
       localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify(DEFAULT_SCHEDULES));
       return DEFAULT_SCHEDULES;
     }
-    return JSON.parse(raw);
+    const list = JSON.parse(raw) || [];
+    return list.map(s => {
+      if (!Array.isArray(s.classes) || s.classes.length === 0) {
+        s.classes = [
+          { id: 'cls-eko', name: 'Ekonomi', price: s.priceEconomy || 250000, quota: s.quotaTotal || 200, available: 200 }
+        ];
+      }
+      return s;
+    });
   },
 
   saveSchedules(schedules) {
@@ -159,6 +186,11 @@ const Store = {
   },
 
   addSchedule(schedule) {
+    if (!Array.isArray(schedule.classes) || schedule.classes.length === 0) {
+      schedule.classes = [
+        { id: 'cls-eko', name: 'Ekonomi', price: schedule.priceEconomy || 250000, quota: schedule.quotaTotal || 200, available: 200 }
+      ];
+    }
     const list = this.getSchedules();
     list.push(schedule);
     this.saveSchedules(list);
@@ -176,7 +208,13 @@ const Store = {
       localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(DEFAULT_BOOKINGS));
       return DEFAULT_BOOKINGS;
     }
-    return JSON.parse(raw);
+    const list = JSON.parse(raw) || [];
+    return list.map(b => {
+      if (!Array.isArray(b.passengers)) {
+        b.passengers = [];
+      }
+      return b;
+    });
   },
 
   saveBookings(bookings) {
@@ -336,7 +374,11 @@ const Store = {
   // Current Logged In Company Session
   getCurrentTenant() {
     const raw = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
-    if (!raw) return null;
+    if (!raw) {
+      const def = DEFAULT_COMPANIES[0] || null;
+      if (def) localStorage.setItem(STORAGE_KEYS.CURRENT_USER_COMPANY, JSON.stringify(def));
+      return def;
+    }
     try {
       return JSON.parse(raw);
     } catch (e) {

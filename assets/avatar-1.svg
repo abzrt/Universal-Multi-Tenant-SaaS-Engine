@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bgGrad1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="60" fill="url(#bgGrad1)"/>
+  <!-- Body/Shoulders -->
+  <path d="M 22 120 C 22 96, 38 86, 60 86 C 82 86, 98 96, 98 120 Z" fill="#0f172a"/>
+  <!-- Neck -->
+  <rect x="52" y="70" width="16" height="20" rx="4" fill="#fbcfe8"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="54" rx="24" ry="28" fill="#fbcfe8"/>
+  <!-- Hair -->
+  <path d="M 36 46 C 36 26, 48 20, 60 20 C 72 20, 84 26, 84 46 C 84 32, 72 26, 60 26 C 46 26, 36 32, 36 46 Z" fill="#1e1b4b"/>
+  <!-- Eyes & Glasses -->
+  <rect x="42" y="46" width="14" height="10" rx="3" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+  <rect x="64" y="46" width="14" height="10" rx="3" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+  <line x1="56" y1="51" x2="64" y2="51" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="49" cy="51" r="2" fill="#0f172a"/>
+  <circle cx="71" cy="51" r="2" fill="#0f172a"/>
+  <!-- Smile -->
+  <path d="M 52 68 Q 60 74 68 68" fill="none" stroke="#be185d" stroke-width="2" stroke-linecap="round"/>
+</svg>
