@@ -40,15 +40,12 @@ const App = {
     this.initBulkPassengerEvents();
     this.initModals();
 
-    // Check if a company session already exists
+    // Status tenant di header jika ada sesi aktif
     const loggedInTenant = Store.getCurrentTenant();
-    if (loggedInTenant) {
-      this.updateHeaderTenantUI(loggedInTenant);
-      this.switchView('companyDashboard');
-    } else {
-      this.updateHeaderTenantUI(null);
-      this.switchView('weatherHome');
-    }
+    this.updateHeaderTenantUI(loggedInTenant);
+
+    // Selalu buka ke halaman awal web (weatherHome - Pantauan Cuaca BMKG) saat aplikasi dimuat
+    this.switchView('weatherHome');
 
     this.renderCompanyAuthButtons();
   },
@@ -178,12 +175,7 @@ const App = {
     if (brandHome) {
       brandHome.addEventListener('click', (e) => {
         e.preventDefault();
-        const current = Store.getCurrentTenant();
-        if (current) {
-          this.switchView('companyDashboard');
-        } else {
-          this.switchView('weatherHome');
-        }
+        this.switchView('weatherHome');
       });
 
       // Interactive 3D Cursor Tilt & Magnetic Depth on Tech Solution Logo
@@ -254,6 +246,22 @@ const App = {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
+  logoutTenant() {
+    try {
+      if (typeof Store !== 'undefined' && Store.setCurrentTenant) {
+        Store.setCurrentTenant(null);
+      } else {
+        localStorage.removeItem('tech_current_tenant_v5');
+      }
+    } catch (e) {
+      localStorage.removeItem('tech_current_tenant_v5');
+    }
+    this.updateHeaderTenantUI(null);
+    document.body.classList.remove('in-company-portal');
+    this.switchView('weatherHome');
+    this.showToast('Logout Berhasil', 'Anda telah keluar dari portal operator perusahaan.');
+  },
+
   updateHeaderTenantUI(tenant) {
     const box = document.getElementById('headerTenantBox');
     if (!box) return;
@@ -265,15 +273,35 @@ const App = {
           <span>Masuk Mitra Operator</span>
         </button>
       `;
-      document.getElementById('btnHeaderLogin').addEventListener('click', () => this.openCompanyAuthModal());
+      document.getElementById('btnHeaderLogin')?.addEventListener('click', () => this.openCompanyAuthModal());
+      const headerAvatar = document.getElementById('imgHeaderUserAvatar');
+      if (headerAvatar) headerAvatar.src = 'assets/avatar-header.svg';
+      const dropdownAvatar = document.querySelector('#dropdownHeaderProfile img');
+      if (dropdownAvatar) dropdownAvatar.src = 'assets/avatar-header.svg';
     } else {
+      const avatarHtml = tenant.displayPhoto && tenant.displayPhoto !== 'assets/avatar-header.svg'
+        ? `<img src="${tenant.displayPhoto}" alt="Logo" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; margin-right: 4px; vertical-align: middle;">`
+        : `<span class="dot" style="background: ${tenant.brandColor};"></span>`;
+
       box.innerHTML = `
-        <div class="tenant-pill-badge" id="btnHeaderTenantBadge" title="Klik untuk membuka dashboard">
-          <span class="dot" style="background: ${tenant.brandColor};"></span>
+        <div class="tenant-pill-badge" id="btnHeaderTenantBadge" title="Klik untuk membuka dasbor operator">
+          ${avatarHtml}
           <span class="tenant-pill-name">${tenant.shortName || tenant.name}</span>
         </div>
       `;
-      document.getElementById('btnHeaderTenantBadge').addEventListener('click', () => this.switchView('companyDashboard'));
+      document.getElementById('btnHeaderTenantBadge')?.addEventListener('click', () => this.switchView('companyDashboard'));
+
+      // Update avatar image in header and dropdown
+      const photoSrc = tenant.displayPhoto || 'assets/avatar-header.svg';
+      const headerAvatar = document.getElementById('imgHeaderUserAvatar');
+      if (headerAvatar) headerAvatar.src = photoSrc;
+      const dropdownAvatar = document.querySelector('#dropdownHeaderProfile img');
+      if (dropdownAvatar) dropdownAvatar.src = photoSrc;
+
+      const ddName = document.getElementById('dropdownProfileCompanyName');
+      if (ddName) ddName.textContent = tenant.name;
+      const ddRole = document.getElementById('dropdownProfileRole');
+      if (ddRole) ddRole.textContent = tenant.category || 'Operator Loket Resmi';
     }
   },
 
@@ -976,14 +1004,22 @@ const App = {
         <span class="btn-demo-dot" style="background: ${comp.brandColor};"></span>
         <span class="btn-demo-text">
           <strong>${comp.shortName || comp.name}</strong>
-          <small>Portal ${comp.category || 'Operator Resmi'}</small>
+          <small>${comp.category || 'Operator Resmi'}</small>
         </span>
       `;
       btn.addEventListener('click', () => {
-        Store.setCurrentTenant(comp);
-        this.updateHeaderTenantUI(comp);
-        this.switchView('companyDashboard');
-        this.showToast('Login Berhasil', `Selamat datang di portal ${comp.name}!`);
+        document.getElementById('tabBtnLogin')?.click();
+        const emailInput = document.getElementById('loginCompEmail');
+        const passInput = document.getElementById('loginCompPassword');
+        if (emailInput) {
+          emailInput.value = comp.email || comp.shortName || comp.name;
+        }
+        if (passInput) {
+          passInput.value = '';
+          passInput.focus();
+        }
+        document.getElementById('formCompanyLogin')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        this.showToast('Masukkan Kredensial', `Silakan masukkan password akun ${comp.shortName || comp.name} untuk masuk ke portal.`, 'info');
       });
       grid.appendChild(btn);
     });
@@ -1038,17 +1074,28 @@ const App = {
     // Login Form Submit
     document.getElementById('formCompanyLogin')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('loginCompEmail')?.value?.trim();
+      const identifier = (document.getElementById('loginCompEmail')?.value || '').trim().toLowerCase();
       const pass = document.getElementById('loginCompPassword')?.value;
 
-      const comp = Store.getCompanies().find(c => c.email.toLowerCase() === email.toLowerCase());
+      const comp = Store.getCompanies().find(c => 
+        (c.email && c.email.toLowerCase() === identifier) ||
+        (c.name && c.name.toLowerCase() === identifier) ||
+        (c.shortName && c.shortName.toLowerCase() === identifier) ||
+        (c.id && c.id.toLowerCase() === identifier) ||
+        (c.code && c.code.toLowerCase() === identifier)
+      );
+
       if (comp) {
+        if (comp.password && comp.password !== pass) {
+          this.showToast('Password Salah', 'Password yang Anda masukkan salah. Silakan periksa kembali.', 'warning');
+          return;
+        }
         Store.setCurrentTenant(comp);
         this.updateHeaderTenantUI(comp);
         this.switchView('companyDashboard');
         this.showToast('Login Berhasil', `Selamat datang kembali, ${comp.name}!`);
       } else {
-        this.showToast('Gagal Masuk', 'Email perusahaan tidak ditemukan dalam sistem.', 'warning');
+        this.showToast('Gagal Masuk', 'Akun / Email perusahaan tidak ditemukan dalam sistem.', 'warning');
       }
     });
 
@@ -1123,11 +1170,24 @@ const App = {
       this.renderCompanyAuthButtons();
       this.renderCompanyFilterChips();
 
-      // Langsung buka portal dashboard perusahaan
-      Store.setCurrentTenant(newComp);
-      this.updateHeaderTenantUI(newComp);
-      this.switchView('companyDashboard');
-      this.showToast('Portal Siap!', `Perusahaan "${name}" berhasil didaftarkan dan portal masuk resmi telah aktif!`);
+      // Reset form pendaftaran
+      document.getElementById('formCompanyRegister')?.reset();
+
+      // Alihkan ke tab Masuk Portal agar wajib menginputkan kredensial login
+      document.getElementById('tabBtnLogin')?.click();
+
+      // Masukkan email perusahaan dan kosongkan password agar diinputkan oleh user
+      const loginEmailInput = document.getElementById('loginCompEmail');
+      if (loginEmailInput) {
+        loginEmailInput.value = email;
+      }
+      const loginPassInput = document.getElementById('loginCompPassword');
+      if (loginPassInput) {
+        loginPassInput.value = '';
+        loginPassInput.focus();
+      }
+
+      this.showToast('Pendaftaran Berhasil', `Perusahaan "${name}" berhasil didaftarkan. Silakan masukkan password untuk masuk ke portal.`);
     });
   },
 
@@ -1155,7 +1215,7 @@ const App = {
       tabCalendar: 'Kalender Pelayaran',
       tabScanner: 'Gate Scanner QR',
       tabSeats: 'Denah Kursi & Seat',
-      tabSettings: 'Pengaturan KSOP & Pejabat'
+      tabSettings: 'Pengaturan Portal Perusahaan'
     };
     if (titleEl && tabTitles[tabKey]) {
       titleEl.innerText = tabTitles[tabKey];
@@ -1164,7 +1224,14 @@ const App = {
     if (tabKey === 'tabOverview') document.getElementById('paneOverview')?.classList.add('active');
     if (tabKey === 'tabFleet') document.getElementById('paneFleet')?.classList.add('active');
     if (tabKey === 'tabSchedules') document.getElementById('paneSchedules')?.classList.add('active');
-    if (tabKey === 'tabManifest') document.getElementById('paneManifest')?.classList.add('active');
+    if (tabKey === 'tabManifest') {
+      document.getElementById('paneManifest')?.classList.add('active');
+      const tenant = Store.getCurrentTenant();
+      if (tenant) {
+        const bookings = Store.getBookingsByCompany(tenant.id);
+        this.renderManifestTable(bookings, tenant);
+      }
+    }
     if (tabKey === 'tabScanner') document.getElementById('paneScanner')?.classList.add('active');
     if (tabKey === 'tabTicketing') document.getElementById('paneTicketing')?.classList.add('active');
     if (tabKey === 'tabSeats') {
@@ -1177,6 +1244,7 @@ const App = {
     }
     if (tabKey === 'tabSettings') {
       document.getElementById('paneSettings')?.classList.add('active');
+      this.loadCompanySettingsToForm();
       this.loadKsopSettingsToForm();
     }
   },
@@ -1186,20 +1254,15 @@ const App = {
     // Helper function to switch tabs
     const switchTab = (tabKey) => this.switchDashboardTab(tabKey);
 
-    // Ticky Sidebar Collapse Toggle
-    document.getElementById('btnToggleSidebar')?.addEventListener('click', () => {
+    // Ticky Sidebar Collapse Toggle via Logo Perusahaan
+    document.getElementById('tickyBrandHome')?.addEventListener('click', (e) => {
+      e.preventDefault();
       document.getElementById('tickySidebar')?.classList.toggle('collapsed');
     });
 
-    // Ticky Brand Home link
-    document.getElementById('tickyBrandHome')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      switchTab('tabOverview');
-    });
-
-    // Ticky Switch Profile button
-    document.getElementById('btnSwitchProfile')?.addEventListener('click', () => {
-      this.openCompanyAuthModal();
+    // Sidebar Tombol Keluar Portal
+    document.getElementById('dashBtnSidebarLogout')?.addEventListener('click', () => {
+      this.logoutTenant();
     });
 
     // Ticky View All in Recently Registered
@@ -1211,6 +1274,32 @@ const App = {
     document.getElementById('btnRefreshLiveBookings')?.addEventListener('click', () => {
       this.refreshCompanyDashboard();
       this.showToast('Sinkronisasi Berhasil', 'Data pemesanan dan manifest terupdate secara real-time.');
+    });
+
+    // Ticky 8 Overview KPI Cards Click to Navigate
+    document.querySelectorAll('.ticky-kpi-card[data-tab]').forEach(card => {
+      const handleCardNav = () => {
+        const targetTab = card.getAttribute('data-tab');
+        const boardingFilterVal = card.getAttribute('data-boarding');
+        if (targetTab) {
+          switchTab(targetTab);
+          if (targetTab === 'tabManifest' && boardingFilterVal !== null) {
+            const selectEl = document.getElementById('manifestFilterBoarding');
+            if (selectEl) {
+              selectEl.value = boardingFilterVal;
+              selectEl.dispatchEvent(new Event('change'));
+            }
+          }
+        }
+      };
+
+      card.addEventListener('click', handleCardNav);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardNav();
+        }
+      });
     });
 
     // ============================================
@@ -1252,7 +1341,8 @@ const App = {
     btnSettings?.addEventListener('click', () => {
       closeAllHeaderDropdowns();
       switchTab('tabSettings');
-      this.showToast('Pengaturan KSOP & Pejabat', 'Silakan perbarui data syahbandar, inspektur keselamatan, atau regulasi.');
+      document.getElementById('tabBtnSettingsCompany')?.click();
+      this.showToast('Pengaturan Portal Perusahaan', 'Kelola display foto, email login, password, dan identitas perusahaan.');
     });
 
     // 4. Three-Dots More Menu Toggle
@@ -1282,6 +1372,15 @@ const App = {
     document.getElementById('btnDropdownOpenSettings')?.addEventListener('click', () => {
       closeAllHeaderDropdowns();
       switchTab('tabSettings');
+      document.getElementById('tabBtnSettingsCompany')?.click();
+    });
+    document.getElementById('btnDropdownLogout')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.logoutTenant();
+    });
+    document.getElementById('btnMoreGoHomeWeb')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.switchView('weatherHome');
     });
     document.getElementById('btnMoreGoOverview')?.addEventListener('click', () => {
       closeAllHeaderDropdowns();
@@ -1300,9 +1399,20 @@ const App = {
       this.refreshCompanyDashboard();
       this.showToast('Sinkronisasi Berhasil', 'Data pemesanan dan manifest terupdate secara real-time.');
     });
-    document.getElementById('btnMoreSwitchProfile')?.addEventListener('click', () => {
+    document.getElementById('btnMoreClearAllData')?.addEventListener('click', () => {
       closeAllHeaderDropdowns();
-      this.openCompanyAuthModal();
+      if (confirm('Apakah Anda yakin ingin menghapus seluruh data di aplikasi? Tindakan ini akan mengosongkan seluruh data perusahaan, kapal, jadwal, dan tiket.')) {
+        Store.clearAllData();
+        this.logoutTenant();
+        this.renderCompanyFilterChips();
+        this.renderCustomerSchedules();
+        this.renderCompanyAuthButtons();
+        this.showToast('Data Dihapus', 'Seluruh data aplikasi telah berhasil dikosongkan.');
+      }
+    });
+    document.getElementById('btnMoreLogoutPortal')?.addEventListener('click', () => {
+      closeAllHeaderDropdowns();
+      this.logoutTenant();
     });
 
     // Sub-tabs switching
@@ -1379,12 +1489,9 @@ const App = {
       document.getElementById('btnExportManifestCsv')?.click();
     });
 
-    // Logout button
-    document.getElementById('dashBtnLogout').addEventListener('click', () => {
-      Store.setCurrentTenant(null);
-      this.updateHeaderTenantUI(null);
-      this.switchView('weatherHome');
-      this.showToast('Logout Berhasil', 'Anda telah keluar dari portal perusahaan.');
+    // Logout button compatibility
+    document.getElementById('dashBtnLogout')?.addEventListener('click', () => {
+      this.logoutTenant();
     });
 
     // Scanner Check-in
@@ -1508,7 +1615,8 @@ const App = {
       this.showToast('Jadwal Pelayaran Terbit', `${addedCount} jadwal pelayaran ${vName} rute ${originId} ➔ ${destinationId} berhasil diterbitkan di kalender!`);
     });
 
-    // Initialize KSOP Settings Events
+    // Initialize Company & KSOP Settings Events
+    this.initCompanySettingsEvents();
     this.initKsopSettingsEvents();
   },
 
@@ -3483,6 +3591,217 @@ const App = {
     if (select) {
       select.value = `SCHED:${newSched.id}`;
     }
+  },
+
+  // ================= COMPANY PORTAL SETTINGS =================
+  // Load Company Profile & Account Settings to Form
+  loadCompanySettingsToForm() {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    };
+
+    setVal('settingCompanyEmail', tenant.email);
+    setVal('settingCompanyName', tenant.name);
+    setVal('settingCompanyShortName', tenant.shortName || tenant.name);
+    setVal('settingCompanyPhone', tenant.phone);
+    setVal('settingCompanyCategory', tenant.category);
+    setVal('settingCompanyColor', tenant.brandColor || '#7c3aed');
+    setVal('settingCompanyDescription', tenant.description);
+
+    if (tenant.bankAccount) {
+      setVal('settingCompanyBankName', tenant.bankAccount.bank || '');
+      setVal('settingCompanyBankNumber', tenant.bankAccount.number || '');
+      setVal('settingCompanyBankHolder', tenant.bankAccount.holder || '');
+    }
+
+    // Reset password change inputs
+    setVal('settingCompanyOldPass', '');
+    setVal('settingCompanyNewPass', '');
+    setVal('settingCompanyConfirmPass', '');
+
+    // Reset temporary uploaded photo variable to current tenant photo
+    this.tempCompanyPhoto = tenant.displayPhoto || '';
+
+    // Display photo preview
+    const preview = document.getElementById('settingCompanyPhotoPreview');
+    if (preview) {
+      preview.src = tenant.displayPhoto || 'assets/avatar-header.svg';
+    }
+  },
+
+  // Initialize Company Settings Sub-tab, Photo Upload & Form Submit
+  initCompanySettingsEvents() {
+    // 1. Sub-tab toggle between Company Profile and KSOP Settings
+    const btnCompany = document.getElementById('tabBtnSettingsCompany');
+    const btnKsop = document.getElementById('tabBtnSettingsKsop');
+    const subCompany = document.getElementById('subPaneSettingsCompany');
+    const subKsop = document.getElementById('subPaneSettingsKsop');
+
+    btnCompany?.addEventListener('click', () => {
+      btnCompany.classList.add('active');
+      btnCompany.style.background = '#7c3aed';
+      btnCompany.style.color = '#ffffff';
+      btnCompany.style.border = 'none';
+      btnCompany.style.boxShadow = '0 2px 6px rgba(124, 58, 237, 0.25)';
+
+      btnKsop.classList.remove('active');
+      btnKsop.style.background = '#ffffff';
+      btnKsop.style.color = '#64748b';
+      btnKsop.style.border = '1px solid #cbd5e1';
+      btnKsop.style.boxShadow = 'none';
+
+      if (subCompany) subCompany.style.display = 'block';
+      if (subKsop) subKsop.style.display = 'none';
+    });
+
+    btnKsop?.addEventListener('click', () => {
+      btnKsop.classList.add('active');
+      btnKsop.style.background = '#0284c7';
+      btnKsop.style.color = '#ffffff';
+      btnKsop.style.border = 'none';
+      btnKsop.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.25)';
+
+      btnCompany.classList.remove('active');
+      btnCompany.style.background = '#ffffff';
+      btnCompany.style.color = '#64748b';
+      btnCompany.style.border = '1px solid #cbd5e1';
+      btnCompany.style.boxShadow = 'none';
+
+      if (subKsop) subKsop.style.display = 'block';
+      if (subCompany) subCompany.style.display = 'none';
+    });
+
+    // 2. Photo Upload Trigger & File Reader
+    const btnUpload = document.getElementById('btnTriggerCompanyPhoto');
+    const fileInput = document.getElementById('settingCompanyPhotoFile');
+    const photoPreview = document.getElementById('settingCompanyPhotoPreview');
+    const btnRemovePhoto = document.getElementById('btnRemoveCompanyPhoto');
+
+    btnUpload?.addEventListener('click', () => fileInput?.click());
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          this.showToast('Ukuran Terlalu Besar', 'Maksimal ukuran foto adalah 2MB.', 'warning');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          if (photoPreview) photoPreview.src = evt.target.result;
+          this.tempCompanyPhoto = evt.target.result;
+          this.showToast('Foto Diunggah', 'Pratinjau foto profil perusahaan diperbarui. Klik Simpan untuk menerapkan.');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    btnRemovePhoto?.addEventListener('click', () => {
+      if (photoPreview) photoPreview.src = 'assets/avatar-header.svg';
+      this.tempCompanyPhoto = 'assets/avatar-header.svg';
+      if (fileInput) fileInput.value = '';
+      this.showToast('Foto Direset', 'Display foto dikembalikan ke default.');
+    });
+
+    // Preset Icons for Company Avatar
+    const presetSVGs = {
+      ship: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="%237c3aed"><path d="M2 20a2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1M4 17l1.5-6h13l1.5 6M6 11V5h12v6M9 5V3h6v2"/></svg>`,
+      anchor: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="%230284c7" stroke-width="2"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>`,
+      building: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="%2310b981" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/><line x1="8" y1="6" x2="8.01" y2="6"/><line x1="16" y1="6" x2="16.01" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/></svg>`,
+      compass: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="%23f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`
+    };
+
+    document.querySelectorAll('.btn-quick-avatar').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-avatar');
+        if (presetSVGs[type]) {
+          if (photoPreview) photoPreview.src = presetSVGs[type];
+          this.tempCompanyPhoto = presetSVGs[type];
+          this.showToast('Ikon Dipilih', `Ikon ${type} dipilih sebagai display foto profil.`);
+        }
+      });
+    });
+
+    // 3. Form Submit Handler
+    const form = document.getElementById('formCompanySettings');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tenant = Store.getCurrentTenant();
+      if (!tenant) {
+        this.showToast('Akses Ditolak', 'Silakan masuk ke portal operator terlebih dahulu untuk mengubah pengaturan.', 'warning');
+        return;
+      }
+
+      const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+      const newEmail = getVal('settingCompanyEmail');
+      const newName = getVal('settingCompanyName');
+      const newShortName = getVal('settingCompanyShortName');
+      const newPhone = getVal('settingCompanyPhone');
+      const newCategory = getVal('settingCompanyCategory');
+      const newColor = getVal('settingCompanyColor');
+      const newDesc = getVal('settingCompanyDescription');
+
+      const bankName = getVal('settingCompanyBankName');
+      const bankNumber = getVal('settingCompanyBankNumber');
+      const bankHolder = getVal('settingCompanyBankHolder');
+
+      if (!newEmail) {
+        this.showToast('Email Wajib Diisi', 'Silakan masukkan email resmi perusahaan.', 'warning');
+        return;
+      }
+
+      // Password change verification
+      const oldPass = getVal('settingCompanyOldPass');
+      const newPass = getVal('settingCompanyNewPass');
+      const confirmPass = getVal('settingCompanyConfirmPass');
+
+      if (newPass) {
+        if (!oldPass) {
+          this.showToast('Password Lama Diperlukan', 'Masukkan password saat ini untuk memverifikasi perubahan password.', 'warning');
+          return;
+        }
+        if (tenant.password && tenant.password !== oldPass) {
+          this.showToast('Password Lama Salah', 'Password saat ini yang Anda masukkan salah.', 'warning');
+          return;
+        }
+        if (newPass.length < 6) {
+          this.showToast('Password Terlalu Pendek', 'Password baru minimal harus 6 karakter.', 'warning');
+          return;
+        }
+        if (newPass !== confirmPass) {
+          this.showToast('Konfirmasi Tidak Cocok', 'Password baru dan konfirmasi password tidak cocok.', 'warning');
+          return;
+        }
+        tenant.password = newPass;
+      }
+
+      // Update tenant fields
+      tenant.email = newEmail;
+      tenant.name = newName;
+      tenant.shortName = newShortName;
+      tenant.phone = newPhone;
+      tenant.category = newCategory;
+      tenant.brandColor = newColor;
+      tenant.description = newDesc;
+      tenant.bankAccount = { bank: bankName, number: bankNumber, holder: bankHolder };
+
+      if (this.tempCompanyPhoto) {
+        tenant.displayPhoto = this.tempCompanyPhoto;
+      }
+
+      Store.updateCompany(tenant.id, tenant);
+      this.updateHeaderTenantUI(tenant);
+      this.refreshCompanyDashboard();
+      this.renderCompanyFilterChips();
+      this.renderCustomerSchedules();
+      this.renderCompanyAuthButtons();
+
+      this.showToast('Pengaturan Tersimpan', 'Profil portal, email, password, dan display foto berhasil diperbarui!');
+    });
   },
 
   // Load KSOP & Maritime Settings to Form
@@ -5484,6 +5803,12 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     }, 4000);
   }
 };
+
+// Global window exposure
+if (typeof window !== 'undefined') {
+  window.App = App;
+  window.logoutTenant = () => App.logoutTenant();
+}
 
 // Initialize app when DOM ready
 document.addEventListener('DOMContentLoaded', () => {

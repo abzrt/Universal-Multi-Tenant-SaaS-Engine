@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.3">
 </head>
 <body>
 
@@ -47,17 +47,9 @@
 
 
 
-      <!-- Quick Header Actions -->
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <button type="button" id="btnHeaderQuickBulkPax" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35); transition: all 0.2s ease;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
-          <span>📥 Input Penumpang Massal</span>
-        </button>
-
-        <!-- Right Header Status / Tenant Badge -->
-        <div class="header-tenant-box" id="headerTenantBox">
-          <!-- Rendered dynamically (Login button OR Logged in Company Badge) -->
-        </div>
+      <!-- Right Header Status / Tenant Portal Actions -->
+      <div class="header-tenant-box" id="headerTenantBox">
+        <!-- Rendered dynamically (Login button OR Logged in Company Badge + Logout button) -->
       </div>
     </div>
   </header>
@@ -104,7 +96,7 @@
         <div class="weather-route-card">
           <div class="weather-card-header">
             <div>
-              <span class="tag-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: #0284c7; font-weight: 700; margin-bottom: 0.35rem;">
+              <span class="tag-badge" style="background: #f5f3ff; color: #7c3aed; border-color: rgba(124, 58, 237, 0.25); font-weight: 700; margin-bottom: 0.35rem; border-radius: 8px;">
                 🌏 PERJALANAN LUAR NEGERI
               </span>
               <h3 class="route-geo-title">Nunukan (Tunon Taka) ⇄ Tawau (Sabah)</h3>
@@ -156,7 +148,7 @@
         <div class="weather-route-card">
           <div class="weather-card-header">
             <div>
-              <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700; margin-bottom: 0.35rem;">
+              <span class="tag-badge" style="background: #ecfdf5; color: #059669; border-color: rgba(16, 185, 129, 0.25); font-weight: 700; margin-bottom: 0.35rem; border-radius: 8px;">
                 🇮🇩 PERJALANAN DALAM NEGERI
               </span>
               <h3 class="route-geo-title">Nunukan (Tunon Taka) ⇄ Parepare (Nusantara)</h3>
@@ -334,8 +326,8 @@
         <div id="tabContentLogin" style="display: block;">
           <!-- Quick One-Click Enterprise Demo Logins -->
           <div class="quick-demo-logins" style="margin-bottom: 1.15rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.85rem 1rem;">
-            <span class="demo-lead" style="font-size: 0.76rem; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.55rem;">
-              ⚡ Masuk Instan Portal Perusahaan Terdaftar:
+            <span class="demo-lead" style="font-size: 0.76rem; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.55rem;">
+              🏢 Pilih Akun Perusahaan Terdaftar:
             </span>
             <div class="demo-buttons-grid" id="demoButtonsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
               <!-- Rendered dynamically for registered companies -->
@@ -350,12 +342,12 @@
 
           <form id="formCompanyLogin">
             <div class="input-block" style="margin-bottom: 0.85rem;">
-              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Email Perusahaan / Admin</label>
-              <input type="email" id="loginCompEmail" class="form-input" placeholder="contoh: admin@pelni.co.id" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Username / Email Perusahaan *</label>
+              <input type="text" id="loginCompEmail" class="form-input" placeholder="contoh: admin@ticky.com atau Ticky" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
             <div class="input-block" style="margin-bottom: 1.15rem;">
-              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Password</label>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Password *</label>
               <input type="password" id="loginCompPassword" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
@@ -429,7 +421,7 @@
       <div id="dashTenantAvatar"></div>
       <h2 id="dashTenantName">Ticky Logistics</h2>
       <p id="dashTenantMeta">Operator Utama</p>
-      <button type="button" id="dashBtnLogout"></button>
+      <button type="button" id="dashBtnLogout" onclick="logoutTenant()"></button>
     </div>
 
     <!-- Modern Ticky Dashboard Shell (Matching Reference Photo) -->
@@ -440,7 +432,7 @@
         <aside class="ticky-sidebar" id="tickySidebar">
           <!-- Logo & Collapse Button Row -->
           <div class="ticky-brand-row">
-            <a href="#" class="ticky-brand-logo" id="tickyBrandHome">
+            <a href="javascript:void(0)" class="ticky-brand-logo" id="tickyBrandHome" title="Buka / Ciutkan Sidebar">
               <div class="ticky-brand-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -449,12 +441,6 @@
               </div>
               <span class="ticky-brand-title">Ticky</span>
             </a>
-            <button type="button" class="ticky-collapse-btn" id="btnToggleSidebar" title="Ciutkan Sidebar">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-                <line x1="9" y1="3" x2="9" y2="21"></line>
-              </svg>
-            </button>
           </div>
 
           <!-- Sidebar Navigation Items -->
@@ -475,26 +461,10 @@
               </div>
             </button>
 
-            <!-- 2. Tagihan & Riwayat Tiket -->
-            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" title="Tagihan & Riwayat Tiket">
-              <div class="ticky-nav-left">
-                <span class="ticky-nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <line x1="10" y1="9" x2="8" y2="9"></line>
-                  </svg>
-                </span>
-                <span class="ticky-nav-label">Tagihan & Riwayat Tiket</span>
-              </div>
-            </button>
-
             <!-- SECTION: TIKET & JADWAL -->
             <div class="ticky-nav-section-title">TIKET & JADWAL</div>
 
-            <!-- 3. Daftar Rute & Jadwal (Accordion) -->
+            <!-- 2. Daftar Rute & Jadwal (Accordion) -->
             <div class="ticky-nav-group dash-nav-group" id="groupNavSchedules">
               <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSchedules" title="Daftar Rute & Jadwal">
                 <div class="ticky-nav-left">
@@ -514,10 +484,6 @@
                 <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabSchedules">
                   <span class="ticky-sub-dot"></span>
                   <span>Lihat Semua Jadwal Rute</span>
-                </a>
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" data-tab="tabCalendar">
-                  <span class="ticky-sub-dot" style="background:#7c3aed;"></span>
-                  <span style="color:#7c3aed;font-weight:700;">📅 Kalender Pelayaran</span>
                 </a>
                 <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnAddSchedule">
                   <span class="ticky-sub-dot" style="background:#10b981;"></span>
@@ -615,16 +581,16 @@
               </div>
             </button>
 
-            <!-- 9. Manajemen KSOP & Cuaca (Accordion) -->
+            <!-- 9. Tagihan & Riwayat Tiket (Accordion) -->
             <div class="ticky-nav-group dash-nav-group" id="groupNavKsop">
-              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus" title="Manajemen KSOP & Cuaca">
+              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus" title="Tagihan & Riwayat Tiket">
                 <div class="ticky-nav-left">
                   <span class="ticky-nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
                   </span>
-                  <span class="ticky-nav-label">Manajemen KSOP & Cuaca</span>
+                  <span class="ticky-nav-label">Tagihan & Riwayat Tiket</span>
                 </div>
                 <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
@@ -647,8 +613,8 @@
             <!-- SECTION: PENGATURAN & REGULASI -->
             <div class="ticky-nav-section-title">PENGATURAN & REGULASI</div>
 
-            <!-- 10. Pengaturan KSOP & Pejabat -->
-            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSettings" title="Pengaturan KSOP & Pejabat">
+            <!-- 6. Pengaturan Portal Perusahaan -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSettings" title="Pengaturan Portal Perusahaan">
               <div class="ticky-nav-left">
                 <span class="ticky-nav-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -656,26 +622,10 @@
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                   </svg>
                 </span>
-                <span class="ticky-nav-label">Pengaturan KSOP & Pejabat</span>
+                <span class="ticky-nav-label">Pengaturan Portal Perusahaan</span>
               </div>
             </button>
           </nav>
-
-          <!-- Sidebar Footer -->
-          <div class="ticky-sidebar-footer">
-            <!-- Switch Profile -->
-            <button type="button" class="ticky-profile-card" id="btnSwitchProfile" title="Ganti Profil Perusahaan">
-              <div class="ticky-profile-left">
-                <img src="assets/avatar-header.svg" alt="Jacob Martinez" class="ticky-profile-avatar-img">
-                <div class="ticky-profile-meta">
-                  <span class="ticky-profile-name">Switch Profile</span>
-                </div>
-              </div>
-              <svg class="ticky-switch-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"></path>
-              </svg>
-            </button>
-          </div>
         </aside>
 
         <!-- Right Workspace -->
@@ -707,15 +657,7 @@
                 <span class="ticky-notif-badge" id="tickyNotifBadge"></span>
               </button>
 
-              <!-- 3. Settings Gear Button -->
-              <button type="button" class="ticky-icon-btn" id="btnHeaderSettings" title="Pengaturan KSOP & Pejabat Syahbandar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-              </button>
-
-              <!-- 4. Three-Dots More Menu Button -->
+              <!-- 3. Three-Dots More Menu Button -->
               <button type="button" class="ticky-icon-btn" id="btnHeaderMoreMenu" title="Menu Opsi Cepat">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="1"></circle>
@@ -742,13 +684,14 @@
                 </div>
                 <div class="ticky-dd-divider"></div>
                 <div class="ticky-dd-actions">
-                  <button type="button" class="ticky-dd-item" id="btnDropdownSwitchCompany">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span>Ganti / Masuk Perusahaan Lain</span>
-                  </button>
                   <button type="button" class="ticky-dd-item" id="btnDropdownOpenSettings">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span>Pengaturan KSOP & Regulasi</span>
+                    <span>Pengaturan Profil Perusahaan</span>
+                  </button>
+                  <div class="ticky-dd-divider" style="margin: 0.35rem 0;"></div>
+                  <button type="button" class="ticky-dd-item" id="btnDropdownLogout" onclick="logoutTenant()" style="color: #e11d48; font-weight: 700;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Keluar dari Portal</span>
                   </button>
                 </div>
               </div>
@@ -804,10 +747,10 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                     <span>Sinkronisasi Data Tiket</span>
                   </button>
-                  <div class="ticky-dd-divider"></div>
-                  <button type="button" class="ticky-dd-item" id="btnMoreSwitchProfile" style="color: #ef4444;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    <span>Ganti Akun Operator</span>
+                  <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
+                  <button type="button" class="ticky-dd-item" id="btnMoreClearAllData" style="color: #e11d48; font-weight: 600;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    <span>Hapus Semua Data Aplikasi</span>
                   </button>
                 </div>
               </div>
@@ -1020,7 +963,7 @@
         <!-- 8 KPI Cards Grid (2 rows x 4 columns) -->
         <div class="ticky-kpi-grid">
           <!-- 1. Total Tiket Terbit -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabManifest" data-boarding="ALL" role="button" tabindex="0" title="Buka Tagihan & Riwayat Tiket">
             <div class="ticky-sq-icon ticky-sq-purple">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
@@ -1034,7 +977,7 @@
           </div>
 
           <!-- 2. Menunggu Boarding -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabManifest" data-boarding="NOT_CHECKED_IN" role="button" tabindex="0" title="Buka Penumpang Menunggu Boarding">
             <div class="ticky-sq-icon ticky-sq-lime">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -1048,7 +991,7 @@
           </div>
 
           <!-- 3. Sudah Naik Kapal (Boarded) -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabManifest" data-boarding="BOARDED" role="button" tabindex="0" title="Buka Penumpang Sudah Naik Kapal">
             <div class="ticky-sq-icon ticky-sq-red">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -1062,7 +1005,7 @@
           </div>
 
           <!-- 4. Total Penumpang -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabManifest" data-boarding="ALL" role="button" tabindex="0" title="Buka Manifest Penumpang Resmi">
             <div class="ticky-sq-icon ticky-sq-olive">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -1078,7 +1021,7 @@
           </div>
 
           <!-- 5. Armada Kapal Aktif -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabFleet" role="button" tabindex="0" title="Buka Armada Kapal Saya">
             <div class="ticky-sq-icon ticky-sq-teal">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 20a2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1"></path>
@@ -1094,7 +1037,7 @@
           </div>
 
           <!-- 6. Jadwal Pelayaran -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabSchedules" role="button" tabindex="0" title="Buka Daftar Rute & Jadwal">
             <div class="ticky-sq-icon ticky-sq-indigo">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1110,7 +1053,7 @@
           </div>
 
           <!-- 7. Sisa Kuota Kursi -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabSeats" role="button" tabindex="0" title="Buka Denah Kursi & Alokasi Seat">
             <div class="ticky-sq-icon ticky-sq-emerald">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 18v3"></path>
@@ -1126,7 +1069,7 @@
           </div>
 
           <!-- 8. Total Pendapatan Tiket -->
-          <div class="ticky-kpi-card">
+          <div class="ticky-kpi-card" data-tab="tabManifest" data-boarding="ALL" role="button" tabindex="0" title="Buka Tagihan & Riwayat Pendapatan Tiket">
             <div class="ticky-sq-icon ticky-sq-violet">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="4" width="20" height="16" rx="3"></rect>
@@ -1557,26 +1500,26 @@
               <h4>Manifest Penumpang Resmi (Ditjen Hubla & Imigrasi)</h4>
               <p class="text-dim">Daftar nama dan identitas seluruh penumpang kapal rute Nunukan - Tawau & Nunukan - Parepare.</p>
             </div>
-            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-              <button type="button" class="btn-primary-action" id="btnOpenBulkPassengerModal" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: nowrap; align-items: center; max-width: 100%; overflow-x: auto; padding: 2px 0;">
+              <button type="button" class="btn-primary-action" id="btnOpenBulkPassengerModal" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid transparent; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25); white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
                 <span>+ Input Penumpang Massal</span>
               </button>
-              <button type="button" class="btn-secondary-action" id="btnExportManifestCsv" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <button type="button" class="btn-secondary-action" id="btnExportManifestCsv" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span>Ekspor CSV Manifest</span>
               </button>
-              <button type="button" class="btn-secondary-action" id="btnOpenOfficialManifestPrint" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--primary-cyan); color: var(--primary-cyan); padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+              <button type="button" class="btn-secondary-action" id="btnOpenOfficialManifestPrint" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--primary-cyan); color: var(--primary-cyan); padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                 <span>Cetak Dokumen Resmi KSOP</span>
               </button>
-              <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--accent-purple); color: #c084fc; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                <span>🔄 Transfer Antar Kapal</span>
+              <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--accent-purple); color: #c084fc; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <span>Transfer Antar Kapal</span>
               </button>
-              <button type="button" class="btn-secondary-action" id="btnDirectPrintSelectedTickets" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #059669; padding: 0.45rem 0.95rem; border-radius: var(--radius-sm); font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                <span>🖨️ Cetak Tiket Terpilih (Massal)</span>
+              <button type="button" class="btn-secondary-action" id="btnDirectPrintSelectedTickets" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #059669; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 800; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2); white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                <span>Cetak Tiket Terpilih (Massal)</span>
               </button>
             </div>
           </div>
@@ -1686,30 +1629,239 @@
         </div>
       </div>
 
-      <!-- SUBTAB: PENGATURAN KSOP & REGULASI PELAYARAN -->
+      <!-- SUBTAB: PENGATURAN PORTAL PERUSAHAAN & REGULASI KSOP -->
       <div class="dash-pane" id="paneSettings">
         <div class="dash-block-panel">
-          <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                <span class="tag-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: #a855f7; font-weight: 700;">
-                  🏛️ DITJEN HUBLA & SYAHBANDAR KSOP
-                </span>
-                <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
-                  ✓ INTEGRASI MANIFEST RESMI
-                </span>
-              </div>
-              <h4>Pengaturan Pejabat KSOP & Regulasi Pelayaran</h4>
-              <p class="text-dim">Kelola identitas resmi Kepala KSOP, Syahbandar, Nakhoda, Imigrasi, Bea Cukai, KKP, dan format Port Clearance untuk cetak manifest legal.</p>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="button" class="btn-cancel" id="btnResetKsopDefaults" style="padding: 0.55rem 1rem; font-size: 0.82rem;">
-                ↺ Reset Standar KSOP
-              </button>
-            </div>
+
+          <!-- Sub-Tab Switcher: Portal Perusahaan vs Regulasi KSOP -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.85rem; flex-wrap: wrap;">
+            <button type="button" class="settings-sub-tab active" id="tabBtnSettingsCompany" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; font-size: 0.84rem; font-weight: 700; cursor: pointer; background: #7c3aed; color: #ffffff; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Profil & Akun Portal Perusahaan</span>
+            </button>
+            <button type="button" class="settings-sub-tab" id="tabBtnSettingsKsop" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.84rem; font-weight: 600; cursor: pointer; background: #ffffff; color: #64748b; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Pengaturan Pejabat KSOP & Maritim</span>
+            </button>
           </div>
 
-          <form id="formKsopSettings">
+          <!-- SUB-PANE 1: PENGATURAN PORTAL PERUSAHAAN -->
+          <div id="subPaneSettingsCompany" style="display: block;">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span class="tag-badge" style="background: rgba(124, 58, 237, 0.15); color: #7c3aed; border-color: #7c3aed; font-weight: 700;">
+                    🏢 PORTAL OPERATOR RESMI
+                  </span>
+                  <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
+                    🔒 KREDENSIAL & IDENTITAS PERUSAHAAN
+                  </span>
+                </div>
+                <h4>Pengaturan Portal & Akun Perusahaan</h4>
+                <p class="text-dim">Kelola display foto profil/logo, email login, ganti password akun, kontak operasional, dan rekening bank resmi perusahaan.</p>
+              </div>
+            </div>
+
+            <form id="formCompanySettings">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+
+                <!-- CARD 1: DISPLAY FOTO & LOGO PERUSAHAAN -->
+                <div class="settings-card-box" style="grid-column: 1 / -1;">
+                  <div class="settings-card-head">
+                    <span class="settings-ic" style="color: #7c3aed; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3);">📷</span>
+                    <div>
+                      <h5>1. Display Foto Profil & Logo Perusahaan</h5>
+                      <small class="text-dim">Foto profil atau logo resmi perusahaan yang tampil pada header portal dan dokumen tiket</small>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+                    <!-- Circular Photo Preview -->
+                    <div style="position: relative; width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #7c3aed; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2); background: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <img id="settingCompanyPhotoPreview" src="assets/avatar-header.svg" alt="Preview Foto Perusahaan" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <!-- Upload and Controls -->
+                    <div style="flex: 1; min-width: 250px;">
+                      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+                        <input type="file" id="settingCompanyPhotoFile" accept="image/*" style="display: none;">
+                        <button type="button" id="btnTriggerCompanyPhoto" class="btn-primary-action" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                          <span>Unggah Display Foto Baru</span>
+                        </button>
+                        <button type="button" id="btnRemoveCompanyPhoto" class="btn-cancel" style="padding: 0.45rem 0.9rem; font-size: 0.8rem;">
+                          Hapus Foto
+                        </button>
+                      </div>
+                      <p style="font-size: 0.75rem; color: #64748b; margin: 0 0 0.5rem 0;">Format didukung: JPG, PNG, WebP, SVG. Maksimal ukuran 2MB.</p>
+                      
+                      <!-- Quick Preset Icons -->
+                      <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">Atau pilih ikon cepat:</span>
+                        <button type="button" class="btn-quick-avatar" data-avatar="ship" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer;">🚢 Kapal</button>
+                        <button type="button" class="btn-quick-avatar" data-avatar="anchor" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer;">⚓ Jangkar</button>
+                        <button type="button" class="btn-quick-avatar" data-avatar="building" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer;">🏢 Operator</button>
+                        <button type="button" class="btn-quick-avatar" data-avatar="compass" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer;">🧭 Navigasi</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CARD 2: KREDENSIAL LOGIN (GANTI EMAIL & PASSWORD) -->
+                <div class="settings-card-box">
+                  <div class="settings-card-head">
+                    <span class="settings-ic" style="color: #0284c7; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3);">🔑</span>
+                    <div>
+                      <h5>2. Kredensial Login Portal (Email & Password)</h5>
+                      <small class="text-dim">Ubah email akun atau ganti password keamanan login portal</small>
+                    </div>
+                  </div>
+
+                  <div class="input-block" style="margin-bottom: 0.85rem;">
+                    <label>Email Resmi Perusahaan (Username Login) *</label>
+                    <input type="email" id="settingCompanyEmail" class="form-input" placeholder="contoh: admin@perusahaan.com" required>
+                    <small style="color: #64748b; font-size: 0.72rem; display: block; margin-top: 3px;">Email ini digunakan saat masuk ke portal operator.</small>
+                  </div>
+
+                  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem; margin-top: 0.75rem;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <span>🔒 Ganti Password Portal:</span>
+                      <small style="font-weight: 400; color: #94a3b8;">(Kosongkan jika tidak ingin mengganti password)</small>
+                    </div>
+
+                    <div class="input-block" style="margin-bottom: 0.65rem;">
+                      <label style="font-size: 0.76rem;">Password Saat Ini</label>
+                      <input type="password" id="settingCompanyOldPass" class="form-input" placeholder="Masukkan password saat ini untuk verifikasi">
+                    </div>
+
+                    <div class="form-row-2">
+                      <div class="input-block">
+                        <label style="font-size: 0.76rem;">Password Baru</label>
+                        <input type="password" id="settingCompanyNewPass" class="form-input" placeholder="Minimal 6 karakter">
+                      </div>
+                      <div class="input-block">
+                        <label style="font-size: 0.76rem;">Konfirmasi Password Baru</label>
+                        <input type="password" id="settingCompanyConfirmPass" class="form-input" placeholder="Ulangi password baru">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CARD 3: IDENTITAS & KONTAK PERUSAHAAN -->
+                <div class="settings-card-box">
+                  <div class="settings-card-head">
+                    <span class="settings-ic" style="color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">🏢</span>
+                    <div>
+                      <h5>3. Identitas Resmi & Kontak Operasional</h5>
+                      <small class="text-dim">Nama operator, kategori rute pelayaran, dan kontak resmi</small>
+                    </div>
+                  </div>
+
+                  <div class="input-block" style="margin-bottom: 0.85rem;">
+                    <label>Nama Resmi Perusahaan / Badan Usaha *</label>
+                    <input type="text" id="settingCompanyName" class="form-input" placeholder="contoh: PT Samudera Maju Bahari" required>
+                  </div>
+
+                  <div class="form-row-2" style="margin-bottom: 0.85rem;">
+                    <div class="input-block">
+                      <label>Nama Singkat / Brand *</label>
+                      <input type="text" id="settingCompanyShortName" class="form-input" placeholder="contoh: Samudera Express" required>
+                    </div>
+                    <div class="input-block">
+                      <label>Nomor Telepon / WhatsApp Kantor *</label>
+                      <input type="tel" id="settingCompanyPhone" class="form-input" placeholder="contoh: 081234567890" required>
+                    </div>
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="input-block">
+                      <label>Kategori Layanan *</label>
+                      <select id="settingCompanyCategory" class="form-input" style="background: #ffffff;" required>
+                        <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+                        <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+                        <option value="Speedboat Reguler & VIP">Speedboat Reguler & VIP</option>
+                        <option value="Kapal Logistik & Kargo">Kapal Logistik & Kargo</option>
+                      </select>
+                    </div>
+                    <div class="input-block">
+                      <label>Warna Brand Utama</label>
+                      <select id="settingCompanyColor" class="form-input" style="background: #ffffff;">
+                        <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
+                        <option value="#0284c7">Biru Samudera (#0284c7)</option>
+                        <option value="#0d9488">Teal Pesisir (#0d9488)</option>
+                        <option value="#f59e0b">Amber Emas (#f59e0b)</option>
+                        <option value="#e11d48">Merah Marun (#e11d48)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CARD 4: REKENING BANK & DESKRIPSI -->
+                <div class="settings-card-box" style="grid-column: 1 / -1;">
+                  <div class="settings-card-head">
+                    <span class="settings-ic" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">💳</span>
+                    <div>
+                      <h5>4. Rekening Bank Pembayaran Tiket & Informasi Publik</h5>
+                      <small class="text-dim">Rekening penerimaan transaksi tiket dan profil perusahaan</small>
+                    </div>
+                  </div>
+
+                  <div class="form-row-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.85rem;">
+                    <div class="input-block">
+                      <label>Nama Bank</label>
+                      <input type="text" id="settingCompanyBankName" class="form-input" placeholder="contoh: Bank Mandiri">
+                    </div>
+                    <div class="input-block">
+                      <label>Nomor Rekening</label>
+                      <input type="text" id="settingCompanyBankNumber" class="form-input" placeholder="contoh: 140-00-1284910-1">
+                    </div>
+                    <div class="input-block">
+                      <label>Atas Nama Rekening</label>
+                      <input type="text" id="settingCompanyBankHolder" class="form-input" placeholder="contoh: PT Samudera Maju Bahari">
+                    </div>
+                  </div>
+
+                  <div class="input-block">
+                    <label>Deskripsi Singkat Perusahaan</label>
+                    <textarea id="settingCompanyDescription" class="form-input" rows="2" placeholder="Tuliskan profil singkat layanan pelayaran atau ketentuan khusus tiket..."></textarea>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Submit Buttons -->
+              <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="submit" class="btn-submit-action" id="btnSaveCompanySettings" style="padding: 0.75rem 1.75rem; font-size: 0.92rem; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <span>Simpan Perubahan Pengaturan Perusahaan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- SUB-PANE 2: PENGATURAN PEJABAT KSOP & MARITIM -->
+          <div id="subPaneSettingsKsop" style="display: none;">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span class="tag-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: #a855f7; font-weight: 700;">
+                    🏛️ DITJEN HUBLA & SYAHBANDAR KSOP
+                  </span>
+                  <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
+                    ✓ INTEGRASI MANIFEST RESMI
+                  </span>
+                </div>
+                <h4>Pengaturan Pejabat KSOP & Regulasi Pelayaran</h4>
+                <p class="text-dim">Kelola identitas resmi Kepala KSOP, Syahbandar, Nakhoda, Imigrasi, Bea Cukai, KKP, dan format Port Clearance untuk cetak manifest legal.</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn-cancel" id="btnResetKsopDefaults" style="padding: 0.55rem 1rem; font-size: 0.82rem;">
+                  ↺ Reset Standar KSOP
+                </button>
+              </div>
+            </div>
+
+            <form id="formKsopSettings">
             <!-- Grid Form Multi-Section -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1.25rem;">
               
@@ -1853,8 +2005,10 @@
               </button>
             </div>
           </form>
+          </div>
 
         </div>
+      </div>
           </div>
           <!-- End .ticky-content-area -->
         </div>
@@ -3183,7 +3337,7 @@
     </div>
   </div>
 
-  <script src="data-store.js"></script>
-  <script src="app.js"></script>
+  <script src="data-store.js?v=2.0"></script>
+  <script src="app.js?v=2.4"></script>
 </body>
 </html>

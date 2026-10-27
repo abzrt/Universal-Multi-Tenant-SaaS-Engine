@@ -3,13 +3,30 @@
 // ========================================================
 
 const STORAGE_KEYS = {
-  COMPANIES: 'tech_companies_v5_live',
-  VESSELS: 'tech_vessels_v5_live',
-  SCHEDULES: 'tech_schedules_v5_live',
-  BOOKINGS: 'tech_bookings_v5_live',
-  CURRENT_USER_COMPANY: 'tech_current_tenant_v5',
-  KSOP_SETTINGS: 'tech_ksop_settings_v5'
+  COMPANIES: 'tech_companies_v6_clean',
+  VESSELS: 'tech_vessels_v6_clean',
+  SCHEDULES: 'tech_schedules_v6_clean',
+  BOOKINGS: 'tech_bookings_v6_clean',
+  CURRENT_USER_COMPANY: 'tech_current_tenant_v6',
+  KSOP_SETTINGS: 'tech_ksop_settings_v6'
 };
+
+// Pembersihan total seluruh data lama saat inisialisasi versi bersih
+try {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('tech_app_clean_reset_v6') !== 'true') {
+    [
+      'tech_companies_v5_live', 'tech_vessels_v5_live', 'tech_schedules_v5_live', 'tech_bookings_v5_live', 'tech_current_tenant_v5',
+      STORAGE_KEYS.COMPANIES, STORAGE_KEYS.VESSELS, STORAGE_KEYS.SCHEDULES, STORAGE_KEYS.BOOKINGS, STORAGE_KEYS.CURRENT_USER_COMPANY
+    ].forEach(k => {
+      localStorage.removeItem(k);
+    });
+    localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
+    localStorage.setItem('tech_app_clean_reset_v6', 'true');
+  }
+} catch (e) {}
 
 // Pengaturan Default Pejabat KSOP, Syahbandar, dan Regulasi Maritim
 const DEFAULT_KSOP_SETTINGS = {
@@ -50,18 +67,8 @@ const DEFAULT_KSOP_SETTINGS = {
   regulationNotice: 'Diterbitkan sesuai ketentuan Undang-Undang No. 17 Tahun 2008 tentang Pelayaran dan Peraturan Direktur Jenderal Perhubungan Laut.'
 };
 
-// Initial Registered Companies (Default Ticky Operator)
-const DEFAULT_COMPANIES = [
-  {
-    id: 'COMP-TICKY',
-    name: 'Ticky Logistics & Maritime',
-    shortName: 'Ticky',
-    category: 'Operator Utama',
-    email: 'admin@ticky.com',
-    brandColor: '#7c3aed',
-    verified: true
-  }
-];
+// Initial Registered Companies (Kosong / Tanpa Demo)
+const DEFAULT_COMPANIES = [];
 
 // Master Ports: HANYA Nunukan, Tawau (Luar Negeri), dan Parepare (Dalam Negeri)
 const MASTER_PORTS = [
@@ -127,6 +134,21 @@ const Store = {
 
   getCompanyById(id) {
     return this.getCompanies().find(c => c.id === id);
+  },
+
+  updateCompany(id, updatedFields) {
+    const list = this.getCompanies();
+    const idx = list.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updatedFields };
+      this.saveCompanies(list);
+      const current = this.getCurrentTenant();
+      if (current && current.id === id) {
+        this.setCurrentTenant(list[idx]);
+      }
+      return list[idx];
+    }
+    return null;
   },
 
   // Vessels
@@ -375,9 +397,7 @@ const Store = {
   getCurrentTenant() {
     const raw = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
     if (!raw) {
-      const def = DEFAULT_COMPANIES[0] || null;
-      if (def) localStorage.setItem(STORAGE_KEYS.CURRENT_USER_COMPANY, JSON.stringify(def));
-      return def;
+      return null;
     }
     try {
       return JSON.parse(raw);
@@ -412,6 +432,22 @@ const Store = {
     const merged = { ...DEFAULT_KSOP_SETTINGS, ...settings };
     localStorage.setItem(STORAGE_KEYS.KSOP_SETTINGS, JSON.stringify(merged));
     return merged;
+  },
+
+  // Hapus semua data transaksi & master data di aplikasi
+  clearAllData() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
+      localStorage.removeItem('tech_current_tenant_v5');
+      return true;
+    } catch (e) {
+      console.error('Gagal menghapus data aplikasi:', e);
+      return false;
+    }
   }
 };
 
@@ -422,4 +458,30 @@ function formatRupiah(amount) {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(amount);
+}
+
+// Global window exposure
+if (typeof window !== 'undefined') {
+  window.Store = Store;
+  window.logoutTenant = function() {
+    try {
+      if (window.Store && typeof window.Store.setCurrentTenant === 'function') {
+        window.Store.setCurrentTenant(null);
+      } else {
+        localStorage.removeItem('tech_current_tenant_v5');
+      }
+    } catch (e) {
+      localStorage.removeItem('tech_current_tenant_v5');
+    }
+
+    if (window.App && typeof window.App.logoutTenant === 'function') {
+      window.App.logoutTenant();
+    } else {
+      document.body.classList.remove('in-company-portal');
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const wp = document.getElementById('viewWeatherHome');
+      if (wp) wp.classList.add('active');
+      window.location.reload();
+    }
+  };
 }
