@@ -87,6 +87,22 @@
             Stasiun Pengamat: <strong>Stasiun Meteorologi Nunukan (Tunon Taka) & Stasiun Meteorologi Maritim Parepare</strong>
           </span>
         </div>
+
+        <!-- Early Weather Warning Strip -->
+        <div class="bmkg-early-warning-strip" id="bmkgEarlyWarningStrip" style="margin-top: 1rem; padding: 0.85rem 1.25rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fef3c7; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem;">⚠️</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.85rem; color: #92400e;">Sistem Ambang Batas Keselamatan Cuaca Maritim (BMKG & KSOP)</div>
+              <div style="font-size: 0.78rem; color: #b45309;" id="bmkgWarningDesc">Ambang batas gelombang > 1.25m / angin > 15 knot memicu status Waspada & Hold Keberangkatan Pelayaran.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="button" class="btn-action-sm" id="btnToggleWeatherHold" style="background: #f59e0b; color: #ffffff; border: none; font-weight: 700; font-size: 0.78rem; border-radius: 6px; padding: 0.4rem 0.85rem; cursor: pointer;">
+              ⚡ Simulasikan Status Cuaca Buruk (Hold)
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Weather Route Cards Deck (2 Rute Eksklusif) -->
@@ -324,22 +340,6 @@
         
         <!-- TAB 1: Masuk Portal Perusahaan -->
         <div id="tabContentLogin" style="display: block;">
-          <!-- Quick One-Click Enterprise Demo Logins -->
-          <div class="quick-demo-logins" style="margin-bottom: 1.15rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.85rem 1rem;">
-            <span class="demo-lead" style="font-size: 0.76rem; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.55rem;">
-              🏢 Pilih Akun Perusahaan Terdaftar:
-            </span>
-            <div class="demo-buttons-grid" id="demoButtonsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-              <!-- Rendered dynamically for registered companies -->
-            </div>
-          </div>
-
-          <div class="divider-text" style="margin: 1rem 0; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 0.75rem;">
-            <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
-            <span>Atau Masuk dengan Kredensial Email</span>
-            <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
-          </div>
-
           <form id="formCompanyLogin">
             <div class="input-block" style="margin-bottom: 0.85rem;">
               <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Username / Email Perusahaan *</label>
@@ -610,6 +610,20 @@
               </div>
             </div>
 
+            <!-- 10. Kalkulator DWT & Muatan Kapal -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCargo" title="Kalkulator DWT & Muatan Kapal">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Kalkulator DWT & Muatan</span>
+              </div>
+            </button>
+
             <!-- SECTION: PENGATURAN & REGULASI -->
             <div class="ticky-nav-section-title">PENGATURAN & REGULASI</div>
 
@@ -633,7 +647,7 @@
           <!-- Top Header Navigation Bar (Persis Foto Ticky) -->
           <header class="ticky-top-header">
             <div class="ticky-breadcrumb">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
                 <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
                 <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
@@ -642,7 +656,7 @@
               <span id="tickyCurrentTabTitle">Dashboard Loket</span>
             </div>
 
-            <div class="ticky-header-actions" style="position: relative;">
+            <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.6rem;">
               <!-- 1. Avatar Button -->
               <div class="ticky-header-avatar" id="btnHeaderUserAvatar" title="Profil Operator & Perusahaan" role="button" tabindex="0">
                 <img src="assets/avatar-header.svg" alt="Avatar Operator" class="ticky-header-avatar-img" id="imgHeaderUserAvatar">
@@ -834,13 +848,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; background: #f8fafc; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-line); margin-bottom: 1.25rem;">
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="seatDashClassTabs">
               <button type="button" class="btn-action-sm active seat-class-filter-btn" data-class-idx="0" style="padding: 0.45rem 0.9rem; font-weight: 700; border-radius: 6px;">
-                🚢 Main Deck (Ekonomi)
-              </button>
-              <button type="button" class="btn-action-sm seat-class-filter-btn" data-class-idx="1" style="padding: 0.45rem 0.9rem; font-weight: 700; border-radius: 6px;">
-                ⭐ Upper Deck (Bisnis)
-              </button>
-              <button type="button" class="btn-action-sm seat-class-filter-btn" data-class-idx="2" style="padding: 0.45rem 0.9rem; font-weight: 700; border-radius: 6px;">
-                👑 VIP Stateroom (VIP)
+                🚢 Main Deck
               </button>
             </div>
 
@@ -857,10 +865,6 @@
               <span style="display: flex; align-items: center; gap: 0.35rem;">
                 <span style="width: 13px; height: 13px; border-radius: 3px; background: var(--accent-green); display: inline-block;"></span>
                 <span>Dipilih</span>
-              </span>
-              <span style="display: flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--accent-gold); background: rgba(245, 158, 11, 0.2); display: inline-block;"></span>
-                <span>Kabin VIP</span>
               </span>
             </div>
           </div>
@@ -881,12 +885,12 @@
               <!-- Emergency Exits & Deck Sides -->
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 700; color: #059669; padding: 0.25rem 0.5rem; border-bottom: 1px dashed #cbd5e1; margin-bottom: 1rem;">
                 <span>🚪 PINTU DARURAT (PORT / KIRI)</span>
-                <span style="color: var(--text-dim); font-family: var(--font-mono);" id="seatPlanCurrentDeckLabel">DEK PENUMPANG</span>
+                <span style="color: var(--text-dim); font-family: var(--font-mono);" id="seatPlanCurrentDeckLabel">MAIN DECK</span>
                 <span>PINTU DARURAT (STARBOARD / KANAN) 🚪</span>
               </div>
 
               <!-- Interactive Deck Grid Container -->
-              <div id="seatDashGridContainer" style="display: flex; flex-direction: column; gap: 0.65rem; min-height: 260px; justify-content: center;">
+              <div id="seatDashGridContainer" style="display: flex; flex-direction: column; gap: 0.65rem; min-height: 260px; max-height: 480px; overflow-y: auto; padding: 0.5rem 0.25rem; justify-content: flex-start;">
                 <!-- Generated by JS -->
               </div>
 
@@ -928,7 +932,7 @@
                   </div>
                   <div>
                     <span style="color: var(--text-dim); font-size: 0.7rem;">Identitas / Dokumen:</span>
-                    <span style="color: #cbd5e1; font-family: var(--font-mono);" id="seatDetailDoc">-</span>
+                    <span style="color: #334155; font-family: var(--font-mono); font-weight: 600;" id="seatDetailDoc">-</span>
                   </div>
                 </div>
 
@@ -948,8 +952,8 @@
               </div>
 
               <!-- Operational Guidance Card -->
-              <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.75rem; color: var(--text-dim);">
-                <strong style="color: #e2e8f0; display: block; margin-bottom: 0.25rem;">ℹ️ Kepatuhan Seat KSOP:</strong>
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.75rem; color: #475569;">
+                <strong style="color: #0f172a; display: block; margin-bottom: 0.25rem;">ℹ️ Kepatuhan Seat KSOP:</strong>
                 Sesuai standar manifest Ditjen Hubla, alokasi kursi fisik kapal wajib sesuai dengan manifest boarding pass resmi demi validitas asuransi PT Jasa Raharja.
               </div>
             </div>
@@ -960,6 +964,20 @@
 
       <!-- SUBTAB 1: OVERVIEW & KPIS (PERSIS FOTO TICKY) -->
       <div class="dash-pane active" id="paneOverview">
+        <!-- Weather Status Advisory Banner in Dashboard -->
+        <div id="dashWeatherWarningNotice" style="display: none; margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-radius: 10px; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span style="font-size: 1.3rem;">⚠️</span>
+            <div>
+              <strong style="font-size: 0.85rem;">PERINGATAN DINI SYAHBANDAR KSOP & BMKG: STATUS WEATHER HOLD AKTIF</strong>
+              <div style="font-size: 0.78rem; color: #b91c1c;">Tinggi gelombang terpantau > 1.25 m di wilayah perairan Selat Makassar / Teluk Cowie. Seluruh izin berlayar kapal cepat ditunda sementara demi keselamatan pelayaran.</div>
+            </div>
+          </div>
+          <button type="button" class="btn-action-sm" id="btnDashResetWeather" style="background: #dc2626; color: #fff; border: none; font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 700; cursor: pointer;">
+            Pulihkan ke Status Normal
+          </button>
+        </div>
+
         <!-- 8 KPI Cards Grid (2 rows x 4 columns) -->
         <div class="ticky-kpi-grid">
           <!-- 1. Total Tiket Terbit -->
@@ -1326,6 +1344,7 @@
                   <th>Kapasitas Pax</th>
                   <th>Fasilitas Penumpang</th>
                   <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbodyFleetList">
@@ -1361,6 +1380,7 @@
                   <th>Dermaga / Pier</th>
                   <th>Pilihan Kelas & Harga</th>
                   <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbodySchedulesList">
@@ -1513,7 +1533,11 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                 <span>Cetak Dokumen Resmi KSOP</span>
               </button>
-              <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--accent-purple); color: #c084fc; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+              <button type="button" class="btn-secondary-action" id="btnOpenInaportnetModal" style="background: rgba(2, 132, 199, 0.15); border: 1px solid var(--primary-cyan); color: #0284c7; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M8 19l4 4 4-4M12 13v10"/></svg>
+                <span>Kirim INAPORTNET Hubla</span>
+              </button>
+              <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(124, 58, 237, 0.35); color: #7c3aed; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                 <span>Transfer Antar Kapal</span>
               </button>
@@ -1552,7 +1576,11 @@
               <option value="ALL">Semua Status Boarding</option>
               <option value="BOARDED">Sudah Boarding (Onboard)</option>
               <option value="NOT_CHECKED_IN">Menunggu di Dermaga</option>
+              <option value="DUPLICATE">⚠️ Filter Data Ganda Saja</option>
             </select>
+            <button type="button" class="btn-action-sm" id="btnAuditDuplicatePax" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 0.45rem 0.75rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="Audit & Cek Semua Nama Penumpang Ganda">
+              ⚠️ Audit Data Ganda (<span id="countDuplicateBadge">0</span>)
+            </button>
           </div>
 
           <div class="table-responsive">
@@ -1593,6 +1621,24 @@
                 <span class="dot-green"></span>
                 <span>TERMINAL GATE SCANNER • PETUGAS DERMAGA</span>
               </div>
+
+              <!-- Offline-First Gate Scanner Status Bar -->
+              <div class="scanner-offline-bar" style="margin-bottom: 1rem; padding: 0.65rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                  <span class="offline-pulse" id="scannerNetworkDot" style="background: #10b981;"></span>
+                  <span id="scannerNetworkText" style="font-weight: 700; color: #0f172a;">Mode: ONLINE (Tersinkronisasi)</span>
+                  <span class="tag-badge" id="offlineQueueBadge" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; border: 1px solid #bae6fd; font-size: 0.72rem;">Antrean Offline: 0 Tiket</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <button type="button" class="btn-action-sm" id="btnToggleOfflineMode" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer; background: #ffffff; border: 1px solid #cbd5e1;">
+                    📡 Uji Mode Offline Dermaga
+                  </button>
+                  <button type="button" class="btn-action-sm" id="btnSyncOfflineScans" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; border-radius: 6px; background: #10b981; color: #fff; border: none; font-weight: 700; cursor: pointer;">
+                    🔄 Sinkronkan Antrean
+                  </button>
+                </div>
+              </div>
+
               <h3>Validasi Boarding Pass Penumpang</h3>
               <p class="text-dim">Masukkan Kode Booking (PNR) atau Barcode tiket untuk verifikasi keabsahan tiket dan mengubah status penumpang menjadi <strong>SUDAH NAIK KAPAL (BOARDED)</strong>.</p>
 
@@ -1619,7 +1665,7 @@
             <div class="scanner-result-col">
               <div class="ticket-verification-card" id="scanResultCard">
                 <div class="scan-empty-state">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/><path d="M7 12h10"/></svg>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/><path d="M7 12h10"/></svg>
                   <h4>Menunggu Input Kode Booking...</h4>
                   <p>Masukkan kode PNR di sebelah kiri untuk menampilkan verifikasi tiket.</p>
                 </div>
@@ -1642,6 +1688,10 @@
             <button type="button" class="settings-sub-tab" id="tabBtnSettingsKsop" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.84rem; font-weight: 600; cursor: pointer; background: #ffffff; color: #64748b; display: flex; align-items: center; gap: 0.5rem;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               <span>Pengaturan Pejabat KSOP & Maritim</span>
+            </button>
+            <button type="button" class="settings-sub-tab" id="tabBtnSettingsPeakSeason" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.84rem; font-weight: 600; cursor: pointer; background: #ffffff; color: #64748b; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <span>Dynamic Pricing & Peak Season</span>
             </button>
           </div>
 
@@ -1844,7 +1894,7 @@
             <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem;">
               <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                  <span class="tag-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: #a855f7; font-weight: 700;">
+                  <span class="tag-badge" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed; border-color: rgba(124, 58, 237, 0.3); font-weight: 700;">
                     🏛️ DITJEN HUBLA & SYAHBANDAR KSOP
                   </span>
                   <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
@@ -2007,8 +2057,253 @@
           </form>
           </div>
 
+          <!-- SUB-PANE 3: DYNAMIC PRICING & PEAK SEASON ENGINE -->
+          <div id="subPaneSettingsPeakSeason" style="display: none;">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: #d97706; font-weight: 700;">
+                    📈 DYNAMIC PRICING ENGINE
+                  </span>
+                  <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
+                    SK TARIF KSOP NUNUKAN
+                  </span>
+                </div>
+                <h4>Pengaturan Musim Padat & Dynamic Pricing (Peak Season)</h4>
+                <p class="text-dim">Konfigurasi persentase penyesuaian tarif tiket kapal pada periode mudik Lebaran, liburan sekolah, akhir tahun, dan perayaan pesta adat maritim.</p>
+              </div>
+            </div>
+
+            <form id="formPeakSeasonSettings">
+              <div class="settings-card-box" style="margin-bottom: 1.25rem;">
+                <div class="settings-card-head">
+                  <span class="settings-ic" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">⚡</span>
+                  <div>
+                    <h5>Status & Periode Musim Padat</h5>
+                    <small class="text-dim">Aktifkan surcharge tarif untuk seluruh jadwal pelayaran pada rentang tanggal aktif</small>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0; padding: 0.85rem 1rem; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px;">
+                  <input type="checkbox" id="peakSeasonEnabled" style="width: 20px; height: 20px; cursor: pointer;" checked>
+                  <label for="peakSeasonEnabled" style="font-weight: 700; color: #92400e; cursor: pointer; font-size: 0.88rem;">
+                    Aktifkan Aturan Musim Padat (Peak Season Surcharge)
+                  </label>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="input-block">
+                    <label>Nama Musim / Keterangan Tarif *</label>
+                    <input type="text" id="peakSeasonName" class="form-input" value="Musim Mudik Lebaran & Liburan Perbatasan" required>
+                  </div>
+                  <div class="input-block">
+                    <label>Persentase Penyesuaian Tarif (Surcharge %) *</label>
+                    <select id="peakSeasonPercent" class="form-input">
+                      <option value="10">+10% (Surcharge Standar)</option>
+                      <option value="15" selected>+15% (Rekomendasi KSOP Nunukan)</option>
+                      <option value="20">+20% (Peak Season Tinggi)</option>
+                      <option value="25">+25% (Maksimum Regulasi)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="input-block">
+                    <label>Tanggal Mulai Periode</label>
+                    <input type="date" id="peakSeasonStart" class="form-input" value="2026-03-15">
+                  </div>
+                  <div class="input-block">
+                    <label>Tanggal Berakhir Periode</label>
+                    <input type="date" id="peakSeasonEnd" class="form-input" value="2026-05-15">
+                  </div>
+                </div>
+
+                <div class="input-block">
+                  <label>Dasar Hukum Penetapan Tarif</label>
+                  <input type="text" id="peakSeasonNotice" class="form-input" value="SK Penetapan Tarif Angkutan Laut Lebaran KSOP Nunukan & Ditjen Hubla">
+                </div>
+              </div>
+
+              <!-- Live Simulation Card -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                <h6 style="margin-bottom: 0.5rem; font-weight: 700; color: #0f172a; font-size: 0.85rem;">💡 Simulasi Penyesuaian Tarif Penumpang:</h6>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: 0.82rem;">
+                  <div style="background: #ffffff; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <span style="color: #64748b; font-size: 0.72rem; display: block;">Kelas Ekonomi:</span>
+                    <div>Tarif Normal: <strong>Rp 250.000</strong></div>
+                    <div style="color: #0284c7; font-weight: 700; margin-top: 3px;" id="simPeakEko">Tarif Peak: Rp 287.500 (+Rp 37.500)</div>
+                  </div>
+                  <div style="background: #ffffff; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <span style="color: #64748b; font-size: 0.72rem; display: block;">Kelas Bisnis:</span>
+                    <div>Tarif Normal: <strong>Rp 285.000</strong></div>
+                    <div style="color: #7c3aed; font-weight: 700; margin-top: 3px;" id="simPeakBis">Tarif Peak: Rp 327.750 (+Rp 42.750)</div>
+                  </div>
+                  <div style="background: #ffffff; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <span style="color: #64748b; font-size: 0.72rem; display: block;">Kelas VIP:</span>
+                    <div>Tarif Normal: <strong>Rp 335.000</strong></div>
+                    <div style="color: #d97706; font-weight: 700; margin-top: 3px;" id="simPeakVip">Tarif Peak: Rp 385.250 (+Rp 50.250)</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="submit" class="btn-submit-action" style="padding: 0.75rem 1.75rem; font-size: 0.95rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                  <span>Simpan Pengaturan Peak Season & Dynamic Pricing</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
         </div>
       </div>
+
+      <!-- SUBTAB: KALKULATOR DWT & MUATAN KAPAL -->
+      <div class="dash-pane" id="paneCargo">
+        <div class="dash-block-panel">
+          <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="tag-badge" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; border-color: #0284c7; font-weight: 700;">
+                  ⚓ KESELAMATAN BERLAYAR KSOP
+                </span>
+                <span class="tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">
+                  PLIMSOLL MARK COMPLIANT
+                </span>
+              </div>
+              <h4>Kalkulator DWT & Manifest Muatan Kapal</h4>
+              <p class="text-dim">Perhitungan batas muatan aman (Deadweight Tonnage / DWT), sarat air maksimum (draft), dan pencatatan muatan kargo/bagasi lebih pedagang perbatasan.</p>
+            </div>
+            
+            <div style="display: flex; gap: 0.6rem; align-items: center;">
+              <select id="cargoVesselSelect" class="form-input" style="padding: 0.45rem 0.75rem; font-size: 0.82rem; min-width: 220px;">
+                <!-- Filled dynamically with tenant vessels -->
+              </select>
+            </div>
+          </div>
+
+          <!-- DWT Safety Meter Card -->
+          <div class="dwt-meter-wrap" id="cargoDwtMeterBox">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Beban Muatan Aktif vs Kapasitas DWT:</span>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a;" id="cargoDwtSummaryVal">0.0 Ton / 45.0 Ton (0%)</div>
+              </div>
+              <div id="cargoDwtSafetyBadge" class="tag-badge" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 800; font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+                ✅ SARAT AIR AMAN (DRAFT NORMAL)
+              </div>
+            </div>
+            
+            <div class="dwt-meter-bar">
+              <div class="dwt-meter-fill" id="cargoDwtMeterFill" style="width: 0%;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #64748b;">
+              <span>0 Ton (Kapal Kosong)</span>
+              <span>Batas Sarat Air Aman KSOP (85%)</span>
+              <span style="color: #ef4444; font-weight: 700;">100% Batas Plimsoll Mark (DWT Maksimal)</span>
+            </div>
+          </div>
+
+          <!-- Cargo Input Form & Summary Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1rem;">
+            <!-- Input Form -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+              <h5 style="margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: #0f172a;">📝 Formulir Pencatatan Muatan Pelayaran</h5>
+              <form id="formAddCargoRecord">
+                <div class="form-row-2">
+                  <div class="input-block">
+                    <label>Jadwal Keberangkatan *</label>
+                    <select id="cargoScheduleSelect" class="form-input" required>
+                      <!-- Options filled by JS -->
+                    </select>
+                  </div>
+                  <div class="input-block">
+                    <label>Jenis Muatan / Kategori *</label>
+                    <select id="cargoTypeInput" class="form-input" required>
+                      <option value="BAGASI_LEBIH">Bagasi Lebih Penumpang (Excess Baggage)</option>
+                      <option value="KARGO_SEMBAKO">Kargo Logistik / Sembako Perbatasan</option>
+                      <option value="HASIL_BUMI">Hasil Bumi & Laut (Ikan/Kepiting Nunukan)</option>
+                      <option value="KENDARAAN_R2">Kendaraan Sepeda Motor (Dek Bawah)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="input-block">
+                    <label>Nama Pengirim / Pedagang *</label>
+                    <input type="text" id="cargoSenderInput" class="form-input" placeholder="contoh: H. Syamsuddin / Toko Berkah" required>
+                  </div>
+                  <div class="input-block">
+                    <label>Berat Muatan (Kilogram) *</label>
+                    <input type="number" id="cargoWeightInput" class="form-input" placeholder="contoh: 250" min="1" max="100000" required>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="input-block">
+                    <label>Tarif Muatan per Kg (Rp)</label>
+                    <input type="number" id="cargoRateInput" class="form-input" value="3500" step="500">
+                  </div>
+                  <div class="input-block">
+                    <label>Keterangan Manifest Muatan</label>
+                    <input type="text" id="cargoRemarkInput" class="form-input" placeholder="Nomor Resi / Dek Palka">
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-submit-action" style="width: 100%; margin-top: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                  <span>+ Catat Muatan ke Manifest Kapal</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Breakdown Summary Cards -->
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <div class="kpi-card" style="padding: 1rem;">
+                <div class="kpi-lbl">Estimasi Beban Penumpang Onboard</div>
+                <h4 style="font-size: 1.25rem; font-weight: 800; color: #0284c7; margin: 0.2rem 0;" id="cargoEstPaxWeight">0 Kg (0 Pax)</h4>
+                <small class="text-dim">Dihitung otomatis: Standar Ditjen Hubla (75 kg / pax dewasa)</small>
+              </div>
+
+              <div class="kpi-card" style="padding: 1rem;">
+                <div class="kpi-lbl">Total Kargo & Bagasi Lebih Tercatat</div>
+                <h4 style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin: 0.2rem 0;" id="cargoEstCargoWeight">0 Kg (0 Resi)</h4>
+                <small class="text-dim">Total pendapatan kargo: <strong id="cargoEstRevenue" style="color: #f59e0b;">Rp 0</strong></small>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 0.85rem; font-size: 0.78rem; color: #475569;">
+                <strong style="color: #0f172a; display: block; margin-bottom: 0.25rem;">Regulasi Port Clearance KSOP:</strong>
+                Sesuai Keputusan Direktur Jenderal Perhubungan Laut tentang Garis Muat Kapal Sungai & Danau / Perairan Pedalaman, setiap kelebihan muatan (overdraft) di atas Plimsoll mark akan membatalkan penerbitan Surat Persetujuan Berlayar (SPB).
+              </div>
+            </div>
+          </div>
+
+          <!-- Cargo Manifest Table -->
+          <div style="margin-top: 1.5rem;">
+            <h5 style="font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;">📋 Manifest Kargo & Bagasi Lebih Tercatat</h5>
+            <div class="table-responsive">
+              <table class="dash-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>No. Resi</th>
+                    <th>Jadwal / Rute</th>
+                    <th>Pengirim / Pemilik</th>
+                    <th>Kategori Muatan</th>
+                    <th>Berat</th>
+                    <th>Total Biaya</th>
+                    <th>Status KSOP</th>
+                  </tr>
+                </thead>
+                <tbody id="cargoManifestTableBody">
+                  <tr>
+                    <td colspan="7" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada muatan kargo tambahan tercatat pada jadwal ini.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
           </div>
           <!-- End .ticky-content-area -->
         </div>
@@ -2023,14 +2318,15 @@
        MODALS
        ======================================================== -->
 
-  <!-- Modal Tambah Armada Baru -->
+  <!-- Modal Tambah / Edit Armada Kapal -->
   <div class="modal-layer" id="modalAddVessel">
     <div class="modal-window">
       <div class="modal-top">
-        <h4>Tambah Armada Kapal Baru</h4>
+        <h4 id="modalVesselTitle">Tambah Armada Kapal Baru</h4>
         <button type="button" class="btn-close-x" id="btnCloseAddVessel">&times;</button>
       </div>
       <form id="formAddVessel" class="modal-content-form">
+        <input type="hidden" id="vesselEditId" value="">
         <div class="input-block">
           <label>Nama Kapal / Armada *</label>
           <input type="text" id="vesselNameInput" class="form-input" placeholder="Contoh: KM Nusantara Sejahtera 01" required>
@@ -2056,9 +2352,14 @@
           <label>Fasilitas Penumpang (Pisahkan dengan koma)</label>
           <input type="text" id="vesselFacInput" class="form-input" placeholder="Contoh: Full AC, Kantin, WiFi Satelit, Musholla" value="Full AC Sentral, Kantin, Colokan Listrik, Musholla">
         </div>
+        <div class="input-block" id="vesselPasswordBlock">
+          <label>🔒 Konfirmasi Password Portal Perusahaan *</label>
+          <input type="password" id="vesselAuthPassword" class="form-input" placeholder="Masukkan password login portal perusahaan" required autocomplete="current-password">
+          <small class="text-dim">Wajib memasukkan password akun perusahaan untuk menyimpan perubahan armada kapal.</small>
+        </div>
         <div class="modal-bottom-actions">
           <button type="button" class="btn-cancel" id="btnCancelAddVessel">Batal</button>
-          <button type="submit" class="btn-submit-action">Simpan & Daftarkan Armada</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitVessel">Simpan & Daftarkan Armada</button>
         </div>
       </form>
     </div>
@@ -2127,12 +2428,46 @@
           </div>
           <div class="input-block">
             <label>Tarif Kelas Ekonomi (Rp) *</label>
-            <input type="number" id="schedPriceEko" class="form-input" value="325000" min="30000" required>
+            <input type="number" id="schedPriceEko" class="form-input" value="480000" min="30000" required>
           </div>
         </div>
         <div class="modal-bottom-actions">
           <button type="button" class="btn-cancel" id="btnCancelAddSchedule">Batal</button>
           <button type="submit" class="btn-submit-action">Publikasikan Jadwal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Tarif Harga Tiket Jadwal -->
+  <div class="modal-layer" id="modalEditSchedulePrice">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-top">
+        <div>
+          <h4>Edit Tarif Harga Tiket Jadwal</h4>
+          <p class="text-dim">Perbarui tarif tiket resmi untuk jadwal <strong id="editSchedIdLabel" style="color: var(--primary-cyan);">SCHED-001</strong>.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseEditSchedulePrice">&times;</button>
+      </div>
+      <form id="formEditSchedulePrice" class="modal-content-form">
+        <input type="hidden" id="editSchedId">
+        <div class="input-block">
+          <label>Kapal / Rute Pelayaran</label>
+          <input type="text" id="editSchedRouteInfo" class="form-input" readonly style="background: #f8fafc; font-weight: 600;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Tarif Kelas VIP (Rp) *</label>
+            <input type="number" id="editSchedPriceVip" class="form-input" min="10000" step="5000" required>
+          </div>
+          <div class="input-block">
+            <label>Tarif Kelas Ekonomi (Rp) *</label>
+            <input type="number" id="editSchedPriceEko" class="form-input" min="10000" step="5000" required>
+          </div>
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelEditSchedulePrice">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: var(--primary-emerald); color: #fff;">Simpan Perubahan Tarif</button>
         </div>
       </form>
     </div>
@@ -2150,6 +2485,42 @@
       </div>
 
       <div class="modal-body-scroll">
+        <!-- Multi-Currency Selector & Exchange Rate Info -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="font-size: 0.8rem; color: #475569;">
+            Mata Uang Pembayaran: <span style="font-size: 0.72rem; color: #64748b;">(Kurs Operasional Maritim: 1 MYR = Rp 3.500)</span>
+          </div>
+          <div class="currency-switcher">
+            <button type="button" class="currency-btn active" id="btnCurrencyIdr" data-curr="IDR">
+              <span>🇮🇩 IDR (Rupiah)</span>
+            </button>
+            <button type="button" class="currency-btn" id="btnCurrencyMyr" data-curr="MYR">
+              <span>🇲🇾 MYR (Ringgit)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MDAC Arrival Card Warning Notice (Khusus Rute Tawau / Luar Negeri) -->
+        <div id="mdacBookingNoticeBox" class="mdac-notice-card" style="display: none;">
+          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <span style="font-size: 1.4rem;">🛂</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 0.85rem; color: #166534;">Wajib Lintas Batas: Malaysia Digital Arrival Card (MDAC)</div>
+              <p style="font-size: 0.78rem; color: #15803d; margin: 0.25rem 0 0.5rem 0;">
+                Sesuai peraturan Jabatan Imigresen Malaysia (JIM), seluruh penumpang rute Nunukan &rarr; Tawau wajib mengisi formulir MDAC selambat-lambatnya 3 hari sebelum tiba di Pelabuhan Tawau.
+              </p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="https://imigresen-online.imi.gov.my/mdac/main" target="_blank" rel="noopener noreferrer" class="btn-action-sm" style="background: #16a34a; color: #ffffff; text-decoration: none; font-size: 0.74rem; font-weight: 700; border-radius: 6px; padding: 0.35rem 0.75rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <span>🌐 Buka Portal MDAC Resmi (imi.gov.my)</span>
+                </a>
+                <button type="button" class="btn-action-sm" id="btnPrefillMdacData" style="background: #ffffff; border: 1px solid #86efac; color: #15803d; font-size: 0.74rem; font-weight: 700; border-radius: 6px; padding: 0.35rem 0.75rem; cursor: pointer;">
+                  📋 Salin Data Paspor untuk MDAC
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Route Banner Preview -->
         <div class="book-route-strip" id="bookRouteStrip">
           <!-- Filled by JS -->
@@ -2173,17 +2544,17 @@
           <div class="flex-between align-center" style="margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
             <h5 class="subhead" style="margin-bottom: 0;">2. Denah Kursi Kapal (<span id="custDeckName" style="color: var(--primary-cyan);">Main Passenger Deck</span>):</h5>
             <div class="seat-legend-row" style="display: flex; gap: 0.75rem; font-size: 0.75rem;">
-              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: rgba(56, 189, 248, 0.2); border: 1px solid var(--border-focus); width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Tersedia</span>
-              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: var(--accent-green); width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Dipilih</span>
-              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: rgba(255, 255, 255, 0.08); width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Terisi</span>
+              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: rgba(2, 132, 199, 0.15); border: 1px solid #0284c7; width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Tersedia</span>
+              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: #059669; width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Dipilih</span>
+              <span style="display: flex; align-items: center; gap: 0.3rem;"><span class="legend-dot" style="background: #cbd5e1; border: 1px solid #94a3b8; width: 12px; height: 12px; border-radius: 3px; display: inline-block;"></span> Terisi</span>
             </div>
           </div>
           <div class="seat-cells-container" id="custSeatGrid">
             <!-- Injected by JS -->
           </div>
           <div class="seat-status-bar">
-            <span>Kursi Dipilih: <strong id="custSelectedSeatDisplay" style="color: #38bdf8;">Belum dipilih</strong> (<span id="custSelectedClassName">Ekonomi</span>)</span>
-            <span>Total Tarif Tiket: <strong id="custSubtotalDisplay" style="color: #f59e0b;">Rp 0</strong></span>
+            <span>Kursi Dipilih: <strong id="custSelectedSeatDisplay" style="color: #0284c7;">Belum dipilih</strong> (<span id="custSelectedClassName">Main Deck</span>)</span>
+            <span>Total Tarif Tiket: <strong id="custSubtotalDisplay" style="color: #d97706;">Rp 0</strong></span>
           </div>
         </div>
 
@@ -2206,6 +2577,9 @@
             <div class="input-block">
               <label>Nama Lengkap (Sesuai Dokumen Resmi) *</label>
               <input type="text" id="custPaxName" class="form-input" placeholder="Masukkan nama lengkap..." required value="Budi Gunawan">
+              <div id="duplicatePaxIndicator" style="display: none; margin-top: 4px; font-size: 0.72rem; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 2px 6px; font-weight: 700; align-items: center; gap: 0.35rem;">
+                <span>⚠️ Peringatan: Nama terdeteksi ganda pada jadwal ini (<strong id="duplicatePaxPnrRef">-</strong>)</span>
+              </div>
             </div>
           </div>
 
@@ -2223,6 +2597,23 @@
             <div class="input-block">
               <label id="lblDocNumber">No. Passport / Dokumen Identitas *</label>
               <input type="text" id="custPaxDocNum" class="form-input" placeholder="Nomor paspor / identitas..." required value="A12345678">
+              <!-- Watchlist status indicator -->
+              <div id="watchlistStatusIndicator" style="margin-top: 4px; font-size: 0.72rem; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                <span>✅ Status Imigrasi: Clear to Board</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passport Expiry & Validity Check (Khusus Rute Internasional) -->
+          <div class="form-row-2" id="passportExpiryRow">
+            <div class="input-block">
+              <label>Tanggal Habis Masa Berlaku Paspor *</label>
+              <input type="date" id="custPaxPassportExpInput" class="form-input" value="2029-12-31">
+            </div>
+            <div class="input-block" style="display: flex; flex-direction: column; justify-content: center;">
+              <div id="passportExpiryAlert" style="font-size: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-weight: 600;">
+                ✓ Masa berlaku paspor valid (&ge; 6 bulan dari keberangkatan)
+              </div>
             </div>
           </div>
 
@@ -2280,18 +2671,53 @@
         <div class="payment-selection-block">
           <h5 class="subhead">4. Metode Pembayaran Tiket:</h5>
           <div class="pay-methods-row">
-            <label class="pay-method-pill active">
+            <label class="pay-method-pill active" id="payMethodCash">
               <input type="radio" name="custPayMethod" value="Loket Resmi / Tunai" checked>
               <span>Loket Resmi Perusahaan / Pelabuhan</span>
             </label>
-            <label class="pay-method-pill">
+            <label class="pay-method-pill" id="payMethodQris">
               <input type="radio" name="custPayMethod" value="QRIS Instan">
               <span>QRIS Instan (BCA, OVO, Dana, GoPay)</span>
             </label>
-            <label class="pay-method-pill">
+            <label class="pay-method-pill" id="payMethodVa">
               <input type="radio" name="custPayMethod" value="Virtual Account BCA / Mandiri">
               <span>Transfer Bank / Virtual Account</span>
             </label>
+            <label class="pay-method-pill" id="payMethodDuitNow" style="display: none;">
+              <input type="radio" name="custPayMethod" value="DuitNow QR Malaysia">
+              <span>🇲🇾 DuitNow QR (Maybank, CIMB, TNG eWallet)</span>
+            </label>
+            <label class="pay-method-pill" id="payMethodFpx" style="display: none;">
+              <input type="radio" name="custPayMethod" value="FPX Online Banking Malaysia">
+              <span>🇲🇾 FPX Online Banking Malaysia</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Itemized Fee Breakdown Component -->
+        <div class="fee-breakdown-box" id="custFeeBreakdownBox">
+          <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.4rem; font-size: 0.85rem;">
+            🧾 Rincian Komponen Resmi Biaya Tiket:
+          </div>
+          <div class="fee-breakdown-row">
+            <span>Tiket Kapal (Operator Pelayaran):</span>
+            <strong id="feeOperatorBase">Rp 430.000</strong>
+          </div>
+          <div class="fee-breakdown-row">
+            <span>Tax / Pajak & Pas Pelabuhan:</span>
+            <strong id="feePortTerminal">Rp 50.000</strong>
+          </div>
+          <div class="fee-breakdown-row" style="display: none;">
+            <span>Asuransi Wajib Penumpang (PT Jasa Raharja):</span>
+            <strong id="feeInsurance">Rp 0</strong>
+          </div>
+          <div class="fee-breakdown-row" id="feePeakSeasonRow" style="display: none; color: #d97706;">
+            <span>Surcharge Musim Padat (Peak Season):</span>
+            <strong id="feePeakSeasonVal">+Rp 0</strong>
+          </div>
+          <div class="fee-breakdown-row total">
+            <span>TOTAL DIBAYARKAN:</span>
+            <strong id="feeTotalPayable" style="color: #0284c7; font-size: 1.1rem;">Rp 480.000</strong>
           </div>
         </div>
       </div>
@@ -2338,7 +2764,7 @@
                 <strong class="bp-time" id="ticketDepartTime">08:00 WITA</strong>
               </div>
               <div class="bp-arrow-cell">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 <span id="ticketVesselVal">KM Express 01</span>
                 <small id="ticketRouteTypeBadge" style="color: #f59e0b; font-size: 0.72rem; margin-top: 0.2rem;">Rute Internasional</small>
               </div>
@@ -2632,6 +3058,9 @@
           <div class="input-block">
             <label>Nama Lengkap (Sesuai Identitas Resmi) *</label>
             <input type="text" id="editPaxName" class="form-input" required>
+            <div id="editPaxDuplicateWarning" style="display: none; margin-top: 4px; font-size: 0.72rem; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 2px 6px; font-weight: 700;">
+              ⚠️ Nama ini terdaftar di tiket lain pada jadwal yang sama
+            </div>
           </div>
         </div>
 
@@ -2761,6 +3190,20 @@
           <div class="input-block">
             <label>Nomor WhatsApp Kontak</label>
             <input type="tel" id="editTicketContactPhone" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <!-- Total Harga / Tarif Tiket (Rp) -->
+          <div class="input-block">
+            <label>Total Harga / Tarif Tiket (Rp) *</label>
+            <input type="number" id="editTicketPrice" class="form-input" min="0" step="1000" placeholder="contoh: 250000" required>
+          </div>
+
+          <!-- Keterangan Penyesuaian Tarif -->
+          <div class="input-block">
+            <label>Keterangan Penyesuaian Tarif</label>
+            <input type="text" id="editTicketPriceRemark" class="form-input" placeholder="contoh: Tarif Normal / Diskon">
           </div>
         </div>
 
@@ -3327,6 +3770,77 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Integrasi INAPORTNET & SIKAP Ditjen Hubla -->
+  <div class="modal-layer" id="modalInaportnetHubla">
+    <div class="modal-window modal-wide" style="max-width: 860px;">
+      <div class="modal-top">
+        <div>
+          <h4>Koneksi Gateway INAPORTNET & SIKAP Ditjen Hubla</h4>
+          <p class="text-dim">Sinkronisasi Elektronik Port Clearance & Surat Persetujuan Berlayar (SPB) KSOP Kelas IV Nunukan.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseInaportnetModal">&times;</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Status Indicator -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span class="offline-pulse" style="background: #10b981;"></span>
+            <div>
+              <strong style="font-size: 0.85rem; color: #166534;">INAPORTNET API GATEWAY STATUS: CONNECTED (200 OK)</strong>
+              <div style="font-size: 0.75rem; color: #15803d;">Endpoint: https://inaportnet.dephub.go.id/api/v2/pelayaran/clearance</div>
+            </div>
+          </div>
+          <span class="tag-badge" style="background: #10b981; color: #fff; border: none; font-weight: 700; font-size: 0.75rem;">
+            EDI VERIFIED
+          </span>
+        </div>
+
+        <!-- Generated XML/EDI Payload Preview -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <h5 style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">Payload Port Clearance Manifest (Standar Hubla XML EDIFACT):</h5>
+            <span style="font-size: 0.72rem; color: #64748b;" id="inaportnetPayloadSize">Payload Size: ~1.8 KB</span>
+          </div>
+          <pre id="inaportnetXmlPreview" style="background: #0f172a; color: #38bdf8; padding: 1rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; max-height: 240px; overflow-y: auto; white-space: pre-wrap; line-height: 1.45;"></pre>
+        </div>
+
+        <!-- Port Clearance Metadata Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; font-size: 0.78rem;">
+          <div>
+            <span style="color: #64748b; font-size: 0.7rem; display: block;">NO. SPB REFERENSI:</span>
+            <strong id="inaportnetSpbNo" style="color: #0f172a;">SPB.NNK/2026/X/0842</strong>
+          </div>
+          <div>
+            <span style="color: #64748b; font-size: 0.7rem; display: block;">TOTAL PENUMPANG (PAX):</span>
+            <strong id="inaportnetTotalPax" style="color: #0284c7;">0 Jiwa</strong>
+          </div>
+          <div>
+            <span style="color: #64748b; font-size: 0.7rem; display: block;">KOMPOSISI (WNI/WNA):</span>
+            <strong id="inaportnetPaxRatio" style="color: #10b981;">0 WNI • 0 WNA</strong>
+          </div>
+          <div>
+            <span style="color: #64748b; font-size: 0.7rem; display: block;">STATUS SYAHBANDAR:</span>
+            <strong style="color: #059669;">SIAP CLEARANCE</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-bottom-actions">
+        <button type="button" class="btn-cancel" id="btnCancelInaportnetModal">Tutup</button>
+        <button type="button" class="btn-secondary-action" id="btnDownloadInaportnetXml" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-weight: 700;">
+          <span>⬇ Unduh File XML INAPORTNET</span>
+        </button>
+        <button type="button" class="btn-submit-action" id="btnSendInaportnetApi" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Validasi & Kirim ke Server Hubla</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
 
   <!-- Global Toast Notification -->
   <div class="toast-popup" id="toastPopup">

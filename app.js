@@ -40,6 +40,13 @@ const App = {
     this.initBulkPassengerEvents();
     this.initModals();
 
+    // Enterprise Features Initializations
+    this.initCargoEvents();
+    this.initInaportnetEvents();
+    this.initWeatherWarningEvents();
+    this.initPeakSeasonEvents();
+    this.initCurrencyAndMdacEvents();
+
     // Status tenant di header jika ada sesi aktif
     const loggedInTenant = Store.getCurrentTenant();
     this.updateHeaderTenantUI(loggedInTenant);
@@ -140,6 +147,10 @@ const App = {
   openCompanyAuthModal() {
     this.renderCompanyAuthButtons();
     document.getElementById('tabBtnLogin')?.click();
+    const emailInput = document.getElementById('loginCompEmail');
+    const passInput = document.getElementById('loginCompPassword');
+    if (emailInput) emailInput.value = '';
+    if (passInput) passInput.value = '';
     const modal = document.getElementById('modalCompanyAuth');
     if (modal) modal.classList.add('show');
   },
@@ -632,6 +643,11 @@ const App = {
         if (passportExpBlock) passportExpBlock.style.display = 'none';
         if (docNumLabel) docNumLabel.innerText = 'Nomor Induk Kependudukan (NIK KTP 16 Digit) *';
       }
+
+      const mdacBox = document.getElementById('mdacBookingNoticeBox');
+      const passExpRow = document.getElementById('passportExpiryRow');
+      if (mdacBox) mdacBox.style.display = isIntl ? 'block' : 'none';
+      if (passExpRow) passExpRow.style.display = isIntl ? 'flex' : 'none';
     }
 
     if (docTypeSelect) {
@@ -645,17 +661,48 @@ const App = {
       };
     }
 
-    // Configure Class Options (Ekonomi, Bisnis, VIP)
-    const basePrice = (sch.classes && sch.classes[0]) ? sch.classes[0].price : (sch.priceEconomy || 250000);
+    // Configure Class Options - Hanya Ada Main Deck Sesuai Permintaan
+    const isNunukanTawau = (origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl;
+    const basePrice = isNunukanTawau ? 480000 : ((sch.classes && sch.classes[0]) ? sch.classes[0].price : (sch.priceEconomy || 250000));
     this.bookingClasses = [
-      { name: 'Ekonomi (Main Deck)', price: basePrice, sub: 'Kursi Nyaman Ber-AC, Free Bagasi 20kg' },
-      { name: 'Bisnis / Executive (Upper Deck)', price: basePrice + 75000, sub: 'Upper Deck View, Snack & Reclining Seat' },
-      { name: 'VIP Stateroom (Private Cabin)', price: basePrice + 175000, sub: 'Kabin Eksklusif Privat, Sofa Bed & Port Priority' }
+      { 
+        name: 'Main Deck (Reguler)', 
+        price: basePrice, 
+        baseFare: isNunukanTawau ? 430000 : Math.max(0, basePrice - 35000), 
+        taxFee: isNunukanTawau ? 50000 : 35000, 
+        sub: 'Kursi Penumpang Main Deck (3 Kursi Kiri • Lorong • 3 Kursi Kanan)' 
+      }
     ];
+    this.selectedClassIndex = 0;
 
     this.renderClassOptions();
     this.renderSeatPickerGrid();
     this.updateSeatPickerSummary();
+
+    // Check duplicate passenger real-time on customer booking modal
+    const paxNameInput = document.getElementById('custPaxName');
+    const dupIndicator = document.getElementById('duplicatePaxIndicator');
+    const dupPnrRef = document.getElementById('duplicatePaxPnrRef');
+    if (paxNameInput) {
+      const checkDup = () => {
+        const val = paxNameInput.value.trim();
+        if (!val || !sch.id) {
+          if (dupIndicator) dupIndicator.style.display = 'none';
+          return;
+        }
+        const found = Store.checkDuplicatePassenger(val, sch.id);
+        if (found) {
+          if (dupIndicator) {
+            dupIndicator.style.display = 'flex';
+            if (dupPnrRef) dupPnrRef.innerText = `PNR: ${found.pnr}, Kursi: ${found.seat}`;
+          }
+        } else {
+          if (dupIndicator) dupIndicator.style.display = 'none';
+        }
+      };
+      paxNameInput.oninput = checkDup;
+      checkDup();
+    }
 
     document.getElementById('modalCustomerBooking')?.classList.add('show');
   },
@@ -665,23 +712,20 @@ const App = {
     if (!grid) return;
     grid.innerHTML = '';
 
+    const isMyr = this.bookingCurrency === 'MYR';
     this.bookingClasses.forEach((cls, idx) => {
       const card = document.createElement('div');
-      card.className = `class-pill-card ${this.selectedClassIndex === idx ? 'active' : ''}`;
+      card.className = `class-pill-card active`;
+      card.style.gridColumn = '1 / -1';
+      const displayPrice = isMyr ? formatRinggit(convertIdrToMyr(cls.price)) : formatRupiah(cls.price);
       card.innerHTML = `
         <div class="cls-name">
-          <span>${idx === 2 ? '👑' : (idx === 1 ? '⭐' : '🚢')}</span>
+          <span>🚢</span>
           <span>${cls.name}</span>
         </div>
-        <div class="cls-price">${formatRupiah(cls.price)}</div>
+        <div class="cls-price">${displayPrice}</div>
         <div class="cls-sub">${cls.sub}</div>
       `;
-      card.addEventListener('click', () => {
-        this.selectedClassIndex = idx;
-        this.renderClassOptions();
-        this.renderSeatPickerGrid();
-        this.updateSeatPickerSummary();
-      });
       grid.appendChild(card);
     });
   },
@@ -692,84 +736,97 @@ const App = {
     if (!grid) return;
     grid.innerHTML = '';
 
-    const currentClass = this.bookingClasses[this.selectedClassIndex];
-    if (deckName) deckName.innerText = currentClass.name;
+    if (deckName) deckName.innerText = 'Main Passenger Deck';
 
-    // Occupied seat simulation
-    const occupiedSeats = ['A-02', 'B-03', 'C-01', 'D-04', 'VIP-02'];
+    // Deck Header: Hanya Ada Main Deck Sesuai Permintaan
+    const deckHeader = document.createElement('div');
+    deckHeader.className = 'seat-deck-header';
+    deckHeader.innerText = '⚓ MAIN PASSENGER DECK (3 KURSI KIRI • LORONG • 3 KURSI KANAN)';
+    grid.appendChild(deckHeader);
 
-    if (this.selectedClassIndex === 2) {
-      // VIP Stateroom Layout (4 Exclusive Cabins)
-      const deckHeader = document.createElement('div');
-      deckHeader.className = 'seat-deck-header';
-      deckHeader.innerText = '⚓ PRIVATE VIP STATEROOM CABIN DECK (DEK DEPAN)';
-      grid.appendChild(deckHeader);
+    // Ambil kapasitas armada kapal (menyesuaikan data penumpang kapal)
+    const { sch, comp } = this.currentBookingSchedule || {};
+    let capacity = 150;
+    if (comp && sch) {
+      const fleet = Store.getVesselsByCompany(comp.id);
+      const vessel = fleet.find(v => v.id === sch.vesselId) || Store.getVessels().find(v => v.id === sch.vesselId);
+      if (vessel && vessel.capacity) {
+        capacity = parseInt(vessel.capacity, 10);
+      } else if (sch.capacity) {
+        capacity = parseInt(sch.capacity, 10);
+      }
+    }
+    if (!capacity || capacity <= 0) capacity = 150;
 
-      const vipRow = document.createElement('div');
-      vipRow.className = 'seat-row';
-      for (let i = 1; i <= 4; i++) {
-        const seatCode = `VIP-0${i}`;
-        const isOccupied = occupiedSeats.includes(seatCode);
+    // Ambil kursi yang sudah terpesan pada jadwal ini
+    const occupiedSeats = (sch && sch.id && typeof this.getOccupiedSeatsForSchedule === 'function')
+      ? this.getOccupiedSeatsForSchedule(sch.id)
+      : new Set();
+
+    // Default simulasi okupansi jika data pemesanan masih baru
+    const defaultOccupied = ['A-02', 'B-03', 'C-01', 'D-04', 'E-02', 'F-05'];
+
+    // Generator Kode Baris Huruf (A, B, C... Z, AA, AB...)
+    const getRowCode = (rIdx) => {
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      if (rIdx < letters.length) return letters[rIdx];
+      const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+      const p2 = letters[rIdx % letters.length];
+      return `${p1}${p2}`;
+    };
+
+    const totalRows = Math.ceil(capacity / 6);
+    let generatedCount = 0;
+
+    for (let r = 0; r < totalRows; r++) {
+      if (generatedCount >= capacity) break;
+      const rowWrap = document.createElement('div');
+      rowWrap.className = 'seat-row';
+      const rowCode = getRowCode(r);
+
+      // 3 Kolom Kursi Kiri (01, 02, 03)
+      for (let col = 1; col <= 3; col++) {
+        if (generatedCount >= capacity) break;
+        generatedCount++;
+        const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
+        const isOccupied = occupiedSeats.has(seatCode) || (occupiedSeats.size === 0 && defaultOccupied.includes(seatCode));
         const isSelected = this.selectedSeats.includes(seatCode);
 
         const seat = document.createElement('div');
-        seat.className = `seat-box vip ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''}`;
-        seat.style.width = '70px';
-        seat.innerHTML = `👑 ${seatCode}`;
-
+        seat.className = `seat-box ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''}`;
+        seat.innerText = seatCode;
+        seat.title = `Kursi ${seatCode} (Kiri)`;
         if (!isOccupied) {
-          seat.addEventListener('click', () => {
-            this.toggleSeatSelection(seatCode);
-          });
+          seat.addEventListener('click', () => this.toggleSeatSelection(seatCode));
         }
-        vipRow.appendChild(seat);
+        rowWrap.appendChild(seat);
       }
-      grid.appendChild(vipRow);
-    } else {
-      // Standard / Business Deck with Center Aisle (Baris A, B, C, D)
-      const deckHeader = document.createElement('div');
-      deckHeader.className = 'seat-deck-header';
-      deckHeader.innerText = this.selectedClassIndex === 1 ? '⭐ UPPER BUSINESS DECK' : '🚢 MAIN PASSENGER DECK (DERMAGA SAMUDERA)';
-      grid.appendChild(deckHeader);
 
-      const rows = this.selectedClassIndex === 1 ? ['B1', 'B2'] : ['A', 'B', 'C', 'D'];
+      // Lorong Tengah (Center Aisle Gap)
+      const aisle = document.createElement('div');
+      aisle.className = 'seat-aisle-gap';
+      aisle.innerText = 'LORONG';
+      rowWrap.appendChild(aisle);
 
-      rows.forEach(rPrefix => {
-        const rowWrap = document.createElement('div');
-        rowWrap.className = 'seat-row';
+      // 3 Kolom Kursi Kanan (04, 05, 06)
+      for (let col = 4; col <= 6; col++) {
+        if (generatedCount >= capacity) break;
+        generatedCount++;
+        const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
+        const isOccupied = occupiedSeats.has(seatCode) || (occupiedSeats.size === 0 && defaultOccupied.includes(seatCode));
+        const isSelected = this.selectedSeats.includes(seatCode);
 
-        // Left Window side (2 seats)
-        for (let col = 1; col <= 2; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const isOccupied = occupiedSeats.includes(seatCode);
-          const isSelected = this.selectedSeats.includes(seatCode);
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''}`;
-          seat.innerText = seatCode;
-          if (!isOccupied) seat.addEventListener('click', () => this.toggleSeatSelection(seatCode));
-          rowWrap.appendChild(seat);
+        const seat = document.createElement('div');
+        seat.className = `seat-box ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''}`;
+        seat.innerText = seatCode;
+        seat.title = `Kursi ${seatCode} (Kanan)`;
+        if (!isOccupied) {
+          seat.addEventListener('click', () => this.toggleSeatSelection(seatCode));
         }
+        rowWrap.appendChild(seat);
+      }
 
-        // Center Aisle
-        const aisle = document.createElement('div');
-        aisle.className = 'seat-aisle-gap';
-        aisle.innerText = 'LORONG';
-        rowWrap.appendChild(aisle);
-
-        // Right Window side (2 seats)
-        for (let col = 3; col <= 4; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const isOccupied = occupiedSeats.includes(seatCode);
-          const isSelected = this.selectedSeats.includes(seatCode);
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''}`;
-          seat.innerText = seatCode;
-          if (!isOccupied) seat.addEventListener('click', () => this.toggleSeatSelection(seatCode));
-          rowWrap.appendChild(seat);
-        }
-
-        grid.appendChild(rowWrap);
-      });
+      grid.appendChild(rowWrap);
     }
   },
 
@@ -793,15 +850,62 @@ const App = {
     const classDisp = document.getElementById('custSelectedClassName');
     if (!this.bookingClasses) return;
 
-    const currentClass = this.bookingClasses[this.selectedClassIndex];
+    const currentClass = this.bookingClasses[this.selectedClassIndex] || this.bookingClasses[0];
     if (classDisp) classDisp.innerText = currentClass.name;
 
-    if (this.selectedSeats.length === 0) {
+    const isMyr = this.bookingCurrency === 'MYR';
+    const seatCount = this.selectedSeats.length;
+    const calcCount = Math.max(1, seatCount);
+
+    const { sch, origPort, destPort } = this.currentBookingSchedule || {};
+    const isIntl = (origPort?.id === 'TWU' || destPort?.id === 'TWU');
+    const isNunukanTawau = (origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl;
+
+    // Rincian Resmi Biaya Tiket:
+    // Nunukan - Tawau: Tiket Kapal 430 ribu + Tax 50 ribu = Total 480 ribu
+    let operatorBasePerPax = 430000;
+    let taxPerPax = 50000;
+    let totalPerPax = 480000;
+
+    if (!isNunukanTawau) {
+      totalPerPax = currentClass.price || 250000;
+      taxPerPax = 35000;
+      operatorBasePerPax = Math.max(0, totalPerPax - taxPerPax);
+    }
+
+    const totalOperatorBase = operatorBasePerPax * calcCount;
+    const totalTax = taxPerPax * calcCount;
+    const totalPayableIdr = totalPerPax * (seatCount > 0 ? seatCount : 1);
+
+    // Update Itemized Fee Elements
+    const fmt = (val) => isMyr ? formatRinggit(convertIdrToMyr(val)) : formatRupiah(val);
+    const feeBaseEl = document.getElementById('feeOperatorBase');
+    const feeTermEl = document.getElementById('feePortTerminal');
+    const feeInsuEl = document.getElementById('feeInsurance');
+    const feeTotalEl = document.getElementById('feeTotalPayable');
+
+    if (feeBaseEl) feeBaseEl.innerText = fmt(totalOperatorBase);
+    if (feeTermEl) feeTermEl.innerText = fmt(totalTax);
+    if (feeInsuEl) {
+      const insuRow = feeInsuEl.closest('.fee-breakdown-row');
+      if (insuRow) {
+        if (isNunukanTawau) {
+          insuRow.style.display = 'none';
+        } else {
+          insuRow.style.display = 'flex';
+          feeInsuEl.innerText = fmt(10000 * calcCount);
+        }
+      }
+    }
+
+    if (feeTotalEl) feeTotalEl.innerText = fmt(totalPayableIdr);
+
+    if (seatCount === 0) {
       if (seatDisp) seatDisp.innerText = 'Belum dipilih (Klik nomor kursi di denah)';
-      if (priceDisp) priceDisp.innerText = formatRupiah(0);
+      if (priceDisp) priceDisp.innerText = fmt(0);
     } else {
       if (seatDisp) seatDisp.innerText = this.selectedSeats.join(', ');
-      if (priceDisp) priceDisp.innerText = formatRupiah(this.selectedSeats.length * currentClass.price);
+      if (priceDisp) priceDisp.innerText = fmt(totalPayableIdr);
     }
   },
 
@@ -832,6 +936,16 @@ const App = {
     }
 
     const { sch, comp, vesselName, origPort, destPort } = this.currentBookingSchedule;
+
+    // Cek Data Penumpang Ganda pada Jadwal Ini
+    const dupCheck = Store.checkDuplicatePassenger(paxName, sch.id);
+    if (dupCheck) {
+      const confirmDup = confirm(`⚠️ PERINGATAN DATA PENUMPANG GANDA!\n\nNama "${paxName}" sudah terdaftar pada jadwal kapal ${dupCheck.vesselName}:\n• PNR: ${dupCheck.pnr}\n• Kursi: ${dupCheck.seat}\n• Tanggal: ${dupCheck.departDate}\n\nApakah Anda yakin ingin tetap melanjutkan pemesanan dengan data nama ganda?`);
+      if (!confirmDup) {
+        this.showToast('Pemesanan Dibatalkan', `Pemesanan untuk "${paxName}" dibatalkan karena nama terdeteksi ganda.`, 'warning');
+        return;
+      }
+    }
     const isIntl = (origPort.id === 'TWU' || destPort.id === 'TWU' || comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional'));
 
     if (isIntl && (docType === 'PASSPORT_RI' || docType === 'PASSPORT_FOREIGN') && passportExp) {
@@ -967,62 +1081,59 @@ const App = {
       }
     }
 
-    // Attach WhatsApp send handler
+    // Attach WhatsApp send handler (Fitur 8: Integrasi Pengiriman E-Tiket WhatsApp Resmi)
     const btnWa = document.getElementById('btnSendTicketWhatsapp');
     if (btnWa) {
       btnWa.onclick = () => {
-        const phone = booking.contact?.phone || 'Nomor Penumpang';
-        this.showToast('Kirim ke WhatsApp', `E-Boarding Pass & QR Code (PNR: ${booking.pnr}) berhasil disiapkan ke WhatsApp ${phone}.`);
+        let phone = (booking.contact?.phone || '').replace(/[^0-9]/g, '');
+        if (phone.startsWith('0')) {
+          phone = '62' + phone.substring(1);
+        }
+        const paxName = booking.passenger?.name || booking.passengerName || 'Penumpang';
+        const pnr = booking.pnr || 'PNR';
+        const vesselName = booking.vesselName || 'Armada Kapal';
+        const depDate = booking.travelDate || booking.departDate || '';
+        const seat = (booking.passengers && booking.passengers[0]?.seat) || booking.seatNumber || '-';
+        const classNm = booking.className || 'Ekonomi';
+        const totalPay = booking.currency === 'MYR' 
+          ? formatRinggit(booking.totalFareMyr || convertIdrToMyr(booking.totalFare))
+          : formatRupiah(booking.totalFare || 0);
+
+        const waText = 
+`*E-BOARDING PASS RESMI PERUSAHAAN PELAYARAN*
+Pelabuhan Tunon Taka Nunukan — Sistem Maritim Terpadu
+
+Halo Sdr/i *${paxName}*,
+Tiket penyeberangan laut Anda telah *CONFIRMED / LUNAS*:
+
+🎫 *Kode Booking (PNR):* ${pnr}
+🚢 *Kapal Armada:* ${vesselName}
+📅 *Tanggal Berangkat:* ${depDate}
+💺 *Nomor Kursi:* ${seat} (${classNm})
+💰 *Total Pembayaran:* ${totalPay}
+📍 *Dermaga:* Pelabuhan Tunon Taka Nunukan
+
+*Ketentuan Boarding:*
+1. Tiba di pelabuhan minimal 2 jam sebelum keberangkatan untuk validasi Gate Scanner & clearance KSOP/Imigrasi.
+2. Siapkan dokumen asli (Paspor berlaku min. 6 bulan untuk Tawau, atau KTP asli untuk Parepare).
+3. Untuk tujuan Tawau, pastikan Anda telah mengisi Malaysia Digital Arrival Card (MDAC) di https://imigresen-online.imi.gov.my/mdac/main.
+
+Terima kasih telah berlayar bersama armada resmi kami!`;
+
+        const waUrl = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(waText)}` : `https://wa.me/?text=${encodeURIComponent(waText)}`;
+        window.open(waUrl, '_blank');
+        this.showToast('WhatsApp Terbuka', `Pesan resmi E-Boarding Pass PNR ${pnr} telah diarahkan ke WhatsApp.`);
       };
     }
 
     document.getElementById('modalCustomerTicket')?.classList.add('show');
   },
 
-  // Render Dynamic Entry Portal Buttons for Registered Companies
+  // Render Dynamic Entry Portal Buttons for Registered Companies (Disabled - quick login removed)
   renderCompanyAuthButtons() {
     const grid = document.getElementById('demoButtonsGrid');
     if (!grid) return;
-    const companies = Store.getCompanies();
     grid.innerHTML = '';
-
-    if (companies.length === 0) {
-      grid.innerHTML = `
-        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius-md); padding: 0.85rem 1rem; color: #64748b; font-size: 0.83rem; line-height: 1.5; grid-column: 1 / -1;">
-          Belum ada perusahaan terdaftar. Silakan daftarkan perusahaan pelayaran Anda melalui formulir di samping untuk otomatis membuat portal masuk resmi.
-        </div>
-      `;
-      return;
-    }
-
-    companies.forEach(comp => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn-demo-company';
-      btn.setAttribute('data-comp-id', comp.id);
-      btn.innerHTML = `
-        <span class="btn-demo-dot" style="background: ${comp.brandColor};"></span>
-        <span class="btn-demo-text">
-          <strong>${comp.shortName || comp.name}</strong>
-          <small>${comp.category || 'Operator Resmi'}</small>
-        </span>
-      `;
-      btn.addEventListener('click', () => {
-        document.getElementById('tabBtnLogin')?.click();
-        const emailInput = document.getElementById('loginCompEmail');
-        const passInput = document.getElementById('loginCompPassword');
-        if (emailInput) {
-          emailInput.value = comp.email || comp.shortName || comp.name;
-        }
-        if (passInput) {
-          passInput.value = '';
-          passInput.focus();
-        }
-        document.getElementById('formCompanyLogin')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        this.showToast('Masukkan Kredensial', `Silakan masukkan password akun ${comp.shortName || comp.name} untuk masuk ke portal.`, 'info');
-      });
-      grid.appendChild(btn);
-    });
   },
 
   // ================= COMPANY AUTHENTICATION =================
@@ -1166,39 +1277,38 @@ const App = {
       };
       Store.addSchedule(newSched);
 
-      // Update portal masuk perusahaan secara otomatis
-      this.renderCompanyAuthButtons();
       this.renderCompanyFilterChips();
 
       // Reset form pendaftaran
       document.getElementById('formCompanyRegister')?.reset();
 
-      // Alihkan ke tab Masuk Portal agar wajib menginputkan kredensial login
+      // Alihkan ke tab Masuk Portal
       document.getElementById('tabBtnLogin')?.click();
 
-      // Masukkan email perusahaan dan kosongkan password agar diinputkan oleh user
+      // Kosongkan form login agar tidak menyimpan atau mengisi kredensial otomatis
       const loginEmailInput = document.getElementById('loginCompEmail');
       if (loginEmailInput) {
-        loginEmailInput.value = email;
+        loginEmailInput.value = '';
       }
       const loginPassInput = document.getElementById('loginCompPassword');
       if (loginPassInput) {
         loginPassInput.value = '';
-        loginPassInput.focus();
       }
 
-      this.showToast('Pendaftaran Berhasil', `Perusahaan "${name}" berhasil didaftarkan. Silakan masukkan password untuk masuk ke portal.`);
+      this.showToast('Pendaftaran Berhasil', `Perusahaan "${name}" berhasil didaftarkan. Silakan login ke portal dengan akun Anda.`);
     });
   },
 
   // Helper function to switch tabs in company dashboard
-  switchDashboardTab(tabKey) {
+  switchDashboardTab(tabKey, preserveGroupToggle = false) {
     document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.dash-tab-btn').forEach(b => {
       if (b.getAttribute('data-tab') === tabKey) {
         b.classList.add('active');
-        const parentGroup = b.closest('.dash-nav-group');
-        if (parentGroup) parentGroup.classList.add('open');
+        if (!preserveGroupToggle) {
+          const parentGroup = b.closest('.dash-nav-group');
+          if (parentGroup) parentGroup.classList.add('open');
+        }
       } else {
         b.classList.remove('active');
       }
@@ -1215,7 +1325,8 @@ const App = {
       tabCalendar: 'Kalender Pelayaran',
       tabScanner: 'Gate Scanner QR',
       tabSeats: 'Denah Kursi & Seat',
-      tabSettings: 'Pengaturan Portal Perusahaan'
+      tabSettings: 'Pengaturan Portal Perusahaan',
+      tabCargo: 'Kalkulator DWT & Muatan'
     };
     if (titleEl && tabTitles[tabKey]) {
       titleEl.innerText = tabTitles[tabKey];
@@ -1246,13 +1357,18 @@ const App = {
       document.getElementById('paneSettings')?.classList.add('active');
       this.loadCompanySettingsToForm();
       this.loadKsopSettingsToForm();
+      this.loadPeakSeasonSettingsToForm();
+    }
+    if (tabKey === 'tabCargo') {
+      document.getElementById('paneCargo')?.classList.add('active');
+      this.renderCargoCalculator();
     }
   },
 
   // ================= COMPANY DASHBOARD =================
   initDashboardEvents() {
     // Helper function to switch tabs
-    const switchTab = (tabKey) => this.switchDashboardTab(tabKey);
+    const switchTab = (tabKey, preserveGroupToggle = false) => this.switchDashboardTab(tabKey, preserveGroupToggle);
 
     // Ticky Sidebar Collapse Toggle via Logo Perusahaan
     document.getElementById('tickyBrandHome')?.addEventListener('click', (e) => {
@@ -1424,7 +1540,9 @@ const App = {
 
         // Toggle accordion group if exists
         const parentGroup = btn.closest('.dash-nav-group');
+        let isGroupBtn = false;
         if (parentGroup) {
+          isGroupBtn = true;
           const wasOpen = parentGroup.classList.contains('open');
           document.querySelectorAll('.dash-nav-group').forEach(g => {
             if (g !== parentGroup) g.classList.remove('open');
@@ -1434,7 +1552,7 @@ const App = {
           document.querySelectorAll('.dash-nav-group').forEach(g => g.classList.remove('open'));
         }
 
-        switchTab(tabKey);
+        switchTab(tabKey, isGroupBtn);
 
         // Handle specific actions from Photo 2 navigation
         const action = btn.getAttribute('data-action');
@@ -1502,6 +1620,16 @@ const App = {
 
     // Add Vessel Modal trigger
     document.getElementById('btnOpenAddVessel').addEventListener('click', () => {
+      const modalTitle = document.getElementById('modalVesselTitle');
+      const submitBtn = document.getElementById('btnSubmitVessel');
+      const editIdInput = document.getElementById('vesselEditId');
+      const passInput = document.getElementById('vesselAuthPassword');
+
+      if (modalTitle) modalTitle.innerText = 'Tambah Armada Kapal Baru';
+      if (submitBtn) submitBtn.innerText = 'Simpan & Daftarkan Armada';
+      if (editIdInput) editIdInput.value = '';
+      if (passInput) passInput.value = '';
+      document.getElementById('formAddVessel')?.reset();
       document.getElementById('modalAddVessel').classList.add('show');
     });
 
@@ -1513,33 +1641,76 @@ const App = {
       this.openAddScheduleModal();
     });
 
-    // Submit Add Vessel Form
+    // Submit Add / Edit Vessel Form (Dengan Verifikasi Password Portal Perusahaan)
     document.getElementById('formAddVessel').addEventListener('submit', (e) => {
       e.preventDefault();
       const tenant = Store.getCurrentTenant();
+      const editId = document.getElementById('vesselEditId')?.value?.trim();
       const name = document.getElementById('vesselNameInput').value.trim();
       const reg = document.getElementById('vesselRegInput').value.trim();
       const type = document.getElementById('vesselTypeInput').value;
       const capacity = parseInt(document.getElementById('vesselCapacityInput').value, 10);
       const facStr = document.getElementById('vesselFacInput').value;
       const facilities = facStr.split(',').map(s => s.trim()).filter(Boolean);
+      const enteredPass = document.getElementById('vesselAuthPassword')?.value?.trim();
 
-      const newVessel = {
-        id: `VES-${Date.now().toString(36).toUpperCase()}`,
-        companyId: tenant.id,
-        name,
-        regNumber: reg,
-        type,
-        capacity,
-        facilities,
-        status: 'ACTIVE'
-      };
+      // Verifikasi Password Portal Perusahaan Saat Menyimpan Perubahan Armada
+      if (tenant && tenant.password && enteredPass !== tenant.password) {
+        this.showToast('Verifikasi Gagal', 'Password portal perusahaan yang Anda masukkan salah. Perubahan armada ditolak.', 'warning');
+        return;
+      }
+      if (tenant && !tenant.password && !enteredPass) {
+        this.showToast('Password Diperlukan', 'Silakan masukkan password akun portal perusahaan Anda untuk konfirmasi.', 'warning');
+        return;
+      }
 
-      Store.addVessel(newVessel);
-      document.getElementById('modalAddVessel').classList.remove('show');
-      document.getElementById('formAddVessel').reset();
-      this.refreshCompanyDashboard();
-      this.showToast('Armada Ditambahkan', `Kapal "${name}" berhasil terdaftar di bawah ${tenant.name}.`);
+      if (editId) {
+        // Mode Edit Armada
+        const oldVessel = Store.getVessels().find(v => v.id === editId);
+        const oldName = oldVessel ? oldVessel.name : '';
+
+        Store.updateVessel(editId, {
+          name,
+          regNumber: reg,
+          type,
+          capacity,
+          facilities
+        });
+
+        // Sinkronisasi nama kapal di jadwal jika ada perubahan nama
+        if (oldName && oldName !== name && tenant) {
+          const schedules = Store.getSchedulesByCompany(tenant.id);
+          schedules.forEach(s => {
+            if (s.vesselId === editId || s.vesselNameCustom === oldName) {
+              s.vesselNameCustom = name;
+            }
+          });
+          Store.saveSchedules(schedules);
+        }
+
+        document.getElementById('modalAddVessel').classList.remove('show');
+        document.getElementById('formAddVessel').reset();
+        this.refreshCompanyDashboard();
+        this.showToast('Armada Diperbarui', `Perubahan data kapal "${name}" berhasil disimpan dengan verifikasi password.`);
+      } else {
+        // Mode Tambah Armada Baru
+        const newVessel = {
+          id: `VES-${Date.now().toString(36).toUpperCase()}`,
+          companyId: tenant ? tenant.id : 'TENANT',
+          name,
+          regNumber: reg,
+          type,
+          capacity,
+          facilities,
+          status: 'ACTIVE'
+        };
+
+        Store.addVessel(newVessel);
+        document.getElementById('modalAddVessel').classList.remove('show');
+        document.getElementById('formAddVessel').reset();
+        this.refreshCompanyDashboard();
+        this.showToast('Armada Ditambahkan', `Kapal "${name}" berhasil terdaftar di bawah ${tenant ? tenant.name : 'Perusahaan'}.`);
+      }
     });
 
     // Submit Add Schedule Form (Dengan Dukungan Tanggal & Pola Keberangkatan Kalender)
@@ -1791,7 +1962,7 @@ const App = {
     const tbodyFleet = document.getElementById('tbodyFleetList');
     tbodyFleet.innerHTML = '';
     if (fleet.length === 0) {
-      tbodyFleet.innerHTML = `<tr><td colspan="6" class="text-center text-dim" style="padding: 2rem;">Belum ada armada yang didaftarkan. Klik "Tambah Armada Baru" di atas.</td></tr>`;
+      tbodyFleet.innerHTML = `<tr><td colspan="7" class="text-center text-dim" style="padding: 2rem;">Belum ada armada yang didaftarkan. Klik "Tambah Armada Baru" di atas.</td></tr>`;
     } else {
       fleet.forEach(v => {
         const tr = document.createElement('tr');
@@ -1802,7 +1973,15 @@ const App = {
           <td>${v.capacity} Penumpang</td>
           <td><small class="text-dim">${(v.facilities && v.facilities.length > 0) ? v.facilities.join(', ') : 'Standar Penumpang, Life Jacket'}</small></td>
           <td><span class="status-pill paid">${v.status}</span></td>
+          <td>
+            <button type="button" class="btn-action-sm btn-edit-vessel" data-id="${v.id}" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0284c7; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              ✏️ Edit
+            </button>
+          </td>
         `;
+        tr.querySelector('.btn-edit-vessel')?.addEventListener('click', () => {
+          this.openEditVesselModal(v.id);
+        });
         tbodyFleet.appendChild(tr);
       });
     }
@@ -1811,7 +1990,7 @@ const App = {
     const tbodySched = document.getElementById('tbodySchedulesList');
     tbodySched.innerHTML = '';
     if (schedules.length === 0) {
-      tbodySched.innerHTML = `<tr><td colspan="7" class="text-center text-dim" style="padding: 2rem;">Belum ada jadwal keberangkatan aktif. Klik "Buka Jadwal Baru" di atas.</td></tr>`;
+      tbodySched.innerHTML = `<tr><td colspan="8" class="text-center text-dim" style="padding: 2rem;">Belum ada jadwal keberangkatan aktif. Klik "Buka Jadwal Baru" di atas.</td></tr>`;
     } else {
       schedules.forEach(s => {
         const v = fleet.find(item => item.id === s.vesselId);
@@ -1831,7 +2010,15 @@ const App = {
           <td><small class="text-dim">${s.pier || 'Dermaga Penumpang'}</small></td>
           <td>${classesHtml}</td>
           <td><span class="status-pill paid">${s.status || 'Aktif'}</span></td>
+          <td>
+            <button type="button" class="btn-action-sm btn-edit-sched-price" data-id="${s.id}" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              🏷️ Edit Tarif
+            </button>
+          </td>
         `;
+        tr.querySelector('.btn-edit-sched-price')?.addEventListener('click', () => {
+          this.openEditSchedulePriceModal(s.id);
+        });
         tbodySched.appendChild(tr);
       });
     }
@@ -1855,6 +2042,16 @@ const App = {
       if (searchInput) searchInput.addEventListener('input', triggerFilter);
       if (routeFilter) routeFilter.addEventListener('change', triggerFilter);
       if (boardingFilter) boardingFilter.addEventListener('change', triggerFilter);
+
+      const btnAuditDup = document.getElementById('btnAuditDuplicatePax');
+      if (btnAuditDup) {
+        btnAuditDup.addEventListener('click', () => {
+          if (boardingFilter) {
+            boardingFilter.value = boardingFilter.value === 'DUPLICATE' ? 'ALL' : 'DUPLICATE';
+            triggerFilter();
+          }
+        });
+      }
 
       const btnExportCsv = document.getElementById('btnExportManifestCsv');
       if (btnExportCsv) {
@@ -2034,19 +2231,42 @@ const App = {
       });
     }
 
-    // Update Quick Statistics
+    // Hitung frekuensi nama penumpang untuk deteksi data ganda
+    const nameFrequency = {};
+    paxList.forEach(item => {
+      const norm = (item.pax.name || '').trim().toLowerCase();
+      if (norm) {
+        nameFrequency[norm] = (nameFrequency[norm] || 0) + 1;
+      }
+    });
+
+    // Update Quick Statistics & Duplicate Badge Count
     let wniCount = 0;
     let wnaCount = 0;
     let boardedCount = 0;
     let waitingCount = 0;
+    let duplicatePaxCount = 0;
 
     paxList.forEach(item => {
+      const norm = (item.pax.name || '').trim().toLowerCase();
+      if (norm && nameFrequency[norm] > 1) duplicatePaxCount++;
+
       if (item.pax.nationality === 'MY' || item.pax.nationality === 'OTHER') wnaCount++;
       else wniCount++;
 
       if (item.booking.boardingStatus === 'BOARDED') boardedCount++;
       else waitingCount++;
     });
+
+    const dupBadgeEl = document.getElementById('countDuplicateBadge');
+    if (dupBadgeEl) dupBadgeEl.innerText = duplicatePaxCount;
+
+    if (boardingFilter === 'DUPLICATE') {
+      paxList = paxList.filter(item => {
+        const norm = (item.pax.name || '').trim().toLowerCase();
+        return norm && (nameFrequency[norm] > 1);
+      });
+    }
 
     const statTotal = document.getElementById('statManifestTotalPax');
     const statWni = document.getElementById('statManifestWniWna');
@@ -2069,6 +2289,10 @@ const App = {
 
       const isBoarded = b.boardingStatus === 'BOARDED';
       const docNum = p.passportNo || p.docNumber || p.nik || '-';
+      const isDuplicate = (nameFrequency[(p.name || '').trim().toLowerCase()] || 0) > 1;
+      const dupBadgeHtml = isDuplicate 
+        ? ' <span class="tag-badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 0.62rem; padding: 1px 4px; border-radius: 3px; font-weight: 700;" title="Peringatan: Nama penumpang ini terdeteksi ganda di manifest">⚠️ Ganda</span>' 
+        : '';
       const paxTypeBadge = p.paxType === 'Anak' 
         ? '<span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: #f59e0b;">Anak-Anak</span>' 
         : (p.paxType === 'Bayi' 
@@ -2082,7 +2306,7 @@ const App = {
         <td style="color: var(--text-dim); text-align: center; width: 24px; padding: 4px 3px; font-size: 0.7rem;">${idx + 1}</td>
         <td style="padding: 4px; white-space: nowrap;"><strong style="color: #0284c7; font-family: var(--font-mono); font-size: 0.72rem;">${b.pnr}</strong></td>
         <td style="padding: 4px; white-space: nowrap;">${paxTypeBadge}</td>
-        <td style="padding: 4px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><strong style="color: #0f172a; font-size: 0.74rem;" title="${p.name}">${p.name}</strong></td>
+        <td style="padding: 4px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><strong style="color: #0f172a; font-size: 0.74rem;" title="${p.name}">${p.name}</strong>${dupBadgeHtml}</td>
         <td style="text-align: center; font-weight: 700; width: 24px; padding: 4px 3px; font-size: 0.72rem;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #0284c7;">L</span>'}</td>
         <td style="padding: 4px; white-space: nowrap;"><code style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; font-weight: 700; color: #0f172a; font-size: 0.68rem;">${docNum}</code></td>
         <td style="padding: 4px; white-space: nowrap; font-size: 0.7rem;">${p.age ? p.age + ' th' : (p.dob || '-')}</td>
@@ -2775,7 +2999,7 @@ const App = {
     if (!booking) {
       card.innerHTML = `
         <div class="scan-empty-state" style="color: var(--accent-rose);">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
           <h4 style="color: var(--accent-rose);">Tiket Tidak Terdaftar / Palsu!</h4>
           <p>Kode "${code}" tidak ditemukan dalam manifest kapal perusahaan ini.</p>
         </div>
@@ -2855,6 +3079,50 @@ const App = {
     });
     document.getElementById('btnCancelAddSchedule').addEventListener('click', () => {
       document.getElementById('modalAddSchedule').classList.remove('show');
+    });
+
+    // Edit Schedule Price Modal Listeners
+    document.getElementById('btnCloseEditSchedulePrice')?.addEventListener('click', () => {
+      document.getElementById('modalEditSchedulePrice').classList.remove('show');
+    });
+    document.getElementById('btnCancelEditSchedulePrice')?.addEventListener('click', () => {
+      document.getElementById('modalEditSchedulePrice').classList.remove('show');
+    });
+    document.getElementById('formEditSchedulePrice')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const schedId = document.getElementById('editSchedId').value;
+      const s = Store.getScheduleById ? Store.getScheduleById(schedId) : Store.getSchedules().find(item => item.id === schedId);
+      if (!s) return;
+
+      const newVip = parseFloat(document.getElementById('editSchedPriceVip').value) || 0;
+      const newEko = parseFloat(document.getElementById('editSchedPriceEko').value) || 0;
+
+      s.priceEconomy = newEko;
+      if (!s.classes || s.classes.length === 0) {
+        s.classes = [
+          { id: 'cls-vip', name: 'VIP AC', price: newVip, quota: 40, available: 40 },
+          { id: 'cls-eko', name: 'Ekonomi', price: newEko, quota: s.quotaTotal || 200, available: 200 }
+        ];
+      } else {
+        const vipClass = s.classes.find(c => c.id === 'cls-vip' || (c.name && c.name.toLowerCase().includes('vip')));
+        const ekoClass = s.classes.find(c => c.id === 'cls-eko' || (c.name && c.name.toLowerCase().includes('ekonomi')));
+        if (vipClass) {
+          vipClass.price = newVip;
+        } else {
+          s.classes.push({ id: 'cls-vip', name: 'VIP AC', price: newVip, quota: 40, available: 40 });
+        }
+
+        if (ekoClass) {
+          ekoClass.price = newEko;
+        } else {
+          s.classes.push({ id: 'cls-eko', name: 'Ekonomi', price: newEko, quota: s.quotaTotal || 200, available: 200 });
+        }
+      }
+
+      Store.updateSchedule(s.id, s);
+      document.getElementById('modalEditSchedulePrice').classList.remove('show');
+      this.refreshCompanyDashboard();
+      this.showToast('Tarif Tiket Diperbarui', `Tarif tiket jadwal ${schedId} berhasil diupdate: VIP ${formatRupiah(newVip)}, Ekonomi ${formatRupiah(newEko)}.`);
     });
 
     // Customer Booking Modal
@@ -2965,6 +3233,15 @@ const App = {
         remark: document.getElementById('editPaxRemark').value.trim()
       };
 
+      const booking = Store.getBookingByPnr(pnr);
+      if (booking && booking.scheduleId) {
+        const dup = Store.checkDuplicatePassenger(updatedPax.name, booking.scheduleId, pnr);
+        if (dup) {
+          const proceed = confirm(`⚠️ PERINGATAN DATA GANDA!\n\nNama "${updatedPax.name}" sudah terdaftar pada jadwal ini di tiket lain:\n• PNR: ${dup.pnr}\n• Kursi: ${dup.seat}\n• Kapal: ${dup.vesselName}\n\nApakah Anda yakin ingin tetap menyimpan perubahan data nama ini?`);
+          if (!proceed) return;
+        }
+      }
+
       Store.updatePassenger(pnr, paxIndex, updatedPax);
       document.getElementById('modalEditManifest').classList.remove('show');
       this.refreshCompanyDashboard();
@@ -3010,6 +3287,16 @@ const App = {
       if (booking.passengers && booking.passengers[0]) {
         booking.passengers[0].seat = newSeat;
         booking.passengers[0].className = newClass;
+      }
+
+      const editPriceInput = document.getElementById('editTicketPrice');
+      if (editPriceInput && editPriceInput.value !== '') {
+        const newPrice = parseFloat(editPriceInput.value) || 0;
+        booking.totalAmount = newPrice;
+        booking.totalFare = newPrice;
+        if (booking.passengers && booking.passengers[0]) {
+          booking.passengers[0].fare = newPrice;
+        }
       }
 
       Store.updateBooking(booking);
@@ -3244,6 +3531,30 @@ const App = {
       }
     };
 
+    // Real-time duplicate check on manifest edit modal
+    const editNameInput = document.getElementById('editPaxName');
+    const editDupWarn = document.getElementById('editPaxDuplicateWarning');
+    if (editNameInput) {
+      const checkEditDup = () => {
+        const val = editNameInput.value.trim();
+        if (!val || !booking.scheduleId) {
+          if (editDupWarn) editDupWarn.style.display = 'none';
+          return;
+        }
+        const dup = Store.checkDuplicatePassenger(val, booking.scheduleId, pnr);
+        if (dup) {
+          if (editDupWarn) {
+            editDupWarn.style.display = 'block';
+            editDupWarn.innerText = `⚠️ Nama ini terdaftar di tiket lain (PNR: ${dup.pnr}, Kursi: ${dup.seat})`;
+          }
+        } else {
+          if (editDupWarn) editDupWarn.style.display = 'none';
+        }
+      };
+      editNameInput.oninput = checkEditDup;
+      checkEditDup();
+    }
+
     document.getElementById('modalEditManifest').classList.add('show');
   },
 
@@ -3265,6 +3576,11 @@ const App = {
     document.getElementById('editTicketBoardingStatus').value = booking.boardingStatus || 'NOT_CHECKED_IN';
     document.getElementById('editTicketContactName').value = booking.contact ? booking.contact.name : (p0.name || '');
     document.getElementById('editTicketContactPhone').value = booking.contact ? booking.contact.phone : '';
+
+    const priceInput = document.getElementById('editTicketPrice');
+    if (priceInput) {
+      priceInput.value = booking.totalAmount !== undefined ? booking.totalAmount : (booking.totalFare || 0);
+    }
 
     document.getElementById('modalEditTicket').classList.add('show');
   },
@@ -3635,44 +3951,57 @@ const App = {
 
   // Initialize Company Settings Sub-tab, Photo Upload & Form Submit
   initCompanySettingsEvents() {
-    // 1. Sub-tab toggle between Company Profile and KSOP Settings
+    // 1. Sub-tab toggle between Company Profile, KSOP Settings, and Peak Season
     const btnCompany = document.getElementById('tabBtnSettingsCompany');
     const btnKsop = document.getElementById('tabBtnSettingsKsop');
+    const btnPeak = document.getElementById('tabBtnSettingsPeakSeason');
     const subCompany = document.getElementById('subPaneSettingsCompany');
     const subKsop = document.getElementById('subPaneSettingsKsop');
+    const subPeak = document.getElementById('subPaneSettingsPeakSeason');
+
+    const resetSubTabButtons = () => {
+      [btnCompany, btnKsop, btnPeak].forEach(b => {
+        if (!b) return;
+        b.classList.remove('active');
+        b.style.background = '#ffffff';
+        b.style.color = '#64748b';
+        b.style.border = '1px solid #cbd5e1';
+        b.style.boxShadow = 'none';
+      });
+      if (subCompany) subCompany.style.display = 'none';
+      if (subKsop) subKsop.style.display = 'none';
+      if (subPeak) subPeak.style.display = 'none';
+    };
 
     btnCompany?.addEventListener('click', () => {
+      resetSubTabButtons();
       btnCompany.classList.add('active');
       btnCompany.style.background = '#7c3aed';
       btnCompany.style.color = '#ffffff';
       btnCompany.style.border = 'none';
       btnCompany.style.boxShadow = '0 2px 6px rgba(124, 58, 237, 0.25)';
-
-      btnKsop.classList.remove('active');
-      btnKsop.style.background = '#ffffff';
-      btnKsop.style.color = '#64748b';
-      btnKsop.style.border = '1px solid #cbd5e1';
-      btnKsop.style.boxShadow = 'none';
-
       if (subCompany) subCompany.style.display = 'block';
-      if (subKsop) subKsop.style.display = 'none';
     });
 
     btnKsop?.addEventListener('click', () => {
+      resetSubTabButtons();
       btnKsop.classList.add('active');
       btnKsop.style.background = '#0284c7';
       btnKsop.style.color = '#ffffff';
       btnKsop.style.border = 'none';
       btnKsop.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.25)';
-
-      btnCompany.classList.remove('active');
-      btnCompany.style.background = '#ffffff';
-      btnCompany.style.color = '#64748b';
-      btnCompany.style.border = '1px solid #cbd5e1';
-      btnCompany.style.boxShadow = 'none';
-
       if (subKsop) subKsop.style.display = 'block';
-      if (subCompany) subCompany.style.display = 'none';
+    });
+
+    btnPeak?.addEventListener('click', () => {
+      resetSubTabButtons();
+      btnPeak.classList.add('active');
+      btnPeak.style.background = '#f59e0b';
+      btnPeak.style.color = '#ffffff';
+      btnPeak.style.border = 'none';
+      btnPeak.style.boxShadow = '0 2px 6px rgba(245, 158, 11, 0.25)';
+      if (subPeak) subPeak.style.display = 'block';
+      this.loadPeakSeasonSettingsToForm();
     });
 
     // 2. Photo Upload Trigger & File Reader
@@ -4004,10 +4333,8 @@ const App = {
     const schedules = Store.getSchedulesByCompany(tenant.id);
     const currentSched = schedules.find(s => s.id === this.seatDashState.scheduleId);
 
-    const classIdx = this.seatDashState.classIdx || 0;
-    const classNames = ['Ekonomi (Main Deck)', 'Bisnis / Executive (Upper Deck)', 'VIP Stateroom (Private Cabin)'];
-    const currentDeckName = classNames[classIdx];
-    if (deckLabel) deckLabel.innerText = currentDeckName.toUpperCase();
+    const currentDeckName = 'Main Deck';
+    if (deckLabel) deckLabel.innerText = 'MAIN DECK';
 
     // Reset details panel
     this.updateSeatDetailDisplay(null, currentDeckName);
@@ -4023,6 +4350,19 @@ const App = {
       this.updateSeatDeckStats(0, 0, 0, currentDeckName, currentSched ? currentSched.vesselName : '-');
       return;
     }
+
+    // Ambil kapasitas kapal armada sesuai jadwal
+    const fleet = Store.getVesselsByCompany(tenant.id);
+    const currentVessel = fleet.find(f => f.id === currentSched.vesselId) ||
+                          fleet.find(f => f.name === currentSched.vesselName) ||
+                          Store.getVessels().find(v => v.id === currentSched.vesselId);
+    let vesselCapacity = 150;
+    if (currentVessel && currentVessel.capacity) {
+      vesselCapacity = parseInt(currentVessel.capacity, 10);
+    } else if (currentSched && (currentSched.capacity || currentSched.quotaTotal)) {
+      vesselCapacity = parseInt(currentSched.capacity || currentSched.quotaTotal, 10);
+    }
+    if (!vesselCapacity || vesselCapacity <= 0) vesselCapacity = 150;
 
     // Map booked passengers for this schedule
     const allBookings = Store.getBookingsByCompany(tenant.id);
@@ -4052,162 +4392,86 @@ const App = {
       });
     });
 
-    let totalDeckSeats = 0;
+    // Generator Kode Baris Huruf (A, B, C... Z, AA, AB...)
+    const getRowCode = (rIdx) => {
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      if (rIdx < letters.length) return letters[rIdx];
+      const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+      const p2 = letters[rIdx % letters.length];
+      return `${p1}${p2}`;
+    };
+
+    let totalDeckSeats = vesselCapacity;
     let occupiedDeckCount = 0;
+    let generatedCount = 0;
+    const totalRows = Math.ceil(vesselCapacity / 6);
 
-    if (classIdx === 2) {
-      // VIP Stateroom Layout (4 Cabins: VIP-01 s/d VIP-04)
-      totalDeckSeats = 4;
-      const vipRow = document.createElement('div');
-      vipRow.className = 'seat-row';
-      vipRow.style.gap = '1.25rem';
-      vipRow.style.justifyContent = 'center';
+    for (let r = 0; r < totalRows; r++) {
+      if (generatedCount >= vesselCapacity) break;
+      const rowWrap = document.createElement('div');
+      rowWrap.className = 'seat-row';
+      rowWrap.style.display = 'flex';
+      rowWrap.style.justifyContent = 'center';
+      rowWrap.style.alignItems = 'center';
+      rowWrap.style.gap = '0.45rem';
+      const rowCode = getRowCode(r);
 
-      for (let i = 1; i <= 4; i++) {
-        const seatCode = `VIP-0${i}`;
+      // 3 Kolom Kursi Kiri (Port: 01, 02, 03)
+      for (let col = 1; col <= 3; col++) {
+        if (generatedCount >= vesselCapacity) break;
+        generatedCount++;
+        const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
         const paxInfo = occupiedMap[seatCode];
         const isOccupied = !!paxInfo;
         if (isOccupied) occupiedDeckCount++;
-
         const isSelected = this.seatDashState.selectedSeat === seatCode;
 
         const seat = document.createElement('div');
-        seat.className = `seat-box vip ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
-        seat.style.width = '100px';
-        seat.style.padding = '0.75rem 0.5rem';
-        seat.style.display = 'flex';
-        seat.style.flexDirection = 'column';
-        seat.style.alignItems = 'center';
-        seat.style.gap = '0.2rem';
-        seat.innerHTML = `
-          <span style="font-size: 1.1rem;">👑</span>
-          <strong style="font-size: 0.82rem;">${seatCode}</strong>
-          <span style="font-size: 0.65rem; color: ${isOccupied ? '#fca5a5' : '#38bdf8'};">
-            ${isOccupied ? 'TERISI' : 'TERSEDIA'}
-          </span>
-        `;
+        seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+        seat.innerText = seatCode;
+        seat.title = `Kursi ${seatCode} (Kiri)`;
+        seat.style.cursor = 'pointer';
 
         seat.addEventListener('click', () => {
           this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
         });
-
-        vipRow.appendChild(seat);
+        rowWrap.appendChild(seat);
       }
-      container.appendChild(vipRow);
 
-    } else if (classIdx === 1) {
-      // Business Upper Deck (3 Rows: B1, B2, B3 x 4 seats = 12 seats)
-      totalDeckSeats = 12;
-      const rows = ['B1', 'B2', 'B3'];
+      // Lorong Tengah (Center Aisle)
+      const aisle = document.createElement('div');
+      aisle.className = 'seat-aisle-gap';
+      aisle.style.width = '36px';
+      aisle.style.textAlign = 'center';
+      aisle.style.fontSize = '0.62rem';
+      aisle.style.color = '#94a3b8';
+      aisle.style.fontWeight = '700';
+      aisle.innerText = 'LORONG';
+      rowWrap.appendChild(aisle);
 
-      rows.forEach(rPrefix => {
-        const rowWrap = document.createElement('div');
-        rowWrap.className = 'seat-row';
+      // 3 Kolom Kursi Kanan (Starboard: 04, 05, 06)
+      for (let col = 4; col <= 6; col++) {
+        if (generatedCount >= vesselCapacity) break;
+        generatedCount++;
+        const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
+        const paxInfo = occupiedMap[seatCode];
+        const isOccupied = !!paxInfo;
+        if (isOccupied) occupiedDeckCount++;
+        const isSelected = this.seatDashState.selectedSeat === seatCode;
 
-        // Left 2 seats
-        for (let col = 1; col <= 2; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const paxInfo = occupiedMap[seatCode];
-          const isOccupied = !!paxInfo;
-          if (isOccupied) occupiedDeckCount++;
-          const isSelected = this.seatDashState.selectedSeat === seatCode;
+        const seat = document.createElement('div');
+        seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
+        seat.innerText = seatCode;
+        seat.title = `Kursi ${seatCode} (Kanan)`;
+        seat.style.cursor = 'pointer';
 
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
-          seat.style.width = '52px';
-          seat.style.border = '1px solid rgba(56, 189, 248, 0.4)';
-          seat.innerHTML = `<span>⭐</span> ${seatCode}`;
+        seat.addEventListener('click', () => {
+          this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
+        });
+        rowWrap.appendChild(seat);
+      }
 
-          seat.addEventListener('click', () => {
-            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
-          });
-          rowWrap.appendChild(seat);
-        }
-
-        // Center Aisle
-        const aisle = document.createElement('div');
-        aisle.className = 'seat-aisle-gap';
-        aisle.style.width = '36px';
-        aisle.innerText = 'LORONG';
-        rowWrap.appendChild(aisle);
-
-        // Right 2 seats
-        for (let col = 3; col <= 4; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const paxInfo = occupiedMap[seatCode];
-          const isOccupied = !!paxInfo;
-          if (isOccupied) occupiedDeckCount++;
-          const isSelected = this.seatDashState.selectedSeat === seatCode;
-
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
-          seat.style.width = '52px';
-          seat.style.border = '1px solid rgba(56, 189, 248, 0.4)';
-          seat.innerHTML = `<span>⭐</span> ${seatCode}`;
-
-          seat.addEventListener('click', () => {
-            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
-          });
-          rowWrap.appendChild(seat);
-        }
-
-        container.appendChild(rowWrap);
-      });
-
-    } else {
-      // Main Passenger Deck Economy (Rows A, B, C, D, E, F x 4 seats = 24 seats)
-      totalDeckSeats = 24;
-      const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-      rows.forEach(rPrefix => {
-        const rowWrap = document.createElement('div');
-        rowWrap.className = 'seat-row';
-
-        // Left 2 seats (Port)
-        for (let col = 1; col <= 2; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const paxInfo = occupiedMap[seatCode];
-          const isOccupied = !!paxInfo;
-          if (isOccupied) occupiedDeckCount++;
-          const isSelected = this.seatDashState.selectedSeat === seatCode;
-
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
-          seat.innerText = seatCode;
-
-          seat.addEventListener('click', () => {
-            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
-          });
-          rowWrap.appendChild(seat);
-        }
-
-        // Center Aisle (Lorong)
-        const aisle = document.createElement('div');
-        aisle.className = 'seat-aisle-gap';
-        aisle.style.width = '36px';
-        aisle.innerText = 'LORONG';
-        rowWrap.appendChild(aisle);
-
-        // Right 2 seats (Starboard)
-        for (let col = 3; col <= 4; col++) {
-          const seatCode = `${rPrefix}-0${col}`;
-          const paxInfo = occupiedMap[seatCode];
-          const isOccupied = !!paxInfo;
-          if (isOccupied) occupiedDeckCount++;
-          const isSelected = this.seatDashState.selectedSeat === seatCode;
-
-          const seat = document.createElement('div');
-          seat.className = `seat-box ${isOccupied ? 'seat-box-occupied' : ''} ${isSelected ? 'seat-box-selected' : ''}`;
-          seat.innerText = seatCode;
-
-          seat.addEventListener('click', () => {
-            this.handleSeatClick(seatCode, paxInfo, currentDeckName, currentSched);
-          });
-          rowWrap.appendChild(seat);
-        }
-
-        container.appendChild(rowWrap);
-      });
+      container.appendChild(rowWrap);
     }
 
     const availableCount = Math.max(0, totalDeckSeats - occupiedDeckCount);
@@ -4658,7 +4922,7 @@ const App = {
       if (datesWithVoyages.length === 0) {
         agendaContainer.innerHTML = `
           <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:var(--radius-md);padding:2.5rem;text-align:center;color:#64748b;">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" style="margin-bottom:0.75rem;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" style="margin-bottom:0.75rem;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <h5 style="color:#0f172a;font-size:1rem;margin-bottom:0.35rem;">Tidak Ada Jadwal Pelayaran di Bulan Ini</h5>
             <p style="font-size:0.82rem;margin-bottom:1rem;">Gunakan tombol "+ Jadwal Baru" di atas untuk menambahkan jadwal keberangkatan armada kapal Anda.</p>
             <button type="button" class="btn-primary-action" onclick="App.openAddScheduleModal()">+ Buka Jadwal Baru Sekarang</button>
@@ -4795,6 +5059,74 @@ const App = {
     }
 
     modal.classList.add('show');
+  },
+
+  openEditVesselModal(vesselId) {
+    const vessel = Store.getVessels().find(v => v.id === vesselId);
+    if (!vessel) return;
+
+    const modalTitle = document.getElementById('modalVesselTitle');
+    const submitBtn = document.getElementById('btnSubmitVessel');
+    const editIdInput = document.getElementById('vesselEditId');
+
+    if (modalTitle) modalTitle.innerText = `Edit Data Armada: ${vessel.name}`;
+    if (submitBtn) submitBtn.innerText = 'Simpan Perubahan Armada';
+    if (editIdInput) editIdInput.value = vessel.id;
+
+    const nameInput = document.getElementById('vesselNameInput');
+    const regInput = document.getElementById('vesselRegInput');
+    const typeInput = document.getElementById('vesselTypeInput');
+    const capInput = document.getElementById('vesselCapacityInput');
+    const facInput = document.getElementById('vesselFacInput');
+    const passInput = document.getElementById('vesselAuthPassword');
+
+    if (nameInput) nameInput.value = vessel.name || '';
+    if (regInput) regInput.value = vessel.regNumber || '';
+    if (typeInput) typeInput.value = vessel.type || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    if (capInput) capInput.value = vessel.capacity || 250;
+    if (facInput) facInput.value = (vessel.facilities && vessel.facilities.length > 0) ? vessel.facilities.join(', ') : '';
+    if (passInput) passInput.value = '';
+
+    document.getElementById('modalAddVessel')?.classList.add('show');
+  },
+
+  openEditSchedulePriceModal(scheduleId) {
+    const s = Store.getScheduleById ? Store.getScheduleById(scheduleId) : Store.getSchedules().find(item => item.id === scheduleId);
+    if (!s) {
+      this.showToast('Jadwal Tidak Ditemukan', `Jadwal ${scheduleId} tidak ditemukan.`, 'warning');
+      return;
+    }
+    const tenant = Store.getCurrentTenant();
+    const fleet = tenant ? Store.getVesselsByCompany(tenant.id) : [];
+    const v = fleet.find(item => item.id === s.vesselId);
+    const vName = v ? v.name : 'Armada Reguler';
+    const orig = MASTER_PORTS.find(p => p.id === s.originId);
+    const dest = MASTER_PORTS.find(p => p.id === s.destinationId);
+
+    const schedIdEl = document.getElementById('editSchedId');
+    const schedIdLabel = document.getElementById('editSchedIdLabel');
+    const routeInfoEl = document.getElementById('editSchedRouteInfo');
+    const vipInput = document.getElementById('editSchedPriceVip');
+    const ekoInput = document.getElementById('editSchedPriceEko');
+
+    if (schedIdEl) schedIdEl.value = s.id;
+    if (schedIdLabel) schedIdLabel.innerText = s.id;
+    if (routeInfoEl) routeInfoEl.value = `${vName} (${orig ? orig.name : s.originId} ➔ ${dest ? dest.name : s.destinationId}) • ${s.departTime} WITA`;
+
+    let vipPrice = 750000;
+    let ekoPrice = s.priceEconomy || 250000;
+    if (s.classes && s.classes.length > 0) {
+      const vipClass = s.classes.find(c => c.id === 'cls-vip' || (c.name && c.name.toLowerCase().includes('vip')));
+      const ekoClass = s.classes.find(c => c.id === 'cls-eko' || (c.name && c.name.toLowerCase().includes('ekonomi')));
+      if (vipClass) vipPrice = vipClass.price;
+      if (ekoClass) ekoPrice = ekoClass.price;
+      else if (s.classes[0]) ekoPrice = s.classes[0].price;
+    }
+
+    if (vipInput) vipInput.value = vipPrice;
+    if (ekoInput) ekoInput.value = ekoPrice;
+
+    document.getElementById('modalEditSchedulePrice')?.classList.add('show');
   },
 
   openAddScheduleModal(defaultDate = null) {
@@ -5638,6 +5970,21 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       const fare = this.bulkState.farePerPax || 250000;
       const totalFare = list.length * fare;
 
+      // Cek Duplikasi Nama di Daftar Rombongan
+      const nameSet = new Set();
+      const internalDups = [];
+      list.forEach(p => {
+        const n = (p.name || '').trim().toLowerCase();
+        if (n) {
+          if (nameSet.has(n)) internalDups.push(p.name);
+          else nameSet.add(n);
+        }
+      });
+      if (internalDups.length > 0) {
+        const proceed = confirm(`⚠️ PERINGATAN DATA PENUMPANG GANDA!\n\nTerdapat nama penumpang ganda di dalam daftar rombongan ini:\n• ${internalDups.slice(0, 3).join(', ')}${internalDups.length > 3 ? ' dan lainnya' : ''}\n\nApakah Anda yakin ingin tetap memproses tiket?`);
+        if (!proceed) return;
+      }
+
       let mainPnr = '';
 
       if (pnrMode === 'GROUP') {
@@ -5782,8 +6129,497 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     }
   },
 
-  // Global Toast
-  showToast(title, body, type = 'success') {
+  // ========================================================
+  // ENTERPRISE FEATURE 1: KALKULATOR DWT & MANIFEST MUATAN KAPAL
+  // ========================================================
+  initCargoEvents() {
+    const form = document.getElementById('formAddCargoRecord');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tenant = Store.getCurrentTenant();
+      const scheduleId = document.getElementById('cargoScheduleSelect')?.value;
+      const type = document.getElementById('cargoTypeInput')?.value;
+      const sender = document.getElementById('cargoSenderInput')?.value?.trim();
+      const weight = parseFloat(document.getElementById('cargoWeightInput')?.value || 0);
+      const rate = parseFloat(document.getElementById('cargoRateInput')?.value || 3500);
+      const remark = document.getElementById('cargoRemarkInput')?.value?.trim() || '-';
+
+      if (!weight || weight <= 0) {
+        this.showToast('Input Tidak Valid', 'Berat muatan harus lebih dari 0 kg.', 'warning');
+        return;
+      }
+
+      const receiptNo = `RES-CRG-${Math.floor(100000 + Math.random() * 900000)}`;
+      const totalCost = weight * rate;
+
+      const record = {
+        receiptNo,
+        companyId: tenant?.id || 'TENANT',
+        scheduleId,
+        type,
+        sender,
+        weightKg: weight,
+        ratePerKg: rate,
+        totalCost,
+        remark,
+        status: 'CLEARANCE_KSOP_APPROVED',
+        createdAt: new Date().toISOString()
+      };
+
+      Store.addCargoRecord(record);
+      form.reset();
+      this.renderCargoCalculator();
+      this.showToast('Muatan Tercatat', `Resi ${receiptNo} (${weight} kg) berhasil ditambahkan ke manifest kapal.`);
+    });
+
+    document.getElementById('cargoVesselSelect')?.addEventListener('change', () => {
+      this.renderCargoCalculator();
+    });
+    document.getElementById('cargoScheduleSelect')?.addEventListener('change', () => {
+      this.renderCargoCalculator();
+    });
+  },
+
+  renderCargoCalculator() {
+    const tenant = Store.getCurrentTenant();
+    if (!tenant) return;
+
+    const vesselSel = document.getElementById('cargoVesselSelect');
+    const schedSel = document.getElementById('cargoScheduleSelect');
+    const vessels = Store.getVesselsByCompany(tenant.id);
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+
+    // Populate Vessels
+    if (vesselSel && vesselSel.options.length === 0) {
+      vessels.forEach(v => {
+        vesselSel.add(new Option(`${v.name} (Kap: ${v.capacity} Pax)`, v.id));
+      });
+    }
+
+    // Populate Schedules
+    if (schedSel && schedSel.options.length === 0) {
+      schedules.forEach(s => {
+        schedSel.add(new Option(`${s.routeCode || 'RUTE'} • ${s.originCity} ➔ ${s.destinationCity} (${s.departTime})`, s.id));
+      });
+    }
+
+    const selectedVessel = vessels.find(v => v.id === vesselSel?.value) || vessels[0];
+    const selectedSched = schedules.find(s => s.id === schedSel?.value) || schedules[0];
+
+    // Max DWT capacity estimation based on passenger vessel specs
+    const maxDwtTon = selectedVessel ? Math.max(35, Math.round(selectedVessel.capacity * 0.18)) : 45;
+
+    // Estimated Passenger Weight (Hubla standard: 75kg/pax)
+    const bookings = Store.getBookingsByCompany(tenant.id).filter(b => 
+      !selectedSched || b.scheduleId === selectedSched.id || b.vesselName === selectedVessel?.name
+    );
+    const paxCount = bookings.reduce((sum, b) => sum + ((b.passengers && b.passengers.length) || 1), 0);
+    const estPaxWeightKg = paxCount * 75;
+
+    // Cargo records
+    const cargoRecords = Store.getCargoRecords().filter(c => 
+      !tenant || c.companyId === tenant.id
+    );
+    const totalCargoWeightKg = cargoRecords.reduce((sum, c) => sum + (c.weightKg || 0), 0);
+    const totalCargoRevenue = cargoRecords.reduce((sum, c) => sum + (c.totalCost || 0), 0);
+
+    const totalWeightKg = estPaxWeightKg + totalCargoWeightKg;
+    const totalWeightTon = parseFloat((totalWeightKg / 1000).toFixed(2));
+    const dwtPercent = Math.min(120, Math.round((totalWeightTon / maxDwtTon) * 100));
+
+    // Update UI elements
+    const summaryVal = document.getElementById('cargoDwtSummaryVal');
+    const fillEl = document.getElementById('cargoDwtMeterFill');
+    const badgeEl = document.getElementById('cargoDwtSafetyBadge');
+
+    if (summaryVal) {
+      summaryVal.innerText = `${totalWeightTon} Ton / ${maxDwtTon}.0 Ton (${dwtPercent}%)`;
+    }
+    if (fillEl) {
+      fillEl.style.width = `${Math.min(100, dwtPercent)}%`;
+      if (dwtPercent > 100) {
+        fillEl.style.background = '#ef4444';
+      } else if (dwtPercent > 80) {
+        fillEl.style.background = '#f59e0b';
+      } else {
+        fillEl.style.background = 'linear-gradient(90deg, #10b981 0%, #0284c7 100%)';
+      }
+    }
+
+    if (badgeEl) {
+      if (dwtPercent > 100) {
+        badgeEl.style.background = '#fee2e2';
+        badgeEl.style.color = '#dc2626';
+        badgeEl.style.borderColor = '#fca5a5';
+        badgeEl.innerText = '⛔ PERINGATAN OVERDRAFT! MELEBIHI SARAT AIR PLIMSOLL KSOP';
+      } else if (dwtPercent > 80) {
+        badgeEl.style.background = '#fef3c7';
+        badgeEl.style.color = '#d97706';
+        badgeEl.style.borderColor = '#fde68a';
+        badgeEl.innerText = '⚠️ WASPADA DRAFT TINGGI (MENDEKATI BATAS MAKSIMAL)';
+      } else {
+        badgeEl.style.background = '#ecfdf5';
+        badgeEl.style.color = '#059669';
+        badgeEl.style.borderColor = '#a7f3d0';
+        badgeEl.innerText = '✅ SARAT AIR AMAN (DRAFT NORMAL & LAIK LAUT)';
+      }
+    }
+
+    document.getElementById('cargoEstPaxWeight').innerText = `${estPaxWeightKg.toLocaleString('id-ID')} Kg (${paxCount} Pax)`;
+    document.getElementById('cargoEstCargoWeight').innerText = `${totalCargoWeightKg.toLocaleString('id-ID')} Kg (${cargoRecords.length} Resi)`;
+    document.getElementById('cargoEstRevenue').innerText = formatRupiah(totalCargoRevenue);
+
+    // Render Table
+    const tbody = document.getElementById('cargoManifestTableBody');
+    if (tbody) {
+      if (cargoRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada muatan kargo tambahan tercatat pada jadwal ini.</td></tr>`;
+      } else {
+        tbody.innerHTML = cargoRecords.map(c => `
+          <tr>
+            <td><strong style="color: #0284c7; font-family: var(--font-mono);">${c.receiptNo}</strong></td>
+            <td>${selectedSched ? selectedSched.routeCode || 'NNK-TWU' : 'Rute Penyeberangan'}</td>
+            <td><strong>${c.sender}</strong></td>
+            <td><span class="tag-badge" style="background:#f1f5f9;color:#334155;">${c.type}</span></td>
+            <td>${c.weightKg.toLocaleString('id-ID')} Kg</td>
+            <td><strong style="color:#059669;">${formatRupiah(c.totalCost)}</strong></td>
+            <td><span class="tag-badge" style="background:#ecfdf5;color:#059669;">✓ KSOP CLEAR</span></td>
+          </tr>
+        `).join('');
+      }
+    }
+  },
+
+  // ========================================================
+  // ENTERPRISE FEATURE 3: INTEGRASI INAPORTNET DIJEN HUBLA
+  // ========================================================
+  initInaportnetEvents() {
+    document.getElementById('btnOpenInaportnetModal')?.addEventListener('click', () => {
+      this.renderInaportnetModal();
+      document.getElementById('modalInaportnetHubla')?.classList.add('show');
+    });
+    document.getElementById('btnCloseInaportnetModal')?.addEventListener('click', () => {
+      document.getElementById('modalInaportnetHubla')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelInaportnetModal')?.addEventListener('click', () => {
+      document.getElementById('modalInaportnetHubla')?.classList.remove('show');
+    });
+
+    document.getElementById('btnSendInaportnetApi')?.addEventListener('click', () => {
+      this.showToast('Sinkronisasi INAPORTNET', 'Payload Port Clearance berhasil divalidasi & diterima server Ditjen Hubla (HTTP 200 OK).');
+      setTimeout(() => {
+        document.getElementById('modalInaportnetHubla')?.classList.remove('show');
+      }, 1200);
+    });
+
+    document.getElementById('btnDownloadInaportnetXml')?.addEventListener('click', () => {
+      const xml = document.getElementById('inaportnetXmlPreview')?.innerText || '';
+      const blob = new Blob([xml], { type: 'application/xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `INAPORTNET_PortClearance_NNK_${Date.now()}.xml`;
+      a.click();
+      this.showToast('Unduh XML Berhasil', 'Dokumen manifes format XML INAPORTNET telah disimpan.');
+    });
+  },
+
+  renderInaportnetModal() {
+    const tenant = Store.getCurrentTenant() || { name: 'PT SAMUDERA PELAYARAN', id: 'TENANT' };
+    const bookings = Store.getBookingsByCompany(tenant.id);
+    const ksop = Store.getKsopSettings();
+    const now = new Date().toISOString();
+    const spbNo = `${ksop.spbPrefix || 'SPB.NNK/2026/X/'}${Math.floor(1000 + Math.random() * 9000)}`;
+
+    let wni = 0;
+    let wna = 0;
+    bookings.forEach(b => {
+      const nat = (b.passengers && b.passengers[0]?.nationality) || b.nationality || 'ID';
+      if (nat === 'ID' || nat === 'Indonesia') wni++;
+      else wna++;
+    });
+
+    const xmlPayload = 
+`<?xml version="1.0" encoding="UTF-8"?>
+<InaportnetDepartureClearance version="2.4" xmlns="http://hubla.dephub.go.id/inaportnet/schema">
+  <Header>
+    <MessageId>MSG-HUBLA-${Date.now()}</MessageId>
+    <Timestamp>${now}</Timestamp>
+    <PortCode>IDNNK</PortCode>
+    <PortName>PELABUHAN TUNON TAKA NUNUKAN</PortName>
+    <OfficeKSOP>${ksop.ksopOffice}</OfficeKSOP>
+    <SyahbandarName>${ksop.ksopName}</SyahbandarName>
+    <SyahbandarNIP>${ksop.ksopNip}</SyahbandarNIP>
+  </Header>
+  <PortClearance>
+    <SPBNumber>${spbNo}</SPBNumber>
+    <CompanyId>${tenant.id}</CompanyId>
+    <CompanyName>${tenant.name}</CompanyName>
+    <MasterName>${ksop.masterName}</MasterName>
+    <MasterCertificate>${ksop.masterCertNo}</MasterCertificate>
+    <DepartureSchedule>
+      <VoyageType>PASSENGER_FERRY_CROSSBORDER</VoyageType>
+      <OriginPort>NNK (TUNON TAKA)</OriginPort>
+      <DestinationPort>TWU (TAWAU FERRY TERMINAL)</DestinationPort>
+      <DepartureTimeWITA>${now.split('T')[0]} 08:30</DepartureTimeWITA>
+    </DepartureSchedule>
+    <PassengerManifestSummary>
+      <TotalPax>${bookings.length}</TotalPax>
+      <TotalWNI>${wni}</TotalWNI>
+      <TotalWNA>${wna}</TotalWNA>
+      <ImmigrationCleared>true</ImmigrationCleared>
+      <CustomsCleared>true</CustomsCleared>
+    </PassengerManifestSummary>
+    <SafetyAdvisoryStatus>
+      <BMKGSeaState>SAFE_TO_SAIL</BMKGSeaState>
+      <WaveHeightMax>0.75m</WaveHeightMax>
+      <ClearanceStatus>APPROVED_FOR_SAILING</ClearanceStatus>
+    </SafetyAdvisoryStatus>
+  </PortClearance>
+</InaportnetDepartureClearance>`;
+
+    document.getElementById('inaportnetXmlPreview').innerText = xmlPayload;
+    document.getElementById('inaportnetSpbNo').innerText = spbNo;
+    document.getElementById('inaportnetTotalPax').innerText = `${bookings.length} Jiwa`;
+    document.getElementById('inaportnetPaxRatio').innerText = `${wni} WNI • ${wna} WNA`;
+  },
+
+  // ========================================================
+  // ENTERPRISE FEATURE 6: PERINGATAN DINI CUACA MARITIM KSOP
+  // ========================================================
+  weatherHoldActive: false,
+  initWeatherWarningEvents() {
+    const btnToggle = document.getElementById('btnToggleWeatherHold');
+    const btnReset = document.getElementById('btnDashResetWeather');
+
+    btnToggle?.addEventListener('click', () => {
+      this.weatherHoldActive = !this.weatherHoldActive;
+      this.applyWeatherWarningState();
+    });
+
+    btnReset?.addEventListener('click', () => {
+      this.weatherHoldActive = false;
+      this.applyWeatherWarningState();
+    });
+  },
+
+  applyWeatherWarningState() {
+    const notice = document.getElementById('dashWeatherWarningNotice');
+    const desc = document.getElementById('bmkgWarningDesc');
+    const btnToggle = document.getElementById('btnToggleWeatherHold');
+
+    if (this.weatherHoldActive) {
+      if (notice) notice.style.display = 'flex';
+      if (desc) desc.innerText = '⚠️ STATUS HOLD AKTIF: Gelombang Selat Makassar > 1.75m. Keberangkatan ditunda demi keselamatan.';
+      if (btnToggle) {
+        btnToggle.style.background = '#dc2626';
+        btnToggle.innerText = '✓ Pulihkan ke Cuaca Aman';
+      }
+      this.showToast('Status Cuaca Buruk (Hold)', 'Syahbandar KSOP menerbitkan Maklumat Penundaan Berlayar (Weather Hold).', 'warning');
+    } else {
+      if (notice) notice.style.display = 'none';
+      if (desc) desc.innerText = 'Ambang batas gelombang > 1.25m / angin > 15 knot memicu status Waspada & Hold Keberangkatan Pelayaran.';
+      if (btnToggle) {
+        btnToggle.style.background = '#f59e0b';
+        btnToggle.innerText = '⚡ Simulasikan Status Cuaca Buruk (Hold)';
+      }
+      this.showToast('Cuaca Maritim Kondusif', 'Status pelayaran dipulihkan ke normal (Aman Melaut).');
+    }
+  },
+
+  // ========================================================
+  // ENTERPRISE FEATURE 7: DYNAMIC PRICING & PEAK SEASON ENGINE
+  // ========================================================
+  initPeakSeasonEvents() {
+    const form = document.getElementById('formPeakSeasonSettings');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enabled = document.getElementById('peakSeasonEnabled')?.checked;
+      const name = document.getElementById('peakSeasonName')?.value?.trim();
+      const surchargePercent = parseFloat(document.getElementById('peakSeasonPercent')?.value || 15);
+      const startDate = document.getElementById('peakSeasonStart')?.value;
+      const endDate = document.getElementById('peakSeasonEnd')?.value;
+      const notice = document.getElementById('peakSeasonNotice')?.value?.trim();
+
+      Store.savePeakSeasonSettings({
+        enabled,
+        name,
+        surchargePercent,
+        startDate,
+        endDate,
+        notice
+      });
+
+      this.showToast('Peak Season Disimpan', `Pengaturan musim padat (${enabled ? 'Aktif +' + surchargePercent + '%' : 'Nonaktif'}) berhasil diperbarui.`);
+    });
+
+    document.getElementById('peakSeasonPercent')?.addEventListener('change', (e) => {
+      const pct = parseFloat(e.target.value || 15);
+      const simEko = Math.round(250000 * (1 + pct / 100));
+      const simBis = Math.round(285000 * (1 + pct / 100));
+      const simVip = Math.round(335000 * (1 + pct / 100));
+
+      document.getElementById('simPeakEko').innerText = `Tarif Peak: ${formatRupiah(simEko)} (+${formatRupiah(simEko - 250000)})`;
+      document.getElementById('simPeakBis').innerText = `Tarif Peak: ${formatRupiah(simBis)} (+${formatRupiah(simBis - 285000)})`;
+      document.getElementById('simPeakVip').innerText = `Tarif Peak: ${formatRupiah(simVip)} (+${formatRupiah(simVip - 335000)})`;
+    });
+  },
+
+  loadPeakSeasonSettingsToForm() {
+    const settings = Store.getPeakSeasonSettings();
+    if (!settings) return;
+
+    const chk = document.getElementById('peakSeasonEnabled');
+    const nameInput = document.getElementById('peakSeasonName');
+    const pctSel = document.getElementById('peakSeasonPercent');
+    const startInput = document.getElementById('peakSeasonStart');
+    const endInput = document.getElementById('peakSeasonEnd');
+    const noticeInput = document.getElementById('peakSeasonNotice');
+
+    if (chk) chk.checked = !!settings.enabled;
+    if (nameInput) nameInput.value = settings.name || '';
+    if (pctSel) pctSel.value = settings.surchargePercent || 15;
+    if (startInput) startInput.value = settings.startDate || '';
+    if (endInput) endInput.value = settings.endDate || '';
+    if (noticeInput) noticeInput.value = settings.notice || '';
+  },
+
+  // ========================================================
+  // ENTERPRISE FEATURE 8, 9, 10: MULTI-CURRENCY, MDAC & WATCHLIST
+  // ========================================================
+  bookingCurrency: 'IDR',
+  offlineModeActive: false,
+  initCurrencyAndMdacEvents() {
+    // 1. Currency Switcher Buttons
+    const btnIdr = document.getElementById('btnCurrencyIdr');
+    const btnMyr = document.getElementById('btnCurrencyMyr');
+
+    btnIdr?.addEventListener('click', () => {
+      this.bookingCurrency = 'IDR';
+      btnIdr.classList.add('active');
+      btnMyr?.classList.remove('active');
+      this.updateCurrencyUI();
+    });
+
+    btnMyr?.addEventListener('click', () => {
+      this.bookingCurrency = 'MYR';
+      btnMyr.classList.add('active');
+      btnIdr?.classList.remove('active');
+      this.updateCurrencyUI();
+    });
+
+    // 2. MDAC Prefill Copy Button
+    document.getElementById('btnPrefillMdacData')?.addEventListener('click', () => {
+      const name = document.getElementById('custPaxName')?.value || 'Penumpang';
+      const doc = document.getElementById('custPaxDocNum')?.value || 'A12345678';
+      const dob = document.getElementById('custPaxDob')?.value || '1995-05-14';
+      const nat = document.getElementById('custPaxNationality')?.value || 'Indonesia';
+      const textToCopy = `Nama: ${name}\nNo. Paspor: ${doc}\nTanggal Lahir: ${dob}\nKewarganegaraan: ${nat}\nPelabuhan Tiba: Tawau Ferry Terminal (Sabah)\nModa Transportasi: Sea Ferry`;
+      
+      navigator.clipboard?.writeText(textToCopy);
+      this.showToast('Data Paspor Tersalin', 'Rincian data penumpang berhasil disalin ke clipboard untuk pengisian MDAC.');
+    });
+
+    // 3. Passport Expiry Validation (Must be >= 6 months)
+    const expInput = document.getElementById('custPaxPassportExpInput');
+    expInput?.addEventListener('change', () => {
+      const expVal = expInput.value;
+      const alertBox = document.getElementById('passportExpiryAlert');
+      if (!alertBox || !expVal) return;
+
+      const expDate = new Date(expVal);
+      const sixMonths = new Date();
+      sixMonths.setMonth(sixMonths.getMonth() + 6);
+
+      if (expDate < sixMonths) {
+        alertBox.style.background = '#fee2e2';
+        alertBox.style.color = '#dc2626';
+        alertBox.style.borderColor = '#fca5a5';
+        alertBox.innerText = '⚠️ PERINGATAN: Masa berlaku paspor kurang dari 6 bulan! Wajib diperpanjang sebelum tiba di Tawau.';
+      } else {
+        alertBox.style.background = '#ecfdf5';
+        alertBox.style.color = '#059669';
+        alertBox.style.borderColor = '#a7f3d0';
+        alertBox.innerText = '✓ Masa berlaku paspor valid (≥ 6 bulan dari keberangkatan)';
+      }
+    });
+
+    // 4. Watchlist Live Check
+    const docInput = document.getElementById('custPaxDocNum');
+    const nameInput = document.getElementById('custPaxName');
+    const checkWatchlistLive = () => {
+      const doc = docInput?.value;
+      const name = nameInput?.value;
+      const ind = document.getElementById('watchlistStatusIndicator');
+      if (!ind) return;
+
+      const matched = Store.checkWatchlist(doc, name);
+      if (matched) {
+        ind.style.color = '#dc2626';
+        ind.innerHTML = `<span>⛔ TERDETEKSI RED-LIST PENCEKALAN: ${matched.reason}</span>`;
+      } else {
+        ind.style.color = '#10b981';
+        ind.innerHTML = `<span>✅ Status Imigrasi: Clear to Board</span>`;
+      }
+    };
+    docInput?.addEventListener('input', checkWatchlistLive);
+    nameInput?.addEventListener('input', checkWatchlistLive);
+
+    // 5. Offline Scanner Mode Toggle
+    document.getElementById('btnToggleOfflineMode')?.addEventListener('click', () => {
+      this.offlineModeActive = !this.offlineModeActive;
+      const dot = document.getElementById('scannerNetworkDot');
+      const txt = document.getElementById('scannerNetworkText');
+      if (this.offlineModeActive) {
+        if (dot) dot.style.background = '#f59e0b';
+        if (txt) {
+          txt.innerText = 'Mode: OFFLINE DERMAGA (Penyimpanan Lokal Aktif)';
+          txt.style.color = '#d97706';
+        }
+        this.showToast('Mode Offline Dermaga', 'Gate Scanner berjalan dalam mode offline mandiri. Data divalidasi dari manifest lokal.');
+      } else {
+        if (dot) dot.style.background = '#10b981';
+        if (txt) {
+          txt.innerText = 'Mode: ONLINE (Tersinkronisasi)';
+          txt.style.color = '#0f172a';
+        }
+        this.showToast('Mode Online', 'Koneksi pelabuhan tersambung kembali.');
+      }
+    });
+
+    document.getElementById('btnSyncOfflineScans')?.addEventListener('click', () => {
+      const q = Store.getOfflineScanQueue();
+      if (q.length === 0) {
+        this.showToast('Antrean Kosong', 'Tidak ada data scan offline yang menunggu sinkronisasi.');
+      } else {
+        Store.clearOfflineScanQueue();
+        this.updateOfflineQueueBadge();
+        this.showToast('Sinkronisasi Selesai', `${q.length} Tiket offline berhasil disinkronkan ke server pusat.`);
+      }
+    });
+  },
+
+  updateOfflineQueueBadge() {
+    const q = Store.getOfflineScanQueue();
+    const badge = document.getElementById('offlineQueueBadge');
+    if (badge) {
+      badge.innerText = `Antrean Offline: ${q.length} Tiket`;
+    }
+  },
+
+  updateCurrencyUI() {
+    const isMyr = this.bookingCurrency === 'MYR';
+    const duitNow = document.getElementById('payMethodDuitNow');
+    const fpx = document.getElementById('payMethodFpx');
+    const qris = document.getElementById('payMethodQris');
+
+    if (duitNow) duitNow.style.display = isMyr ? 'flex' : 'none';
+    if (fpx) fpx.style.display = isMyr ? 'flex' : 'none';
+    if (qris) qris.style.display = isMyr ? 'none' : 'flex';
+
+    this.updateSeatPickerSummary();
+  },
+
+  showToast(title, body, type = 'info') {
     const toast = document.getElementById('toastPopup');
     const ic = document.getElementById('toastIcon');
     document.getElementById('toastTitle').innerText = title;
