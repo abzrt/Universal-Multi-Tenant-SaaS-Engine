@@ -13,15 +13,17 @@ const STORAGE_KEYS = {
   CARGO_RECORDS: 'tech_cargo_v6',
   PEAK_SEASON: 'tech_peak_season_v6',
   OFFLINE_SCAN_QUEUE: 'tech_offline_scans_v6',
-  IMMIGRATION_WATCHLIST: 'tech_watchlist_v6'
+  IMMIGRATION_WATCHLIST: 'tech_watchlist_v6',
+  PORT_PASS: 'tech_port_pass_v6'
 };
 
 // Pembersihan total seluruh data lama saat inisialisasi versi bersih
 try {
-  if (typeof localStorage !== 'undefined' && localStorage.getItem('tech_app_clean_reset_v6') !== 'true') {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('tech_app_clean_reset_v7') !== 'true') {
     [
       'tech_companies_v5_live', 'tech_vessels_v5_live', 'tech_schedules_v5_live', 'tech_bookings_v5_live', 'tech_current_tenant_v5',
-      STORAGE_KEYS.COMPANIES, STORAGE_KEYS.VESSELS, STORAGE_KEYS.SCHEDULES, STORAGE_KEYS.BOOKINGS, STORAGE_KEYS.CURRENT_USER_COMPANY
+      STORAGE_KEYS.COMPANIES, STORAGE_KEYS.VESSELS, STORAGE_KEYS.SCHEDULES, STORAGE_KEYS.BOOKINGS, STORAGE_KEYS.CURRENT_USER_COMPANY,
+      STORAGE_KEYS.KSOP_SETTINGS, STORAGE_KEYS.AGENTS, STORAGE_KEYS.CARGO_RECORDS, STORAGE_KEYS.PEAK_SEASON, STORAGE_KEYS.IMMIGRATION_WATCHLIST, STORAGE_KEYS.PORT_PASS
     ].forEach(k => {
       localStorage.removeItem(k);
     });
@@ -29,71 +31,55 @@ try {
     localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
-    localStorage.setItem('tech_app_clean_reset_v6', 'true');
+    localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify([]));
+    localStorage.setItem('tech_app_clean_reset_v7', 'true');
   }
 } catch (e) {}
 
-// Pengaturan Default Pejabat KSOP, Syahbandar, dan Regulasi Maritim
+// Pengaturan Default Pejabat KSOP, Syahbandar, dan Regulasi Maritim (Kosong / Tanpa Default)
 const DEFAULT_KSOP_SETTINGS = {
-  // KSOP / Syahbandar
-  ksopName: 'Capt. Agus Suherman, S.Si.T., M.Mar.',
-  ksopNip: '19750812 200003 1 002',
-  ksopRank: 'Pembina Utama Muda (IV/c)',
-  ksopTitle: 'Kepala Kantor Kesyahbandaran dan Otoritas Pelabuhan',
-  ksopOffice: 'Kantor KSOP Kelas IV Nunukan',
-  ksopPort: 'Pelabuhan Tunon Taka Nunukan',
-
-  // Petugas Keselamatan / Marine Inspector
-  inspectorName: 'H. Faisal, M.M.Tr., M.Mar.Eng.',
-  inspectorNip: '19820415 200604 1 008',
-  inspectorTitle: 'Kasi Keselamatan Berlayar, Penjagaan & Patroli',
-
-  // Nakhoda / Master Kapal (Default)
-  masterName: 'Capt. Bambang Prakoso, M.Mar.',
-  masterCertNo: 'ANT-II / 620019284',
-
-  // Imigrasi (TPI)
-  immigrationOfficer: 'Rahmat Hidayat, S.H.',
-  immigrationNip: '19880920 201101 1 003',
-  immigrationTitle: 'Kasubsi Lalu Lintas Keimigrasian TPI Nunukan',
-
-  // Bea Cukai (Customs)
-  customsOfficer: 'Budi Santoso, S.E.',
-  customsNip: '19860314 200812 1 001',
-  customsTitle: 'Pemeriksa Bea dan Cukai Pertama KPPBC Nunukan',
-
-  // Karantina Kesehatan Pelabuhan (KKP)
-  quarantineOfficer: 'dr. Siti Nurhaliza',
-  quarantineNip: '19901105 201705 2 004',
-  quarantineTitle: 'Dokter Karantina Kesehatan Wilker Tunon Taka',
-
-  // Format Penomoran SPB & Regulasi
-  spbPrefix: 'SPB.NNK/2026/X/',
-  regulationNotice: 'Diterbitkan sesuai ketentuan Undang-Undang No. 17 Tahun 2008 tentang Pelayaran dan Peraturan Direktur Jenderal Perhubungan Laut.'
+  ksopName: '',
+  ksopNip: '',
+  ksopRank: '',
+  ksopTitle: '',
+  ksopOffice: '',
+  ksopPort: '',
+  inspectorName: '',
+  inspectorNip: '',
+  inspectorTitle: '',
+  masterName: '',
+  masterCertNo: '',
+  immigrationOfficer: '',
+  immigrationNip: '',
+  immigrationTitle: '',
+  customsOfficer: '',
+  customsNip: '',
+  customsTitle: '',
+  quarantineOfficer: '',
+  quarantineNip: '',
+  quarantineTitle: '',
+  spbPrefix: '',
+  regulationNotice: ''
 };
 
-// Default Mitra Agen & Calo Resmi Pelabuhan
-const DEFAULT_AGENTS = [
-  { id: 'AGT-001', name: 'CV Tunon Taka Wisata', pic: 'H. Anwar', phone: '081347890123', balance: 3500000, commissionPerPax: 15000, status: 'ACTIVE' },
-  { id: 'AGT-002', name: 'Berkah Tawau Ferry Services', pic: 'Kamaruddin bin Salleh', phone: '+60128192039', balance: 5200000, commissionPerPax: 20000, status: 'ACTIVE' },
-  { id: 'AGT-003', name: 'PT Sebatik Lintas Bahari', pic: 'Fahrul Razi', phone: '082199887766', balance: 2100000, commissionPerPax: 15000, status: 'ACTIVE' }
-];
+// Default Mitra Agen & Calo Resmi Pelabuhan (Kosong / Tanpa Default)
+const DEFAULT_AGENTS = [];
 
-// Default Peak Season & Dynamic Pricing
+// Default Peak Season & Dynamic Pricing (Kosong / Tanpa Default)
 const DEFAULT_PEAK_SEASON = {
-  enabled: true,
-  name: 'Musim Mudik Lebaran & Liburan Perbatasan Nunukan',
-  surchargePercent: 15,
-  startDate: '2026-03-15',
-  endDate: '2026-05-15',
-  notice: 'Surcharge angkutan laut resmi berdasarkan SK Penetapan Tarif Angkutan Lebaran KSOP Nunukan'
+  enabled: false,
+  name: '',
+  surchargePercent: 0,
+  startDate: '',
+  endDate: '',
+  notice: ''
 };
 
-// Default Immigration Watchlist / Red-List
-const DEFAULT_WATCHLIST = [
-  { docNum: 'B99887766', name: 'Rudi Hermawan', reason: 'Pencekalan Imigrasi TPI Nunukan (Pelanggaran Izin Tinggal)', dateAdded: '2026-01-15' },
-  { docNum: 'A00998811', name: 'Michael Tan', reason: 'Pencekalan ICQS Tawau (Dokumen Paspor Bermasalah)', dateAdded: '2026-02-10' }
-];
+// Default Tarif Pas Pelabuhan (Kosong / Tanpa Default)
+const DEFAULT_PORT_PASS = [];
+
+// Default Immigration Watchlist / Red-List (Kosong / Tanpa Default)
+const DEFAULT_WATCHLIST = [];
 
 // Initial Registered Companies (Kosong / Tanpa Demo)
 const DEFAULT_COMPANIES = [];
@@ -179,6 +165,196 @@ const Store = {
     return null;
   },
 
+  approveCompany(id) {
+    return this.updateCompany(id, {
+      verified: true,
+      frozen: false,
+      approvalStatus: 'APPROVED',
+      approvedAt: new Date().toISOString()
+    });
+  },
+
+  rejectCompany(id) {
+    return this.updateCompany(id, {
+      verified: false,
+      frozen: false,
+      approvalStatus: 'REJECTED',
+      rejectedAt: new Date().toISOString()
+    });
+  },
+
+  freezeCompany(id) {
+    const updated = this.updateCompany(id, {
+      frozen: true,
+      approvalStatus: 'FROZEN',
+      frozenAt: new Date().toISOString()
+    });
+    const current = this.getCurrentTenant();
+    if (current && current.id === id) {
+      this.setCurrentTenant(null);
+    }
+    return updated;
+  },
+
+  unfreezeCompany(id) {
+    return this.updateCompany(id, {
+      frozen: false,
+      verified: true,
+      approvalStatus: 'APPROVED',
+      unfrozenAt: new Date().toISOString()
+    });
+  },
+
+  deleteCompany(id) {
+    const list = this.getCompanies().filter(c => c.id !== id);
+    this.saveCompanies(list);
+    const current = this.getCurrentTenant();
+    if (current && current.id === id) {
+      this.setCurrentTenant(null);
+    }
+    return true;
+  },
+
+  isDevAdminLoggedIn() {
+    return sessionStorage.getItem('tech_dev_admin_session_v1') === 'ACTIVE';
+  },
+
+  setDevAdminSession(active) {
+    if (active) {
+      sessionStorage.setItem('tech_dev_admin_session_v1', 'ACTIVE');
+    } else {
+      sessionStorage.removeItem('tech_dev_admin_session_v1');
+    }
+  },
+
+  getDevAdminCredentials() {
+    const defaultCreds = {
+      email: 'dev@techsolution.id',
+      username: 'superadmin',
+      password: 'devadmin123',
+      totpSecret: 'JBSWY3DPEHPK3PXP',
+      totpEnabled: true
+    };
+    const raw = localStorage.getItem('tech_dev_admin_credentials_v1');
+    if (!raw) return defaultCreds;
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        email: (parsed.email || defaultCreds.email).trim(),
+        username: (parsed.username || defaultCreds.username).trim(),
+        password: parsed.password || defaultCreds.password,
+        totpSecret: (parsed.totpSecret || defaultCreds.totpSecret).trim().toUpperCase(),
+        totpEnabled: parsed.totpEnabled !== undefined ? Boolean(parsed.totpEnabled) : true
+      };
+    } catch (e) {
+      return defaultCreds;
+    }
+  },
+
+  saveDevAdminCredentials(newCreds) {
+    const current = this.getDevAdminCredentials();
+    const updated = {
+      email: (newCreds.email !== undefined ? newCreds.email : current.email).trim(),
+      username: (newCreds.username !== undefined ? newCreds.username : current.username).trim(),
+      password: newCreds.password !== undefined && newCreds.password !== '' ? newCreds.password : current.password,
+      totpSecret: (newCreds.totpSecret !== undefined && newCreds.totpSecret !== '' ? newCreds.totpSecret : current.totpSecret).trim().toUpperCase(),
+      totpEnabled: newCreds.totpEnabled !== undefined ? Boolean(newCreds.totpEnabled) : current.totpEnabled,
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem('tech_dev_admin_credentials_v1', JSON.stringify(updated));
+    return updated;
+  },
+
+  // Pure JS SHA-1 & HMAC-SHA1 for RFC 6238 Google Authenticator TOTP
+  _sha1Bytes(msgBytes) {
+    function rol(n, s) { return (n << s) | (n >>> (32 - s)); }
+    const ml = msgBytes.length;
+    const words = [];
+    for (let i = 0; i < ml; i++) {
+      words[i >>> 2] |= (msgBytes[i] & 0xff) << (24 - (i % 4) * 8);
+    }
+    words[ml >>> 2] |= 0x80 << (24 - (ml % 4) * 8);
+    words[(((ml + 8) >>> 6) << 4) + 15] = ml * 8;
+
+    let h0 = 0x67452301, h1 = 0xefcdab89, h2 = 0x98badcfe, h3 = 0x10325476, h4 = 0xc3d2e1f0;
+    const w = new Array(80);
+    for (let i = 0; i < words.length; i += 16) {
+      let a = h0, b = h1, c = h2, d = h3, e = h4;
+      for (let j = 0; j < 80; j++) {
+        if (j < 16) w[j] = words[i + j] | 0;
+        else w[j] = rol(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
+        const f = j < 20 ? ((b & c) | (~b & d)) + 0x5a827999
+                : j < 40 ? (b ^ c ^ d) + 0x6ed9eba1
+                : j < 60 ? ((b & c) | (b & d) | (c & d)) + 0x8f1bbcdc
+                : (b ^ c ^ d) + 0xca62c1d6;
+        const t = (rol(a, 5) + f + e + w[j]) | 0;
+        e = d; d = c; c = rol(b, 30); b = a; a = t;
+      }
+      h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0; h4 = (h4 + e) | 0;
+    }
+    const out = [];
+    [h0, h1, h2, h3, h4].forEach(h => {
+      out.push((h >>> 24) & 0xff, (h >>> 16) & 0xff, (h >>> 8) & 0xff, h & 0xff);
+    });
+    return out;
+  },
+
+  _base32ToBytes(base32) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const clean = (base32 || '').toUpperCase().replace(/[^A-Z2-7]/g, '');
+    let bits = '';
+    for (let i = 0; i < clean.length; i++) {
+      const val = alphabet.indexOf(clean[i]);
+      if (val >= 0) bits += val.toString(2).padStart(5, '0');
+    }
+    const bytes = [];
+    for (let i = 0; i + 8 <= bits.length; i += 8) {
+      bytes.push(parseInt(bits.slice(i, i + 8), 2));
+    }
+    return bytes;
+  },
+
+  generateDevTotpCode(secretOverride = null, stepOffset = 0) {
+    const creds = this.getDevAdminCredentials();
+    const secret = secretOverride || creds.totpSecret || 'JBSWY3DPEHPK3PXP';
+    const key = this._base32ToBytes(secret);
+    const blockKey = key.length > 64 ? this._sha1Bytes(key) : key.slice();
+    while (blockKey.length < 64) blockKey.push(0);
+
+    const ipad = blockKey.map(b => b ^ 0x36);
+    const opad = blockKey.map(b => b ^ 0x5c);
+
+    const epochSec = Math.floor(Date.now() / 1000);
+    const counter = Math.floor(epochSec / 30) + stepOffset;
+    const msg = [0, 0, 0, 0, (counter >>> 24) & 0xff, (counter >>> 16) & 0xff, (counter >>> 8) & 0xff, counter & 0xff];
+
+    const innerHash = this._sha1Bytes(ipad.concat(msg));
+    const hmac = this._sha1Bytes(opad.concat(innerHash));
+    const offset = hmac[hmac.length - 1] & 0x0f;
+    const binary = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset + 1] & 0xff) << 16) | ((hmac[offset + 2] & 0xff) << 8) | (hmac[offset + 3] & 0xff);
+    return String(binary % 1000000).padStart(6, '0');
+  },
+
+  verifyDevTotpCode(inputCode) {
+    const clean = (inputCode || '').trim().replace(/\s+/g, '');
+    if (!/^\d{6}$/.test(clean)) return false;
+    // Allow current 30s window and +/- 1 window for clock drift
+    return (
+      clean === this.generateDevTotpCode(null, 0) ||
+      clean === this.generateDevTotpCode(null, -1) ||
+      clean === this.generateDevTotpCode(null, 1)
+    );
+  },
+
+  verifyDevAdminCredentials(identifier, password) {
+    const idClean = (identifier || '').trim().toLowerCase();
+    const creds = this.getDevAdminCredentials();
+    const matchId =
+      idClean === (creds.email || '').toLowerCase() ||
+      idClean === (creds.username || '').toLowerCase();
+    return matchId && password === creds.password;
+  },
+
   // Vessels
   getVessels() {
     const raw = localStorage.getItem(STORAGE_KEYS.VESSELS);
@@ -224,6 +400,14 @@ const Store = {
     return this.getVessels().filter(v => v.companyId === companyId);
   },
 
+  deleteVessel(id) {
+    const list = this.getVessels().filter(v => v.id !== id);
+    this.saveVessels(list);
+    const schedules = this.getSchedules().filter(s => s.vesselId !== id);
+    this.saveSchedules(schedules);
+    return true;
+  },
+
   // Schedules
   getSchedules() {
     const raw = localStorage.getItem(STORAGE_KEYS.SCHEDULES);
@@ -237,8 +421,11 @@ const Store = {
         const isTwu = s.originId === 'TWU' || s.destinationId === 'TWU';
         const defaultPrice = isTwu ? 480000 : (s.priceEconomy || 250000);
         s.classes = [
-          { id: 'cls-eko', name: 'Main Deck', price: defaultPrice, quota: s.quotaTotal || 200, available: 200 }
+          { id: 'cls-eko', name: 'Tiket Reguler', price: defaultPrice, quota: s.quotaTotal || 200, available: 200 }
         ];
+      } else if (s.classes.length > 1) {
+        const eko = s.classes.find(c => c.id === 'cls-eko' || (c.name && !c.name.toLowerCase().includes('vip'))) || s.classes[0];
+        s.classes = [{ ...eko, id: eko.id || 'cls-eko', name: 'Tiket Reguler' }];
       }
       return s;
     });
@@ -279,6 +466,12 @@ const Store = {
       return list[idx];
     }
     return null;
+  },
+
+  deleteSchedule(id) {
+    const list = this.getSchedules().filter(s => s.id !== id);
+    this.saveSchedules(list);
+    return true;
   },
 
   // Bookings
@@ -683,6 +876,44 @@ const Store = {
     ) || null;
   },
 
+  // 6. Manajemen Tarif Pas Pelabuhan (Port Pass / Retribusi Pelabuhan)
+  getPortPasses() {
+    const raw = localStorage.getItem(STORAGE_KEYS.PORT_PASS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify(DEFAULT_PORT_PASS));
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  savePortPasses(list) {
+    localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify(list));
+    return list;
+  },
+
+  addPortPass(item) {
+    const list = this.getPortPasses();
+    list.push(item);
+    this.savePortPasses(list);
+    return item;
+  },
+
+  updatePortPass(id, updatedFields) {
+    const list = this.getPortPasses();
+    const idx = list.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updatedFields };
+      this.savePortPasses(list);
+      return list[idx];
+    }
+    return null;
+  },
+
   // Hapus semua data transaksi & master data di aplikasi
   clearAllData() {
     try {
@@ -690,6 +921,12 @@ const Store = {
       localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify([]));
+      localStorage.removeItem(STORAGE_KEYS.KSOP_SETTINGS);
+      localStorage.removeItem(STORAGE_KEYS.PEAK_SEASON);
+      localStorage.removeItem(STORAGE_KEYS.AGENTS);
+      localStorage.removeItem(STORAGE_KEYS.CARGO_RECORDS);
+      localStorage.removeItem(STORAGE_KEYS.IMMIGRATION_WATCHLIST);
       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
       localStorage.removeItem('tech_current_tenant_v5');
       return true;

@@ -11,23 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=1.3">
+  <link rel="stylesheet" href="style.css?v=2.1">
 </head>
 <body>
-
-  <!-- Top Enterprise Status Bar -->
-  <div class="enterprise-bar">
-    <div class="site-container flex-between">
-      <div class="ent-left">
-        <span class="live-pulse"></span>
-        <span>Universal Multi-Tenant SaaS Engine • <strong>Platform Tiketing Pelayaran Multi-Tenant Resmi</strong></span>
-      </div>
-      <div class="ent-right">
-        <span class="tag-badge">Cloud Manifest Ditjen Hubla</span>
-        <span class="tag-badge">Multi-Tenant Gateway</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Global Header Navigation -->
   <header class="global-navbar">
@@ -610,20 +596,6 @@
               </div>
             </div>
 
-            <!-- 10. Kalkulator DWT & Muatan Kapal -->
-            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCargo" title="Kalkulator DWT & Muatan Kapal">
-              <div class="ticky-nav-left">
-                <span class="ticky-nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                  </svg>
-                </span>
-                <span class="ticky-nav-label">Kalkulator DWT & Muatan</span>
-              </div>
-            </button>
-
             <!-- SECTION: PENGATURAN & REGULASI -->
             <div class="ticky-nav-section-title">PENGATURAN & REGULASI</div>
 
@@ -656,32 +628,52 @@
               <span id="tickyCurrentTabTitle">Dashboard Loket</span>
             </div>
 
-            <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.6rem;">
+            <!-- Ops Header Live Clock & Sync Indicators (Matching Reference Photos) -->
+            <div class="ops-header-clock-strip" id="opsHeaderClockStrip">
+              <span class="ops-clock-text" id="opsLiveClock">21:55:21 WITA</span>
+              <span class="ops-date-text" id="opsLiveDate">Rabu, 28 Oktober 2026</span>
+              <div class="ops-sys-tags">
+                <span class="ops-sys-tag tag-ksop"><span class="ops-dot ops-dot-cyan"></span> SYAHBANDAR KSOP: TERHUBUNG</span>
+                <span class="ops-sys-tag tag-manifest"><span class="ops-dot ops-dot-purple"></span> MANIFEST HUBLA: REAL-TIME</span>
+                <span class="ops-sys-tag tag-gate"><span class="ops-dot ops-dot-green"></span> GATE SCANNER DERMAGA: AKTIF</span>
+              </div>
+            </div>
+
+            <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.75rem;">
+              <!-- Realtime Weather Logo, Kota Nunukan & Hari Tanggal Tahun -->
+              <div id="headerRealtimeWeatherWidget" style="display: inline-flex; align-items: center; gap: 0.65rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 0.32rem 0.85rem 0.32rem 0.45rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);">
+                <div id="headerWeatherLogoIcon" style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #fef3c7 0%, #bae6fd 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;" title="Cuaca Real-Time Nunukan">
+                  <span id="headerWeatherSvgWrap" style="display: inline-flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
+                    </svg>
+                  </span>
+                  <span style="position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; border-radius: 50%; background: #10b981; border: 1.5px solid #ffffff;" title="Live Realtime"></span>
+                </div>
+                <div style="display: flex; flex-direction: column; line-height: 1.25;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+                    <strong id="headerWeatherCityName" style="font-size: 0.8rem; font-weight: 800; color: #0f172a;">Nunukan</strong>
+                    <span id="headerWeatherTempBadge" style="font-size: 0.71rem; font-weight: 700; color: #0284c7; background: #f0f9ff; padding: 1px 6px; border-radius: 99px; border: 1px solid #bae6fd; white-space: nowrap; margin-left: auto;">29°C • Cerah Berawan</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.73rem; font-weight: 600; color: #64748b; white-space: nowrap;">
+                    <span id="headerRealtimeFullDate">Kamis, 29 Oktober 2026</span>
+                    <span style="color: #cbd5e1;">•</span>
+                    <span id="headerRealtimeClock" style="color: #334155; font-weight: 700; font-variant-numeric: tabular-nums;">00:00:00 WITA</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- 1. Avatar Button -->
               <div class="ticky-header-avatar" id="btnHeaderUserAvatar" title="Profil Operator & Perusahaan" role="button" tabindex="0">
                 <img src="assets/avatar-header.svg" alt="Avatar Operator" class="ticky-header-avatar-img" id="imgHeaderUserAvatar">
+                <div class="ops-user-badge" id="opsUserBadge">
+                  <span class="ops-user-name" id="opsHeaderUserName">Petugas Loket Pelabuhan</span>
+                  <span class="ops-user-id" id="opsHeaderUserId">KSOP ID: 18830482</span>
+                </div>
               </div>
 
-              <!-- 2. Bell Notification Button -->
-              <button type="button" class="ticky-icon-btn" id="btnHeaderNotifications" title="Notifikasi Operasional Pelayaran" style="position: relative;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <span class="ticky-notif-badge" id="tickyNotifBadge"></span>
-              </button>
-
-              <!-- 3. Three-Dots More Menu Button -->
-              <button type="button" class="ticky-icon-btn" id="btnHeaderMoreMenu" title="Menu Opsi Cepat">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="1"></circle>
-                  <circle cx="12" cy="5" r="1"></circle>
-                  <circle cx="12" cy="19" r="1"></circle>
-                </svg>
-              </button>
-
-              <!-- Dropdown 1: Profile Popover -->
-              <div class="ticky-header-dropdown" id="dropdownHeaderProfile">
+              <!-- Dropdown 1: Profile Popover (Termasuk Menu Opsi Cepat) -->
+              <div class="ticky-header-dropdown" id="dropdownHeaderProfile" style="width: 260px;">
                 <div class="ticky-dd-header">
                   <div class="ticky-dd-avatar-lg">
                     <img src="assets/avatar-header.svg" alt="Avatar">
@@ -698,53 +690,6 @@
                 </div>
                 <div class="ticky-dd-divider"></div>
                 <div class="ticky-dd-actions">
-                  <button type="button" class="ticky-dd-item" id="btnDropdownOpenSettings">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span>Pengaturan Profil Perusahaan</span>
-                  </button>
-                  <div class="ticky-dd-divider" style="margin: 0.35rem 0;"></div>
-                  <button type="button" class="ticky-dd-item" id="btnDropdownLogout" onclick="logoutTenant()" style="color: #e11d48; font-weight: 700;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    <span>Keluar dari Portal</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Dropdown 2: Notifications Popover -->
-              <div class="ticky-header-dropdown" id="dropdownHeaderNotif" style="width: 320px;">
-                <div class="ticky-dd-header" style="justify-content: space-between;">
-                  <h5 style="margin: 0; font-size: 0.88rem; font-weight: 700; color: #0f172a;">Notifikasi Pelayaran</h5>
-                  <span class="status-pill boarded" style="font-size: 0.68rem; padding: 1px 6px;">Aktif</span>
-                </div>
-                <div class="ticky-dd-divider"></div>
-                <div class="ticky-notif-list">
-                  <div class="ticky-notif-item">
-                    <div class="ticky-notif-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">🌊</div>
-                    <div>
-                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Kondisi Cuaca Nunukan - Tawau</strong>
-                      <span style="font-size: 0.74rem; color: #64748b;">Gelombang 0.5 - 1.25m, Kecepatan angin 8 knot. Status: Aman Berlayar (Hijau).</span>
-                    </div>
-                  </div>
-                  <div class="ticky-notif-item">
-                    <div class="ticky-notif-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">🚢</div>
-                    <div>
-                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Kesiapan Gate Scanner</strong>
-                      <span style="font-size: 0.74rem; color: #64748b;">Gate scanner QR Dermaga Tunon Taka siap memvalidasi tiket manifest.</span>
-                    </div>
-                  </div>
-                  <div class="ticky-notif-item">
-                    <div class="ticky-notif-icon" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;">📋</div>
-                    <div>
-                      <strong style="font-size: 0.8rem; display: block; color: #1e293b;">Integrasi Manifest Hubla</strong>
-                      <span style="font-size: 0.74rem; color: #64748b;">Sistem terhubung otomatis dengan format manifest KSOP Nunukan.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Dropdown 3: More Options Menu -->
-              <div class="ticky-header-dropdown" id="dropdownHeaderMore" style="width: 220px;">
-                <div class="ticky-dd-actions" style="padding: 0.35rem 0;">
                   <button type="button" class="ticky-dd-item" id="btnMoreGoOverview">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                     <span>Dashboard Utama</span>
@@ -761,10 +706,18 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                     <span>Sinkronisasi Data Tiket</span>
                   </button>
-                  <div style="height: 1px; background: #e2e8f0; margin: 4px 0;"></div>
+                  <button type="button" class="ticky-dd-item" id="btnDropdownOpenSettings">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Pengaturan Profil Perusahaan</span>
+                  </button>
+                  <div class="ticky-dd-divider" style="margin: 0.35rem 0;"></div>
                   <button type="button" class="ticky-dd-item" id="btnMoreClearAllData" style="color: #e11d48; font-weight: 600;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     <span>Hapus Semua Data Aplikasi</span>
+                  </button>
+                  <button type="button" class="ticky-dd-item" id="btnDropdownLogout" onclick="logoutTenant()" style="color: #e11d48; font-weight: 700;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Keluar dari Portal</span>
                   </button>
                 </div>
               </div>
@@ -788,6 +741,23 @@
                 <span>+ Entri Penumpang Massal</span>
               </button>
               <span class="tag-badge" id="ticketingCompBadge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; font-weight: 700;">Ketentuan Operator Resmi</span>
+            </div>
+          </div>
+
+          <!-- Bar Pilihan Armada Kapal Saat Menginput Tiket -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1.1rem; margin: 1rem 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+              <span style="font-size: 0.82rem; font-weight: 800; color: #0f172a; display: inline-flex; align-items: center; gap: 0.35rem;">
+                🚢 Pilih Armada Kapal:
+              </span>
+              <div id="ticketingVesselFilterPills" style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+            <div style="display: none; align-items: center; gap: 0.5rem;">
+              <select id="ticketingVesselFilterSelect" class="form-input" style="padding: 0.42rem 0.8rem; font-size: 0.82rem; min-width: 240px; background: #ffffff; border-color: #cbd5e1; font-weight: 700; color: #0284c7;">
+                <option value="ALL">🚢 Semua Armada Perusahaan</option>
+              </select>
             </div>
           </div>
 
@@ -978,6 +948,438 @@
           </button>
         </div>
 
+        <!-- ========================================================
+             OPS PORTAL OVERVIEW (DESAIN ALTERNATIF TIKETING KAPAL)
+             Tampil Khusus Fitur Operasional Tiket & Pelayaran Kapal
+             ======================================================== -->
+        <div class="ops-portal-overview" id="opsPortalOverview">
+          <!-- 1. Top Horizontal Filter Bar Card (Maritime Ticketing Filters) -->
+          <div class="ops-filter-box">
+            <div class="ops-filter-row">
+              <div class="ops-filter-item">
+                <label>Wilayah Pelayaran</label>
+                <div class="ops-select-wrap">
+                  <select id="opsFilterBranch" class="ops-filter-select">
+                    <option value="TARAKAN" selected>PELABUHAN NUNUKAN (KALTARA)</option>
+                    <option value="TARAKAN">PELABUHAN TARAKAN</option>
+                    <option value="PAREPARE">PELABUHAN PAREPARE (SULSEL)</option>
+                    <option value="BALIKPAPAN">PELABUHAN SEMAYANG BALIKPAPAN</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ops-filter-item">
+                <label>Pelabuhan Keberangkatan</label>
+                <div class="ops-select-wrap">
+                  <select id="opsFilterServiceArea" class="ops-filter-select">
+                    <option value="ALL">SEMUA PELABUHAN ASAL</option>
+                    <option value="NUNUKAN" selected>NUNUKAN (Dermaga Tunon Taka)</option>
+                    <option value="TARAKAN">TARAKAN (Dermaga Tengkayu I)</option>
+                    <option value="TAWAU">TAWAU (Port of Tawau Sabah)</option>
+                    <option value="PAREPARE">PAREPARE (Dermaga Nusantara)</option>
+                    <option value="SEBATIK">SEBATIK (Dermaga Sungai Nyamuk)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ops-filter-item">
+                <label>Kategori Armada</label>
+                <div class="ops-select-wrap">
+                  <select id="opsFilterKategori" class="ops-filter-select">
+                    <option value="ALL" selected>SEMUA TIPE KAPAL</option>
+                    <option value="SPEEDBOAT">KAPAL SPEEDBOAT CEPAT (REGULER)</option>
+                    <option value="FERRY">KAPAL PENUMPANG FERRY (VIP & EKONOMI)</option>
+                    <option value="CARGO">KAPAL RO-RO / LOGISTIK DWT</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ops-filter-item">
+                <label>Status Tiket</label>
+                <div class="ops-select-wrap">
+                  <select id="opsFilterStatus" class="ops-filter-select">
+                    <option value="BACKEND" selected>STATUS: SEMUA TIKET AKTIF</option>
+                    <option value="BOARDED">BOARDED (SUDAH NAIK KAPAL)</option>
+                    <option value="OPEN">MENUNGGU BOARDING (OPEN)</option>
+                    <option value="CHECKED_IN">CHECK-IN GATE DERMAGA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ops-filter-item">
+                <label>Lokasi Validasi Tiket</label>
+                <div class="ops-select-wrap">
+                  <select id="opsFilterFlag" class="ops-filter-select">
+                    <option value="TECHNICAL" selected>LOKET UTAMA PELABUHAN</option>
+                    <option value="GATE_SCANNER">GATE SCANNER QR DERMAGA</option>
+                    <option value="SYAHBANDAR">PETUGAS SYAHBANDAR KSOP</option>
+                    <option value="CREW_SHIP">AWAK KAPAL / NAKHODA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ops-filter-item ops-filter-date-item">
+                <label>TANGGAL PELAYARAN</label>
+                <div class="ops-date-wrap">
+                  <input type="date" id="opsFilterDate" class="ops-filter-date" value="2026-10-29">
+                </div>
+              </div>
+              <div class="ops-filter-btn-item">
+                <button type="button" id="btnOpsFilterSubmit" class="ops-btn-submit">Filter Manifest</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. SECTION 1: MANIFEST PENUMPANG & KELAS TIKET KAPAL (Matching Photo 2) -->
+          <div class="ops-section-block">
+            <div class="ops-section-pill-row">
+              <span class="ops-section-pill">MANIFEST PENUMPANG & KELAS TIKET KAPAL</span>
+            </div>
+
+            <!-- Metric Strip: Maritime Ticket Classes & Passenger Counters -->
+            <div class="ops-metric-strip-row">
+              <div class="ops-metric-boxes-grid">
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">VIP SEAT</span>
+                  <span class="ops-mb-val">0</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">EKSEKUTIF</span>
+                  <span class="ops-mb-val">0</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">BISNIS</span>
+                  <span class="ops-mb-val">0</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">EKONOMI</span>
+                  <span class="ops-mb-val" id="opsKpiReguler">1</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">ROMBONGAN</span>
+                  <span class="ops-mb-val" id="opsKpiIndibiz">4</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">INFANT</span>
+                  <span class="ops-mb-val" id="opsKpiB2b">2</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">MENUNGGU</span>
+                  <span class="ops-mb-val" id="opsKpiOpen" style="color: #0284c7;">15</span>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">NAIK KAPAL</span>
+                  <span class="ops-mb-val" id="opsKpiClosed" style="color: #10b981;">31</span>
+                </div>
+              </div>
+
+              <!-- Hasil Boarding & Manifest Penumpang Progress Widget -->
+              <div class="ops-ibooster-card">
+                <div class="ops-ibooster-head">
+                  <span class="ops-ib-title">STATUS BOARDING PENUMPANG KAPAL</span>
+                  <span class="ops-ib-total" id="opsIbTotalVal">Total: 46 Pax</span>
+                </div>
+                <div class="ops-progress-bar-wrap">
+                  <div class="ops-prog-seg ops-prog-green" style="width: 67%;" title="Sudah Naik Kapal: 31"></div>
+                  <div class="ops-prog-seg ops-prog-blue" style="width: 33%;" title="Menunggu Boarding: 15"></div>
+                </div>
+                <div class="ops-ibooster-legend">
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-green"></span> BOARDED 31</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-blue"></span> MENUNGGU 15</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-cyan"></span> CHECK-IN GATE 8</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-purple"></span> ROMBONGAN 4</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-navy"></span> INFANT 2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pastel Multi-Level Matrix Table (Breakdown Penumpang per Rute & Kelas Tiket) -->
+            <div class="ops-table-responsive">
+              <table class="ops-matrix-table">
+                <thead>
+                  <tr class="ops-th-tier1">
+                    <th rowspan="2" class="th-area">RUTE & PELABUHAN ASAL</th>
+                    <th colspan="4" class="th-diamond">VIP SEAT</th>
+                    <th colspan="4" class="th-platinum">EKSEKUTIF</th>
+                    <th colspan="4" class="th-gold">BISNIS</th>
+                    <th colspan="4" class="th-reguler">EKONOMI REGULER</th>
+                    <th colspan="2" class="th-indibiz">ROMBONGAN</th>
+                    <th colspan="2" class="th-b2b">INFANT / BAYI</th>
+                    <th rowspan="2" class="th-open">MENUNGGU</th>
+                    <th rowspan="2" class="th-closed">NAIK KAPAL</th>
+                    <th rowspan="2" class="th-total">TOTAL TIKET</th>
+                  </tr>
+                  <tr class="ops-th-tier2">
+                    <!-- VIP -->
+                    <th>DEWASA</th><th>ANAK</th><th>INFANT</th><th>TOTAL</th>
+                    <!-- Eksekutif -->
+                    <th>DEWASA</th><th>ANAK</th><th>INFANT</th><th>TOTAL</th>
+                    <!-- Bisnis -->
+                    <th>DEWASA</th><th>ANAK</th><th>INFANT</th><th>TOTAL</th>
+                    <!-- Ekonomi -->
+                    <th>DEWASA</th><th>ANAK</th><th>INFANT</th><th>TOTAL</th>
+                    <!-- Rombongan -->
+                    <th>PAX</th><th>TOTAL</th>
+                    <!-- Infant / Bayi -->
+                    <th>PAX</th><th>TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody id="opsTbodyCustomer">
+                  <tr>
+                    <td class="td-areaname"><strong>˅ PELABUHAN TUNON TAKA (NUNUKAN)</strong></td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>7</td><td></td><td>1</td><td>8</td>
+                    <td>1</td><td></td><td></td><td>1</td>
+                    <td>4</td><td>4</td>
+                    <td>2</td><td>2</td>
+                    <td>15</td><td>31</td><td>46 Pax</td>
+                  </tr>
+                  <tr>
+                    <td class="td-subarea">&nbsp;&nbsp;&nbsp;MLN - Rute Nunukan - Malinau (Speedboat Cepat)</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>3</td><td></td><td></td><td>3</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>1</td><td>1</td>
+                    <td>1</td><td>1</td>
+                    <td>5</td><td>6</td><td>11 Pax</td>
+                  </tr>
+                  <tr>
+                    <td class="td-subarea">&nbsp;&nbsp;&nbsp;NNK - Rute Nunukan - Tawau (Internasional Malaysia)</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>1</td><td></td><td></td><td>1</td>
+                    <td>1</td><td></td><td></td><td>1</td>
+                    <td></td><td>0</td>
+                    <td>1</td><td>1</td>
+                    <td>3</td><td>17</td><td>20 Pax</td>
+                  </tr>
+                  <tr>
+                    <td class="td-subarea">&nbsp;&nbsp;&nbsp;SNY - Rute Nunukan - Sebatik (Ferry Cepat Pesisir)</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>3</td><td></td><td></td><td>3</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td>0</td>
+                    <td></td><td>0</td>
+                    <td>3</td><td>5</td><td>8 Pax</td>
+                  </tr>
+                  <tr>
+                    <td class="td-subarea">&nbsp;&nbsp;&nbsp;TPE - Rute Nunukan - Parepare (Kapal Penumpang Domestik)</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td>1</td><td>1</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>3</td><td>3</td>
+                    <td></td><td>0</td>
+                    <td>4</td><td>3</td><td>7 Pax</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="ops-tr-total">
+                    <td class="td-total-lbl">TOTAL MANIFEST TERDATA</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td></td><td></td><td></td><td>0</td>
+                    <td>7</td><td></td><td>1</td><td>8</td>
+                    <td>1</td><td></td><td></td><td>1</td>
+                    <td>4</td><td>4</td>
+                    <td>2</td><td>2</td>
+                    <td>15</td><td>31</td><td>46 Pax</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. SECTION 2: OPERASIONAL ARMADA KAPAL & KESIAPAN BERLAYAR (Matching Photo 1) -->
+          <div class="ops-section-block" style="margin-top: 1.5rem;">
+            <div class="ops-section-pill-row">
+              <span class="ops-section-pill">OPERASIONAL ARMADA KAPAL & KESIAPAN BERLAYAR (SPB KSOP)</span>
+            </div>
+
+            <!-- Row KPI Cards for Vessels & Port Clearance Status -->
+            <div class="ops-metric-strip-row">
+              <div class="ops-metric-boxes-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                <div class="ops-metric-box">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <div>
+                      <span class="ops-mb-lbl">ARMADA AKTIF</span>
+                      <span class="ops-mb-val" style="font-size: 1.4rem;">8</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748b; line-height: 1.2; text-align: right;">
+                      <div>6 Sandar</div>
+                      <div>2 Berlayar</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">DWT KARGO TERISI</span>
+                  <span class="ops-mb-val">0 Ton</span>
+                  <small style="color: #94a3b8; font-size: 0.7rem; font-style: italic;">Muatan Kargo 0 kg</small>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">SISA KUOTA KURSI</span>
+                  <span class="ops-mb-val">18 Seat</span>
+                  <small style="color: #0284c7; font-size: 0.7rem; font-weight: 700;">Tersedia Hari Ini</small>
+                </div>
+                <div class="ops-metric-box">
+                  <span class="ops-mb-lbl">SPB SYAHBANDAR KSOP</span>
+                  <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <span class="ops-mb-val" style="color: #10b981;">10</span>
+                    <div style="font-size: 0.7rem; color: #64748b; text-align: right; line-height: 1.2;">
+                      <div>9 Disetujui</div>
+                      <div>1 Verifikasi</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Keterisian Kapal (Occupancy Rate) Progress Widget -->
+              <div class="ops-ibooster-card" style="min-width: 310px;">
+                <div class="ops-ibooster-head">
+                  <span class="ops-ib-title">KETERISIAN KAPAL (OCCUPANCY RATE)</span>
+                  <span class="ops-ib-total">Rata-rata: 84%</span>
+                </div>
+                <div class="ops-progress-bar-wrap">
+                  <div class="ops-prog-seg ops-prog-blue" style="width: 44%; text-align: center; color: #fff; font-size: 0.65rem; font-weight: 700; line-height: 14px;">8 Kapal</div>
+                  <div class="ops-prog-seg ops-prog-green" style="width: 56%; text-align: center; color: #fff; font-size: 0.65rem; font-weight: 700; line-height: 14px;">10 Berlayar</div>
+                </div>
+                <div class="ops-ibooster-legend">
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-blue"></span> TERJUAL LOKET 72%</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-cyan"></span> TIKET ONLINE 12%</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-green"></span> SISA KUOTA 16%</span>
+                  <span class="ops-leg-item"><span class="ops-dot ops-dot-orange"></span> HOLD CUACA 0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table 2: Kesiapan Jadwal Keberangkatan Kapal & Dokumen Port Clearance KSOP -->
+            <div class="ops-table-responsive">
+              <table class="ops-matrix-table ops-manja-table">
+                <thead>
+                  <tr class="ops-th-tier1">
+                    <th rowspan="2">KODE</th>
+                    <th rowspan="2">NAMA ARMADA KAPAL</th>
+                    <th colspan="5" class="th-manja">KESIAPAN DOKUMEN MARITIM KSOP</th>
+                    <th rowspan="2" class="th-critical">BMKG CUACA</th>
+                    <th rowspan="2">DERMAGA</th>
+                    <th colspan="5" class="th-prog-group">PROGRES BOARDING PENUMPANG</th>
+                    <th rowspan="2">PORT CLEARANCE</th>
+                    <th rowspan="2">DWT KARGO</th>
+                    <th rowspan="2" class="th-ps">STATUS KAPAL</th>
+                    <th colspan="2" class="th-tti">TIKET LOKET</th>
+                    <th rowspan="2">TOTAL PAX</th>
+                  </tr>
+                  <tr class="ops-th-tier2">
+                    <th class="th-sub-red">> 4 Jam</th>
+                    <th class="th-sub-red">1 - 3 Jam</th>
+                    <th class="th-sub-blue">HARI INI (HI)</th>
+                    <th class="th-sub-green">+1 Hari</th>
+                    <th class="th-sub-green">+2 Hari</th>
+                    <th>BELUM BOARDING</th>
+                    <th class="th-sub-orange">PROSES GATE</th>
+                    <th class="th-sub-blue">SUDAH BOARDING</th>
+                    <th class="th-sub-red">KENDALA PASPOR</th>
+                    <th>TOTAL MANIFEST</th>
+                    <th>TERBIT</th>
+                    <th>BATAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>KB-88</strong></td>
+                    <td style="text-align: left; font-weight: 700;">KM Express Bahari 88</td>
+                    <td>1</td><td>2</td><td>1</td><td>4</td><td>-</td>
+                    <td style="color: #16a34a; font-weight: 700;">AMAN (&lt;1.25m)</td>
+                    <td>Dermaga 1 Tunon Taka</td>
+                    <td>4</td><td>-</td><td>2</td><td>2</td><td>8</td>
+                    <td><span class="ops-dot ops-dot-green"></span> SPB Terbit</td>
+                    <td>0 Ton</td>
+                    <td style="color: #16a34a; font-weight: 700;">SIAP BERLAYAR</td>
+                    <td>9</td><td>1</td><td>18 Pax</td>
+                  </tr>
+                  <tr>
+                    <td><strong>NE-02</strong></td>
+                    <td style="text-align: left; font-weight: 700;">KM Nunukan Express</td>
+                    <td>-</td><td>1</td><td>-</td><td>2</td><td>-</td>
+                    <td style="color: #16a34a; font-weight: 700;">AMAN (&lt;1.25m)</td>
+                    <td>Dermaga 2 Cepat</td>
+                    <td>2</td><td>-</td><td>1</td><td>-</td><td>3</td>
+                    <td><span class="ops-dot ops-dot-green"></span> SPB Terbit</td>
+                    <td>0 Ton</td>
+                    <td style="color: #16a34a; font-weight: 700;">SIAP BERLAYAR</td>
+                    <td>2</td><td>-</td><td>5 Pax</td>
+                  </tr>
+                  <tr>
+                    <td><strong>SD-01</strong></td>
+                    <td style="text-align: left; font-weight: 700;">Speedboat Sadewa 01</td>
+                    <td>1</td><td>-</td><td>1</td><td>1</td><td>-</td>
+                    <td style="color: #16a34a; font-weight: 700;">AMAN (&lt;1.25m)</td>
+                    <td>Dermaga Speedboat</td>
+                    <td>2</td><td>-</td><td>-</td><td>1</td><td>3</td>
+                    <td><span class="ops-dot ops-dot-green"></span> SPB Terbit</td>
+                    <td>0 Ton</td>
+                    <td style="color: #16a34a; font-weight: 700;">SIAP BERLAYAR</td>
+                    <td>4</td><td>-</td><td>6 Pax</td>
+                  </tr>
+                  <tr>
+                    <td><strong>TH-09</strong></td>
+                    <td style="text-align: left; font-weight: 700;">KM Thalia Samudera</td>
+                    <td>-</td><td>1</td><td>-</td><td>1</td><td>-</td>
+                    <td style="color: #16a34a; font-weight: 700;">AMAN (&lt;1.25m)</td>
+                    <td>Dermaga Nusantara</td>
+                    <td>-</td><td>-</td><td>1</td><td>1</td><td>2</td>
+                    <td><span class="ops-dot ops-dot-green"></span> SPB Terbit</td>
+                    <td>0 Ton</td>
+                    <td style="color: #0284c7; font-weight: 700;">SANDAR DERMAGA</td>
+                    <td>3</td><td>-</td><td>5 Pax</td>
+                  </tr>
+                  <tr>
+                    <td><strong>PS-05</strong></td>
+                    <td style="text-align: left; font-weight: 700;">KM Prince Sindo</td>
+                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                    <td style="color: #16a34a; font-weight: 700;">AMAN (&lt;1.25m)</td>
+                    <td>Dermaga Internasional</td>
+                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                    <td><span class="ops-dot ops-dot-cyan"></span> Verifikasi</td>
+                    <td>0 Ton</td>
+                    <td style="color: #64748b; font-weight: 700;">STANDBY</td>
+                    <td>1</td><td>1</td><td>2 Pax</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="ops-tr-total">
+                    <td colspan="2" class="td-total-lbl">TOTAL KESIAPAN ARMADA</td>
+                    <td>2</td><td>4</td><td>2</td><td>8</td><td>0</td>
+                    <td style="color: #16a34a; font-weight: 800;">KONDUSIF</td>
+                    <td>5 Dermaga Aktif</td>
+                    <td>8</td><td>0</td><td>4</td><td>4</td><td>16</td>
+                    <td>5 SPB Disetujui</td>
+                    <td>0 Ton</td>
+                    <td style="color: #16a34a; font-weight: 800;">5 Kapal Siap</td>
+                    <td>19</td><td>2</td><td>36 Pax</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Pilihan Statistik Masing-Masing Armada Perusahaan -->
+        <div class="ticky-white-card" style="padding: 0.85rem 1.15rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; border: 1px solid #e2e8f0;">
+          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #1e293b; display: inline-flex; align-items: center; gap: 0.4rem;">
+              🚢 Filter Statistik Armada:
+            </span>
+            <div id="overviewVesselFilterPills" style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              <button type="button" class="btn-overview-vessel-pill active" data-vessel-id="ALL" style="background: #7c3aed; color: #ffffff; border: 1px solid #7c3aed; padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.76rem; font-weight: 700; cursor: pointer;">
+                Semua Armada Perusahaan
+              </button>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <select id="overviewVesselFilterSelect" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; min-width: 230px; background: #f8fafc; border-color: #cbd5e1; font-weight: 600;">
+              <option value="ALL">🚢 Semua Armada Perusahaan (Gabungan)</option>
+            </select>
+          </div>
+        </div>
+
         <!-- 8 KPI Cards Grid (2 rows x 4 columns) -->
         <div class="ticky-kpi-grid">
           <!-- 1. Total Tiket Terbit -->
@@ -1128,19 +1530,29 @@
 
           <!-- Right: Statistik Penjualan Tiket Area Line Chart Card -->
           <div class="ticky-white-card ticky-chart-card">
-            <div class="ticky-card-header">
-              <h3 class="ticky-card-title">Statistik Penjualan Tiket</h3>
-              <button type="button" class="ticky-dropdown-btn">
-                <span>7 Hari Terakhir</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
+            <div class="ticky-card-header" style="flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <h3 class="ticky-card-title" id="overviewStatChartTitle">Statistik Penjualan Tiket</h3>
+                <small id="overviewStatChartSubtitle" style="font-size: 0.74rem; color: #64748b; display: block;">Menampilkan statistik seluruh armada perusahaan</small>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: nowrap;">
+                <select id="chartVesselFilterSelect" class="ticky-dropdown-btn" style="padding: 5px 10px; font-size: 0.76rem; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: 700; color: #7c3aed; width: auto; max-width: 240px; cursor: pointer;">
+                  <option value="ALL">🚢 Semua Armada</option>
+                </select>
+                <select id="chartPeriodFilterSelect" class="ticky-dropdown-btn" style="padding: 5px 10px; font-size: 0.76rem; background: #ffffff; border: 1px solid #cbd5e1; font-weight: 700; color: #334155; width: auto; cursor: pointer;">
+                  <option value="DAILY">Harian</option>
+                  <option value="WEEKLY" selected>Mingguan</option>
+                  <option value="MONTHLY">Bulanan</option>
+                  <option value="YEARLY">Tahunan</option>
+                </select>
+              </div>
             </div>
 
             <div class="ticky-chart-container" style="position: relative;">
               <!-- Tooltip on Thursday -->
               <div class="ticky-chart-tooltip" style="position: absolute; top: 12px; right: 12%; transform: translateX(50%);">
-                <span class="ticky-tooltip-val">48 Tiket</span>
-                <span class="ticky-tooltip-sub">Kamis, Keberangkatan Puncak</span>
+                <span class="ticky-tooltip-val" id="overviewChartTooltipVal">48 Tiket</span>
+                <span class="ticky-tooltip-sub" id="overviewChartTooltipSub">Kamis, Keberangkatan Puncak</span>
               </div>
 
               <!-- Area Line Chart SVG -->
@@ -1190,7 +1602,7 @@
                 <circle cx="665" cy="175" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"></circle>
 
                 <!-- X-Axis Labels (Hari dalam Seminggu) -->
-                <g fill="#94a3b8" font-size="10.5" font-weight="500" text-anchor="middle">
+                <g id="overviewChartXAxisLabels" fill="#94a3b8" font-size="10.5" font-weight="500" text-anchor="middle">
                   <text x="60" y="215">Sabtu</text>
                   <text x="145" y="215">Minggu</text>
                   <text x="235" y="215">Senin</text>
@@ -1201,17 +1613,30 @@
                 </g>
               </svg>
             </div>
+
+            <!-- Statistik Masing-Masing Armada Perusahaan Breakdown -->
+            <div style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem;">
+                <span style="font-size: 0.78rem; font-weight: 800; color: #1e293b;">📊 Rincian Statistik Masing-Masing Armada Perusahaan</span>
+                <small style="font-size: 0.72rem; color: #64748b;">Klik armada untuk melihat statistik spesifik kapal</small>
+              </div>
+              <div id="overviewPerVesselStatsBreakdown" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem;">
+                <!-- Rendered dynamically by JS -->
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Bottom Row: Tickets Statistics Monthly Bar Chart Card -->
         <div class="ticky-white-card ticky-chart-card">
           <div class="ticky-card-header">
-            <h3 class="ticky-card-title">Tren Penjualan Bulanan</h3>
-            <button type="button" class="ticky-dropdown-btn">
-              <span>Tahun Berjalan</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            <h3 class="ticky-card-title" id="overviewTrendChartTitle">Tren Penjualan Tiket</h3>
+            <select id="trendPeriodFilterSelect" class="ticky-dropdown-btn" style="padding: 5px 10px; font-size: 0.76rem; background: #ffffff; border: 1px solid #cbd5e1; font-weight: 700; color: #334155; width: auto; cursor: pointer;">
+              <option value="DAILY">Harian</option>
+              <option value="WEEKLY">Mingguan</option>
+              <option value="MONTHLY">Bulanan</option>
+              <option value="YEARLY" selected>Tahunan</option>
+            </select>
           </div>
 
           <div class="ticky-chart-container" style="position: relative;">
@@ -1352,21 +1777,66 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Bagian Daftar Crew Masing-Masing Armada (CREW LIST) -->
+          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;" id="sectionVesselCrewManagement">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+              <div>
+                <h4 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">👨‍✈️ Daftar Crew Armada (CREW LIST)</h4>
+                <p class="text-dim" style="margin: 0.2rem 0 0 0;">Kelola daftar awak kapal (Master, Mualim, Masinis, Crew/AB) untuk masing-masing armada milik perusahaan.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                <select id="fleetCrewVesselSelect" class="form-input" style="padding: 0.42rem 0.8rem; font-size: 0.82rem; min-width: 220px; font-weight: 700; color: #0284c7; border-color: #93c5fd; background: #f0f9ff;">
+                  <option value="">-- Pilih Armada --</option>
+                </select>
+                <button type="button" class="btn-primary-action" id="btnOpenEditCrewFromPreview" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 0.45rem 0.9rem; font-size: 0.8rem;">
+                  <span>✏️ Isi / Edit Crew Armada</span>
+                </button>
+                <button type="button" class="btn-secondary-action" id="btnPrintVesselCrewList" style="background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                  <span>🖨️ Cetak Crew List</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="dash-table" style="border: 1px solid #cbd5e1;">
+                <thead>
+                  <tr style="background: #f8fafc;">
+                    <th style="width: 50px; text-align: center; border: 1px solid #cbd5e1;">No.</th>
+                    <th style="border: 1px solid #cbd5e1;">Name</th>
+                    <th style="border: 1px solid #cbd5e1;">Position</th>
+                    <th style="width: 80px; text-align: center; border: 1px solid #cbd5e1;">Gender</th>
+                    <th style="width: 75px; text-align: center; border: 1px solid #cbd5e1;">Age</th>
+                    <th style="width: 140px; text-align: center; border: 1px solid #cbd5e1;">Nationality</th>
+                    <th style="width: 160px; border: 1px solid #cbd5e1;">Passport</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyVesselCrewPreview">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- SUBTAB 3: SCHEDULES & ROUTES MANAGEMENT -->
       <div class="dash-pane" id="paneSchedules">
         <div class="dash-block-panel">
-          <div class="block-header flex-between align-center">
+          <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem;">
             <div>
-              <h4>Manajemen Jadwal Keberangkatan & Tarif Tiket</h4>
-              <p class="text-dim">Buka rute pelayaran baru, atur waktu keberangkatan, kelas kabin, dan harga tiket.</p>
+              <h4>Manajemen Jadwal Keberangkatan, Tarif Tiket & Pas Pelabuhan</h4>
+              <p class="text-dim">Buka rute pelayaran baru dan lihat informasi resmi harga tiket serta tarif pas pelabuhan (Perubahan tarif hanya melalui Login Developer).</p>
             </div>
-            <button type="button" class="btn-primary-action" id="btnOpenAddSchedule">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-              <span>Buka Jadwal Baru</span>
-            </button>
+            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+              <span class="tag-badge" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.85rem; border-radius: 8px;">
+                🔒 Harga Tiket & Pas Pelabuhan Dikelola Developer
+              </span>
+              <button type="button" class="btn-primary-action" id="btnOpenAddSchedule">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                <span>Buka Jadwal Baru</span>
+              </button>
+            </div>
           </div>
 
           <div class="table-responsive">
@@ -1378,7 +1848,7 @@
                   <th>Rute Lintasan</th>
                   <th>Waktu Keberangkatan</th>
                   <th>Dermaga / Pier</th>
-                  <th>Pilihan Kelas & Harga</th>
+                  <th>Tarif Tiket & Pas Pelabuhan</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
@@ -1387,6 +1857,45 @@
                 <!-- Rendered by JS -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Bagian Pengaturan Pas Pelabuhan (Bisa Diedit) -->
+          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;" id="sectionPortPassManagement">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                  <span class="tag-badge" style="background: rgba(13, 148, 136, 0.12); color: #0f766e; border-color: #99f6e4; font-weight: 700;">
+                    🎫 RETRIBUSI & PAS PELABUHAN RESMI
+                  </span>
+                </div>
+                <h4 style="font-size: 1.02rem;">Daftar Tarif Pas Pelabuhan Resmi (Port Pass)</h4>
+                <p class="text-dim">Informasi resmi besaran tarif pas masuk pelabuhan (Dewasa & Anak). Pengaturan tarif hanya dapat diubah di Menu Login Developer.</p>
+              </div>
+              <span class="tag-badge" style="background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 8px;">
+                👁️ Mode Lihat Saja (Perusahaan)
+              </span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Kode Pas</th>
+                    <th>Nama Pas Pelabuhan & Terminal</th>
+                    <th>Pengelola / Otoritas</th>
+                    <th>Kategori Rute</th>
+                    <th>Tarif Dewasa</th>
+                    <th>Tarif Anak</th>
+                    <th>Metode Pemungutan</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyPortPassList">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -1532,10 +2041,6 @@
               <button type="button" class="btn-secondary-action" id="btnOpenOfficialManifestPrint" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--primary-cyan); color: var(--primary-cyan); padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                 <span>Cetak Dokumen Resmi KSOP</span>
-              </button>
-              <button type="button" class="btn-secondary-action" id="btnOpenInaportnetModal" style="background: rgba(2, 132, 199, 0.15); border: 1px solid var(--primary-cyan); color: #0284c7; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M8 19l4 4 4-4M12 13v10"/></svg>
-                <span>Kirim INAPORTNET Hubla</span>
               </button>
               <button type="button" class="btn-secondary-action" id="btnOpenBulkTransferModal" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(124, 58, 237, 0.35); color: #7c3aed; padding: 0.38rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.74rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -1693,6 +2198,10 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
               <span>Dynamic Pricing & Peak Season</span>
             </button>
+            <button type="button" class="settings-sub-tab" id="tabBtnSettingsPortPass" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.84rem; font-weight: 600; cursor: pointer; background: #ffffff; color: #64748b; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
+              <span>Pengaturan Pas Pelabuhan</span>
+            </button>
           </div>
 
           <!-- SUB-PANE 1: PENGATURAN PORTAL PERUSAHAAN -->
@@ -1843,37 +2352,6 @@
                         <option value="#e11d48">Merah Marun (#e11d48)</option>
                       </select>
                     </div>
-                  </div>
-                </div>
-
-                <!-- CARD 4: REKENING BANK & DESKRIPSI -->
-                <div class="settings-card-box" style="grid-column: 1 / -1;">
-                  <div class="settings-card-head">
-                    <span class="settings-ic" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">💳</span>
-                    <div>
-                      <h5>4. Rekening Bank Pembayaran Tiket & Informasi Publik</h5>
-                      <small class="text-dim">Rekening penerimaan transaksi tiket dan profil perusahaan</small>
-                    </div>
-                  </div>
-
-                  <div class="form-row-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.85rem;">
-                    <div class="input-block">
-                      <label>Nama Bank</label>
-                      <input type="text" id="settingCompanyBankName" class="form-input" placeholder="contoh: Bank Mandiri">
-                    </div>
-                    <div class="input-block">
-                      <label>Nomor Rekening</label>
-                      <input type="text" id="settingCompanyBankNumber" class="form-input" placeholder="contoh: 140-00-1284910-1">
-                    </div>
-                    <div class="input-block">
-                      <label>Atas Nama Rekening</label>
-                      <input type="text" id="settingCompanyBankHolder" class="form-input" placeholder="contoh: PT Samudera Maju Bahari">
-                    </div>
-                  </div>
-
-                  <div class="input-block">
-                    <label>Deskripsi Singkat Perusahaan</label>
-                    <textarea id="settingCompanyDescription" class="form-input" rows="2" placeholder="Tuliskan profil singkat layanan pelayaran atau ketentuan khusus tiket..."></textarea>
                   </div>
                 </div>
 
@@ -2154,6 +2632,45 @@
             </form>
           </div>
 
+          <!-- SUB-PANE 4: PENGATURAN PAS PELABUHAN -->
+          <div id="subPaneSettingsPortPass" style="display: none;">
+            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span class="tag-badge" style="background: rgba(13, 148, 136, 0.15); color: #0f766e; border-color: #0d9488; font-weight: 700;">
+                    🎫 TARIF PAS MASUK PELABUHAN
+                  </span>
+                </div>
+                <h4>Informasi Tarif Pas Pelabuhan & Retribusi Terminal</h4>
+                <p class="text-dim">Daftar tarif pas pelabuhan penumpang dewasa & anak yang berlaku. Perubahan tarif hanya dapat dilakukan melalui Login Developer.</p>
+              </div>
+              <span class="tag-badge" style="background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.85rem; border-radius: 8px;">
+                🔒 Hanya Dapat Diedit di Login Developer
+              </span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Kode Pas</th>
+                    <th>Nama Pas Pelabuhan & Terminal</th>
+                    <th>Pengelola / Otoritas</th>
+                    <th>Kategori Rute</th>
+                    <th>Tarif Dewasa</th>
+                    <th>Tarif Anak</th>
+                    <th>Metode Pemungutan</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodySettingsPortPassList">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -2315,6 +2832,260 @@
   </main>
 
   <!-- ========================================================
+       VIEW: ADMIN DEVELOPER PORTAL (HIDDEN SUPERADMIN PANEL)
+       ======================================================== -->
+  <main class="view-panel" id="viewDevAdminDashboard" style="background: linear-gradient(180deg, #0f172a 0%, #131c31 100%); min-height: calc(100vh - 70px); padding: 1.4rem 1.75rem 3rem 1.75rem; color: #e2e8f0;">
+    <div style="max-width: 100%; width: 100%; margin: 0 auto;">
+      <!-- Top Header Banner -->
+      <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 55%, #1e1b4b 100%); border: 1px solid #334155; border-radius: 16px; padding: 1.5rem 1.75rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
+            🛡️
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span style="background: #ef4444; color: #ffffff; font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.55rem; border-radius: 999px; letter-spacing: 0.6px; text-transform: uppercase;">HIDDEN DEVELOPER MODE</span>
+              <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 999px;">SUPERADMIN ENGINE</span>
+            </div>
+            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #f8fafc;">Portal Admin Developer — Pusat Kendali Multi-Perusahaan</h2>
+            <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: #94a3b8;">Manajemen perusahaan terdaftar, persetujuan (approval), pembekuan akun perusahaan, dan audit rincian transaksi harian seluruh armada.</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <span id="devAdminActiveIdentityBadge" style="background: rgba(15, 23, 42, 0.75); border: 1px solid #334155; color: #e2e8f0; padding: 0.45rem 0.85rem; border-radius: 10px; font-size: 0.76rem; font-weight: 600;">
+            👤 Akun: <strong id="devAdminCurrentIdText" style="color: #38bdf8;">superadmin (dev@techsolution.id)</strong>
+          </span>
+          <button type="button" id="btnOpenDevCredsModal" style="background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 0.55rem 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>🔑 Ubah Email / Username & Password</span>
+          </button>
+          <button type="button" id="btnRefreshDevAdmin" style="background: #1e293b; color: #e2e8f0; border: 1px solid #475569; padding: 0.55rem 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>🔄 Muat Ulang Data</span>
+          </button>
+          <button type="button" id="btnLogoutDevAdmin" style="background: #ef4444; color: #ffffff; border: none; padding: 0.55rem 1.1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">
+            <span>🚪 Keluar Mode Developer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Overview Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 1.15rem 1.25rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Total Perusahaan Terdaftar</div>
+          <div style="font-size: 1.65rem; font-weight: 800; color: #f8fafc; margin: 0.3rem 0;" id="devKpiTotalCompanies">0 Perusahaan</div>
+          <div style="font-size: 0.76rem; color: #38bdf8; font-weight: 600;" id="devKpiApprovedCompanies">0 Disetujui (Aktif)</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 1.15rem 1.25rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px;">Menunggu Approval & Status Akun</div>
+          <div style="font-size: 1.65rem; font-weight: 800; color: #f59e0b; margin: 0.3rem 0;" id="devKpiPendingCount">0 Pendaftaran</div>
+          <div style="font-size: 0.76rem; color: #cbd5e1; font-weight: 600;" id="devKpiFrozenCount">0 Akun Dibekukan</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 1.15rem 1.25rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Total Armada & Jadwal Aktif</div>
+          <div style="font-size: 1.65rem; font-weight: 800; color: #f8fafc; margin: 0.3rem 0;" id="devKpiTotalVessels">0 Armada</div>
+          <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600;" id="devKpiTotalSchedules">0 Rute / Jadwal Pelayaran</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 1.15rem 1.25rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.5px;">Total Transaksi & Omzet (Filter)</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin: 0.3rem 0;" id="devKpiTotalRevenue">Rp 0</div>
+          <div style="font-size: 0.76rem; color: #6ee7b7; font-weight: 600;" id="devKpiTotalBookings">0 Transaksi (0 Penumpang)</div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: DAFTAR PERUSAHAAN TERDAFTAR, APPROVAL & PEMBEKUAN AKUN -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.35rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <h3 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #f8fafc;">🏢 Daftar Perusahaan Terdaftar, Approval Mitra Baru & Pembekuan Akun</h3>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Kelola persetujuan pendaftaran perusahaan baru serta bekukan (freeze) atau aktifkan kembali akses login akun perusahaan terdaftar.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span id="devPendingAlertBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.76rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px;">0 Menunggu Approval</span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="dash-table dev-dark-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th>ID & Nama Perusahaan</th>
+                <th>Jalur / Kategori Rute</th>
+                <th>Email & Kontak Resmi</th>
+                <th>Tgl Daftar</th>
+                <th>Daftar Armada Kapal</th>
+                <th>Status Akun & Approval</th>
+                <th style="text-align: right;">Aksi Developer</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDevCompaniesList">
+              <!-- Rendered dynamically by renderDevAdminDashboard() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION 1B: PENGATURAN HARGA TIKET & PAS PELABUHAN (EKSKLUSIF DEVELOPER) -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.35rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.15rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.68rem; font-weight: 800; padding: 0.18rem 0.6rem; border-radius: 999px; letter-spacing: 0.5px;">OTORITAS PENETAPAN TARIF DEVELOPER</span>
+            </div>
+            <h3 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #f8fafc;">🏷️ Pengaturan Harga Tiket & Tarif Pas Pelabuhan (Seluruh Perusahaan & Armada)</h3>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Kelola dan ubah harga tiket resmi serta tarif pas pelabuhan untuk setiap perusahaan dan armada kapal. Perusahaan hanya dapat melihat tarif yang Anda tetapkan di sini.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button type="button" id="btnDevOpenAddPortPass" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.5rem 0.95rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <span>🎫 + Tambah Pas Pelabuhan Baru</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SUB-TABEL TARIF 1: HARGA TIKET & PAS PELABUHAN PER PERUSAHAAN / ARMADA -->
+        <div style="margin-bottom: 1.35rem;">
+          <h4 style="font-size: 0.88rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.6rem 0;">⛴️ Daftar Harga Tiket & Pas Pelabuhan Per Perusahaan & Armada Kapal</h4>
+          <div class="table-responsive">
+            <table class="dash-table dev-dark-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Perusahaan Pelayaran</th>
+                  <th>Nama Armada Kapal</th>
+                  <th>Rute Lintasan</th>
+                  <th>Jam Keberangkatan</th>
+                  <th>Harga Tiket Resmi</th>
+                  <th>Tarif Pas Pelabuhan</th>
+                  <th>Total Tarif / Pax</th>
+                  <th style="text-align: right;">Aksi Tarif Developer</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDevScheduleTariffs">
+                <!-- Rendered dynamically by renderDevAdminDashboard() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUB-TABEL TARIF 2: MASTER PENGATURAN PAS PELABUHAN (PORT PASS) -->
+        <div>
+          <h4 style="font-size: 0.88rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.6rem 0;">🎫 Master Pengaturan Tarif Pas Pelabuhan Resmi (Port Pass)</h4>
+          <div class="table-responsive">
+            <table class="dash-table dev-dark-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Kode Pas</th>
+                  <th>Nama Pas Pelabuhan & Terminal</th>
+                  <th>Pengelola / Otoritas</th>
+                  <th>Kategori Rute</th>
+                  <th>Tarif Dewasa</th>
+                  <th>Tarif Anak</th>
+                  <th>Metode Pemungutan</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Aksi Developer</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDevPortPassList">
+                <!-- Rendered dynamically by renderDevAdminDashboard() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: RINCIAN TRANSAKSI HARIAN SETIAP PERUSAHAAN BESERTA ARMADANYA -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.35rem 1.5rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.15rem;">
+          <div>
+            <h3 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #f8fafc;">📊 Laporan & Rincian Transaksi Per Hari — Seluruh Perusahaan & Armada Kapal</h3>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Pantau rekapitulasi harian dan rincian setiap transaksi tiket dari masing-masing perusahaan beserta armada kapalnya secara terperinci per hari.</p>
+          </div>
+
+          <!-- Filter Bar -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; background: #0f172a; padding: 0.65rem 0.85rem; border-radius: 12px; border: 1px solid #334155;">
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+              <label style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Filter Tanggal (Per Hari)</label>
+              <div style="display: flex; gap: 0.35rem; align-items: center;">
+                <input type="date" id="devFilterDate" class="form-input" style="padding: 0.38rem 0.6rem; font-size: 0.8rem; min-width: 145px; background: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important;">
+                <button type="button" id="btnDevAllDates" style="background: #334155; color: #f8fafc; border: 1px solid #475569; border-radius: 7px; padding: 0.4rem 0.65rem; font-size: 0.74rem; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Tampilkan Semua Tanggal">Semua Hari</button>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+              <label style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Filter Perusahaan</label>
+              <select id="devFilterCompany" class="form-input" style="padding: 0.38rem 0.65rem; font-size: 0.8rem; min-width: 195px; background: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important;">
+                <option value="ALL">Semua Perusahaan Terdaftar</option>
+              </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+              <label style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Filter Armada Kapal</label>
+              <select id="devFilterVessel" class="form-input" style="padding: 0.38rem 0.65rem; font-size: 0.8rem; min-width: 185px; background: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important;">
+                <option value="ALL">Semua Armada Kapal</option>
+              </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+              <label style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Cari PNR / Penumpang</label>
+              <input type="text" id="devFilterSearch" class="form-input" placeholder="Ketik PNR / Nama..." style="padding: 0.38rem 0.65rem; font-size: 0.8rem; min-width: 165px; background: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important;">
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TABEL 2A: REKAPITULASI PER HARI PER PERUSAHAAN & ARMADA -->
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="font-size: 0.9rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.65rem 0; display: flex; align-items: center; gap: 0.45rem;">
+            <span>⛴️ Rekapitulasi Harian Per Perusahaan & Masing-Masing Armada Kapal</span>
+          </h4>
+          <div class="table-responsive">
+            <table class="dash-table dev-dark-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Tanggal (Hari)</th>
+                  <th>Nama Perusahaan</th>
+                  <th>Nama Armada Kapal</th>
+                  <th>Rute Pelayaran</th>
+                  <th>Jumlah Transaksi</th>
+                  <th>Total Penumpang</th>
+                  <th>Status Boarding</th>
+                  <th>Total Pendapatan Hari Itu</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDevDailyVesselRecap">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUB-TABEL 2B: RINCIAN DETAIL TRANSAKSI PER HARI -->
+        <div>
+          <h4 style="font-size: 0.9rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.65rem 0; display: flex; align-items: center; gap: 0.45rem;">
+            <span>🧾 Rincian Detail Seluruh Transaksi Tiket Per Hari (Per PNR & Penumpang)</span>
+          </h4>
+          <div class="table-responsive">
+            <table class="dash-table dev-dark-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Tanggal & Jam</th>
+                  <th>Perusahaan Operator</th>
+                  <th>Armada Kapal</th>
+                  <th>Kode PNR</th>
+                  <th>Rincian Penumpang & Kursi</th>
+                  <th>Rute & Kelas</th>
+                  <th>Pembayaran & Status</th>
+                  <th>Nominal Transaksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDevDailyTransactionsDetail">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================
        MODALS
        ======================================================== -->
 
@@ -2365,42 +3136,68 @@
     </div>
   </div>
 
+  <!-- Modal Konfirmasi Hapus Armada Kapal dengan Password -->
+  <div class="modal-layer" id="modalDeleteVesselAuth">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-top">
+        <div>
+          <h4 style="color: #e11d48;">🗑️ Konfirmasi Hapus Armada Kapal</h4>
+          <p class="text-dim">Anda akan menghapus armada <strong id="deleteVesselNameLabel" style="color: #0f172a;">KM Armada</strong> beserta jadwal keberangkatannya.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDeleteVesselAuth">&times;</button>
+      </div>
+      <form id="formDeleteVesselAuth" class="modal-content-form">
+        <input type="hidden" id="deleteTargetVesselId" value="">
+        <input type="hidden" id="deleteTargetScheduleId" value="">
+        <div class="input-block">
+          <label>🔒 Masukkan Password Portal Perusahaan *</label>
+          <input type="password" id="deleteVesselAuthPassword" class="form-input" placeholder="Masukkan password login portal perusahaan" required autocomplete="current-password">
+          <small class="text-dim">Wajib memasukkan password akun perusahaan untuk mengotorisasi penghapusan armada.</small>
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelDeleteVesselAuth">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff;">🗑️ Hapus Armada Sekarang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal Buka Jadwal Baru -->
   <div class="modal-layer" id="modalAddSchedule">
-    <div class="modal-window">
-      <div class="modal-top">
+    <div class="modal-window" style="max-width: 550px; max-height: 96vh; height: auto; overflow-y: auto;">
+      <div class="modal-top" style="padding: 0.9rem 1.35rem;">
         <h4>Buka Rute & Jadwal Keberangkatan Baru</h4>
         <button type="button" class="btn-close-x" id="btnCloseAddSchedule">&times;</button>
       </div>
-      <form id="formAddSchedule" class="modal-content-form">
-        <div class="input-block">
+      <form id="formAddSchedule" class="modal-content-form" style="padding: 0.95rem 1.35rem 1.15rem 1.35rem; overflow-y: visible;">
+        <div class="input-block" style="margin-bottom: 0.55rem;">
           <label>Pilih Kapal / Armada Perusahaan Anda *</label>
-          <select id="schedVesselSelect" class="form-input" required>
+          <select id="schedVesselSelect" class="form-input" style="padding: 0.5rem 0.75rem;" required>
             <!-- Injected by JS -->
           </select>
         </div>
         <div class="form-row-2">
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Pelabuhan Asal *</label>
-            <select id="schedOriginSelect" class="form-input" required>
+            <select id="schedOriginSelect" class="form-input" style="padding: 0.5rem 0.75rem;" required>
               <!-- Injected by JS -->
             </select>
           </div>
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Pelabuhan Tujuan *</label>
-            <select id="schedDestSelect" class="form-input" required>
+            <select id="schedDestSelect" class="form-input" style="padding: 0.5rem 0.75rem;" required>
               <!-- Injected by JS -->
             </select>
           </div>
         </div>
         <div class="form-row-2">
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Tanggal Pelayaran *</label>
-            <input type="date" id="schedDateInput" class="form-input" required>
+            <input type="date" id="schedDateInput" class="form-input" style="padding: 0.5rem 0.75rem;" required>
           </div>
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Pola Keberangkatan</label>
-            <select id="schedRecurrenceSelect" class="form-input">
+            <select id="schedRecurrenceSelect" class="form-input" style="padding: 0.5rem 0.75rem;">
               <option value="ONCE">Hanya Tanggal Ini</option>
               <option value="DAILY_WEEK">Setiap Hari (1 Minggu ke Depan)</option>
               <option value="DAILY_MONTH">Setiap Hari Selama Bulan Ini</option>
@@ -2408,30 +3205,30 @@
           </div>
         </div>
         <div class="form-row-2">
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Jam Berangkat (WITA) *</label>
-            <input type="time" id="schedDepartTime" class="form-input" required value="08:30">
+            <input type="time" id="schedDepartTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="08:30">
           </div>
-          <div class="input-block">
+          <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Jam Tiba (WIB) *</label>
-            <input type="time" id="schedArrivalTime" class="form-input" required value="16:00">
+            <input type="time" id="schedArrivalTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="16:00">
           </div>
         </div>
-        <div class="input-block">
+        <div class="input-block" style="margin-bottom: 0.55rem;">
           <label>Dermaga / Pier Keberangkatan *</label>
-          <input type="text" id="schedPierInput" class="form-input" placeholder="Contoh: Dermaga Eksekutif Nusantara 02" required value="Dermaga Eksekutif 01">
+          <input type="text" id="schedPierInput" class="form-input" style="padding: 0.5rem 0.75rem;" placeholder="Contoh: Dermaga Eksekutif Nusantara 02" required value="Dermaga Eksekutif 01">
         </div>
         <div class="form-row-2">
-          <div class="input-block">
-            <label>Tarif Kelas VIP (Rp) *</label>
-            <input type="number" id="schedPriceVip" class="form-input" value="750000" min="50000" required>
+          <div class="input-block" style="margin-bottom: 0.65rem;">
+            <label>Tarif Harga Tiket (Rp) <small style="color: #64748b; font-weight: 600;">(Ditetapkan Developer)</small></label>
+            <input type="number" id="schedPriceEko" class="form-input" value="350000" min="10000" step="5000" readonly style="padding: 0.5rem 0.75rem; background: #f1f5f9; color: #475569; font-weight: 700; cursor: not-allowed;">
           </div>
-          <div class="input-block">
-            <label>Tarif Kelas Ekonomi (Rp) *</label>
-            <input type="number" id="schedPriceEko" class="form-input" value="480000" min="30000" required>
+          <div class="input-block" style="margin-bottom: 0.65rem;">
+            <label>Tarif Pas Pelabuhan (Rp) <small style="color: #64748b; font-weight: 600;">(Ditetapkan Developer)</small></label>
+            <input type="number" id="schedPortPassPrice" class="form-input" value="25000" min="0" step="1000" readonly style="padding: 0.5rem 0.75rem; background: #f1f5f9; color: #475569; font-weight: 700; cursor: not-allowed;">
           </div>
         </div>
-        <div class="modal-bottom-actions">
+        <div class="modal-bottom-actions" style="padding: 0.8rem 0 0.1rem 0; margin-top: 0.25rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem;">
           <button type="button" class="btn-cancel" id="btnCancelAddSchedule">Batal</button>
           <button type="submit" class="btn-submit-action">Publikasikan Jadwal</button>
         </div>
@@ -2439,13 +3236,13 @@
     </div>
   </div>
 
-  <!-- Modal Edit Tarif Harga Tiket Jadwal -->
+  <!-- Modal Edit Tarif Harga Tiket Jadwal & Pas Pelabuhan -->
   <div class="modal-layer" id="modalEditSchedulePrice">
     <div class="modal-window" style="max-width: 520px;">
       <div class="modal-top">
         <div>
-          <h4>Edit Tarif Harga Tiket Jadwal</h4>
-          <p class="text-dim">Perbarui tarif tiket resmi untuk jadwal <strong id="editSchedIdLabel" style="color: var(--primary-cyan);">SCHED-001</strong>.</p>
+          <h4>Edit Tarif Harga Tiket & Pas Pelabuhan</h4>
+          <p class="text-dim">Perbarui tarif tiket resmi & pas pelabuhan untuk jadwal <strong id="editSchedIdLabel" style="color: var(--primary-cyan);">SCHED-001</strong>.</p>
         </div>
         <button type="button" class="btn-close-x" id="btnCloseEditSchedulePrice">&times;</button>
       </div>
@@ -2455,19 +3252,99 @@
           <label>Kapal / Rute Pelayaran</label>
           <input type="text" id="editSchedRouteInfo" class="form-input" readonly style="background: #f8fafc; font-weight: 600;">
         </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label>Tarif Kelas VIP (Rp) *</label>
-            <input type="number" id="editSchedPriceVip" class="form-input" min="10000" step="5000" required>
-          </div>
-          <div class="input-block">
-            <label>Tarif Kelas Ekonomi (Rp) *</label>
-            <input type="number" id="editSchedPriceEko" class="form-input" min="10000" step="5000" required>
-          </div>
+        <div class="input-block">
+          <label>Tarif Harga Tiket (Rp) *</label>
+          <input type="number" id="editSchedPriceEko" class="form-input" min="10000" step="5000" required>
+        </div>
+        <div class="input-block">
+          <label>Tarif Pas Pelabuhan Penumpang (Rp)</label>
+          <input type="number" id="editSchedPortPassPrice" class="form-input" min="0" step="1000" value="25000">
+        </div>
+        <div class="input-block" id="editSchedDevPassWrap" style="display: none;">
+          <label>🔒 Otorisasi Admin Developer</label>
+          <input type="password" id="editSchedAuthPassword" class="form-input" placeholder="Otomatis terotorisasi di Sesi Developer" autocomplete="current-password">
+          <small class="text-dim">Hanya Admin Developer yang dapat menyimpan perubahan harga tiket & pas pelabuhan.</small>
         </div>
         <div class="modal-bottom-actions">
           <button type="button" class="btn-cancel" id="btnCancelEditSchedulePrice">Batal</button>
-          <button type="submit" class="btn-submit-action" style="background: var(--primary-emerald); color: #fff;">Simpan Perubahan Tarif</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;">Simpan Perubahan Tarif</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah / Edit Pengaturan Pas Pelabuhan -->
+  <div class="modal-layer" id="modalEditPortPass">
+    <div class="modal-window" style="max-width: 540px;">
+      <div class="modal-top">
+        <div>
+          <h4 id="modalPortPassTitle">Edit Pengaturan Pas Pelabuhan</h4>
+          <p class="text-dim">Atur besaran tarif pas masuk pelabuhan (Dewasa & Anak) serta otoritas terminal.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseEditPortPass">&times;</button>
+      </div>
+      <form id="formEditPortPass" class="modal-content-form">
+        <input type="hidden" id="portPassEditId">
+        <div class="input-block">
+          <label>Nama Pas Pelabuhan / Terminal *</label>
+          <input type="text" id="portPassNameInput" class="form-input" placeholder="Contoh: Pas Pelabuhan Internasional Tunon Taka" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Pelabuhan Keberangkatan *</label>
+            <select id="portPassPortSelect" class="form-input" required>
+              <option value="NNK">Pelabuhan Tunon Taka (Nunukan)</option>
+              <option value="TWU">Tawau Ferry Terminal (Malaysia)</option>
+              <option value="PRE">Pelabuhan Nusantara (Parepare)</option>
+            </select>
+          </div>
+          <div class="input-block">
+            <label>Kategori Rute *</label>
+            <select id="portPassRouteType" class="form-input" required>
+              <option value="Internasional">Internasional (Luar Negeri)</option>
+              <option value="Domestik">Domestik (Dalam Negeri)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Pengelola / Otoritas Pelabuhan *</label>
+          <input type="text" id="portPassOperatorInput" class="form-input" placeholder="Contoh: KSOP / Pelindo Tunon Taka Nunukan" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Tarif Pas Dewasa (Rp) *</label>
+            <input type="number" id="portPassAdultInput" class="form-input" min="0" step="1000" value="25000" required>
+          </div>
+          <div class="input-block">
+            <label>Tarif Pas Anak (Rp) *</label>
+            <input type="number" id="portPassChildInput" class="form-input" min="0" step="1000" value="15000" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Metode Pemungutan di Tiket</label>
+            <select id="portPassBillingMode" class="form-input">
+              <option value="INCLUDED">Termasuk Harga Tiket (Bundling)</option>
+              <option value="ADDON">Ditambahkan Otomatis ke Harga Tiket</option>
+              <option value="COUNTER">Dibayar Terpisah di Loket Pelabuhan</option>
+            </select>
+          </div>
+          <div class="input-block">
+            <label>Status Pas Pelabuhan</label>
+            <select id="portPassStatusSelect" class="form-input">
+              <option value="Aktif">Aktif</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-block" id="editPortPassDevPassWrap" style="display: none;">
+          <label>🔒 Otorisasi Admin Developer</label>
+          <input type="password" id="portPassAuthPassword" class="form-input" placeholder="Otomatis terotorisasi di Sesi Developer" autocomplete="current-password">
+          <small class="text-dim">Hanya Admin Developer yang dapat menyimpan perubahan pas pelabuhan.</small>
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelEditPortPass">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;">Simpan Pas Pelabuhan</button>
         </div>
       </form>
     </div>
@@ -2529,6 +3406,22 @@
         <!-- Route Compliance & Immigration Notice Banner -->
         <div class="route-compliance-banner" id="bookRouteComplianceBanner" style="display: none; margin-bottom: 1.25rem;">
           <!-- Filled by JS -->
+        </div>
+
+        <!-- Pilihan Armada Kapal Saat Input Tiket -->
+        <div class="vessel-picker-block" style="margin-bottom: 1.25rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 0.9rem 1.1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h5 class="subhead" style="margin-bottom: 0.2rem; color: #0369a1;">🚢 Pilih Armada Kapal Keberangkatan:</h5>
+              <small style="font-size: 0.76rem; color: #475569;">Pilih armada kapal milik perusahaan untuk penerbitan tiket penumpang ini</small>
+            </div>
+            <select id="bookingModalVesselSelect" class="form-input" style="max-width: 320px; background: #ffffff; border-color: #0284c7; font-weight: 700; color: #0f172a;">
+              <!-- Populated dynamically with company fleet -->
+            </select>
+          </div>
+          <div id="bookingModalVesselPills" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.65rem;">
+            <!-- Populated dynamically -->
+          </div>
         </div>
 
         <!-- Class Selection Block -->
@@ -2647,7 +3540,12 @@
             <!-- 8. Remark / Keterangan -->
             <div class="input-block">
               <label>Remark / Keterangan</label>
-              <input type="text" id="custPaxRemark" class="form-input" placeholder="Catatan khusus, bagasi, transit, dll..." value="Penumpang Reguler">
+              <select id="custPaxRemark" class="form-input">
+                <option value="None" selected>None</option>
+                <option value="LC">LC</option>
+                <option value="PGS">PGS</option>
+                <option value="CAD">CAD</option>
+              </select>
             </div>
           </div>
 
@@ -2898,6 +3796,27 @@
           </div>
         </div>
 
+        <!-- Table Crew List Armada -->
+        <div id="docPrintCrewSection" style="margin-bottom: 1.25rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem; font-family: Georgia, serif; letter-spacing: 0.5px;">CREW LIST</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; color: #0f172a;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 42px;">No.</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a;">Name</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 135px;">Position</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 65px;">Gender</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 55px;">Age</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 115px;">Nationality</th>
+                <th style="padding: 5px 8px; text-align: center; border: 1px solid #0f172a; width: 135px;">Passport</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyOfficialCrewPrintList">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
         <!-- Table Manifest Penumpang -->
         <table style="width: 100%; border-collapse: collapse; font-size: 0.76rem; color: #0f172a; margin-bottom: 1.5rem;">
           <thead>
@@ -3039,11 +3958,11 @@
         <button type="button" class="btn-close-x" id="btnCloseEditManifest">&times;</button>
       </div>
 
-      <form id="formEditManifest">
+      <form id="formEditManifest" class="modal-content-form">
         <input type="hidden" id="editManifestPnr">
         <input type="hidden" id="editManifestPaxIndex" value="0">
 
-        <div class="form-row-2">
+        <div class="form-row-2" style="align-items: start;">
           <!-- 1. Jenis Penumpang -->
           <div class="input-block">
             <label>Jenis Penumpang (Dewasa / Anak) *</label>
@@ -3111,7 +4030,12 @@
           <!-- 8. Remark / Keterangan -->
           <div class="input-block">
             <label>Remark / Keterangan</label>
-            <input type="text" id="editPaxRemark" class="form-input" placeholder="Catatan khusus penumpang...">
+            <select id="editPaxRemark" class="form-input">
+              <option value="None">None</option>
+              <option value="LC">LC</option>
+              <option value="PGS">PGS</option>
+              <option value="CAD">CAD</option>
+            </select>
           </div>
         </div>
 
@@ -3137,7 +4061,7 @@
         <button type="button" class="btn-close-x" id="btnCloseEditTicket">&times;</button>
       </div>
 
-      <form id="formEditTicket">
+      <form id="formEditTicket" class="modal-content-form">
         <input type="hidden" id="editTicketPnr">
 
         <div class="form-row-2">
@@ -3465,6 +4389,14 @@
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.85rem;">
+            <!-- Pilih Armada Kapal -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Pilih Armada Kapal *</label>
+              <select id="bulkTargetVesselSelect" class="form-input" style="background: #ffffff; color: #0284c7; border-color: #0284c7; font-weight: 700; font-size: 0.82rem;">
+                <!-- Injected dynamically -->
+              </select>
+            </div>
+
             <!-- Pilih Jadwal Pelayaran -->
             <div class="input-block" style="margin-bottom: 0;">
               <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Jadwal Kapal Tujuan *</label>
@@ -3842,6 +4774,181 @@
 
 
 
+  <!-- Modal Login Khusus Admin Developer (Hidden dari User Biasa + Google SSO & Authenticator) -->
+  <div class="modal-layer" id="modalDevAdminAuth">
+    <div class="modal-window" style="max-width: 460px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">🛡️</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Otorisasi Admin Developer</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Sistem Kendali Tersembunyi • Google SSO & Authenticator 2FA</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevAdminModal" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevAdminLogin" class="modal-content-form" style="padding-top: 1rem;">
+        <!-- Tombol Login SSO Google Developer -->
+        <button type="button" id="btnDevGoogleSsoLogin" style="width: 100%; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.62rem 1rem; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin-bottom: 0.85rem;">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          <span>Masuk SSO Google & Google Authenticator</span>
+        </button>
+
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+          <div style="flex: 1; height: 1px; background: #1e293b;"></div>
+          <span style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Atau Kredensial + 2FA</span>
+          <div style="flex: 1; height: 1px; background: #1e293b;"></div>
+        </div>
+
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">ID / Email Admin Developer *</label>
+          <input type="text" id="devAdminUserInput" class="form-input" placeholder="Masukkan ID / Email Developer" autocomplete="off" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">Kunci Otorisasi Developer (Password) *</label>
+          <input type="password" id="devAdminPassInput" class="form-input" placeholder="Masukkan Password Developer" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+
+        <!-- Google Authenticator 6-Digit TOTP Section -->
+        <div class="input-block" style="background: #162032; border: 1px solid #334155; border-radius: 10px; padding: 0.75rem 0.85rem; margin-top: 0.35rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label style="color: #38bdf8; font-size: 0.76rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+              <span>📲 Kode Google Authenticator (6 Digit OTP)</span>
+            </label>
+            <button type="button" id="btnToggleDevQrAuthBox" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; padding: 0.2rem 0.5rem; font-size: 0.68rem; font-weight: 700; cursor: pointer;">
+              QR / Kode 2FA
+            </button>
+          </div>
+          <input type="text" id="devAdminOtpInput" class="form-input" placeholder="6 digit kode OTP Google Authenticator" maxlength="6" inputmode="numeric" style="background: #0f172a !important; color: #38bdf8 !important; border-color: #334155 !important; font-family: monospace; font-size: 1rem; font-weight: 800; letter-spacing: 4px; text-align: center;">
+
+          <!-- Collapsible QR & TOTP Sync Box -->
+          <div id="devAuthQrCollapseBox" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #334155; font-size: 0.74rem; color: #cbd5e1;">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <img id="devAuthQrImg" src="" alt="QR Google Authenticator" style="width: 88px; height: 88px; border-radius: 8px; background: #ffffff; padding: 4px; flex-shrink: 0;">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; color: #f8fafc; margin-bottom: 0.2rem;">Scan di Aplikasi Google Authenticator</div>
+                <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.3rem;">Secret Key: <strong id="devAuthSecretText" style="color: #fbbf24; font-family: monospace;">JBSWY3DPEHPK3PXP</strong></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #0f172a; border: 1px solid #334155; padding: 0.3rem 0.55rem; border-radius: 6px;">
+                  <span>OTP Aktif (<span id="devAuthOtpTimer">30</span>d): <strong id="devAuthLiveCodeText" style="color: #34d399; font-family: monospace; font-size: 0.88rem; letter-spacing: 1.5px;">------</strong></span>
+                  <button type="button" id="btnAutoFillDevOtp" style="background: #0284c7; color: #ffffff; border: none; border-radius: 5px; padding: 0.18rem 0.45rem; font-size: 0.68rem; font-weight: 700; cursor: pointer;">Isi Otomatis</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevAdminModal" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);">
+            <span>🔐 Masuk Mode Developer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Ubah Kredensial Khusus Admin Developer (Email / Username, Password & Google Authenticator) -->
+  <div class="modal-layer" id="modalDevAdminCreds">
+    <div class="modal-window" style="max-width: 490px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">🔑</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Ubah Kredensial & Google Authenticator</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Perbarui Email SSO, Username, Password & Kunci 2FA Google Authenticator</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevCredsModal" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevAdminCreds" class="modal-content-form" style="padding-top: 1rem;">
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">Email Admin Developer & Akun Google SSO Baru *</label>
+          <input type="email" id="devCredEmailInput" class="form-input" placeholder="contoh: dev@techsolution.id" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">Username / ID Admin Developer Baru *</label>
+          <input type="text" id="devCredUsernameInput" class="form-input" placeholder="contoh: superadmin" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">Secret Key Google Authenticator (Base32) *</label>
+          <div style="display: flex; gap: 0.45rem;">
+            <input type="text" id="devCredTotpSecretInput" class="form-input" placeholder="JBSWY3DPEHPK3PXP" required style="background: #1e293b !important; color: #fbbf24 !important; border-color: #334155 !important; font-family: monospace; font-weight: 700;">
+            <button type="button" id="btnResetDevTotpSecret" style="background: #1e293b; color: #38bdf8; border: 1px solid #334155; border-radius: 8px; padding: 0 0.75rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap;">🔄 Acak Key</button>
+          </div>
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem;">Password Developer Saat Ini (Verifikasi) *</label>
+          <input type="password" id="devCredOldPassInput" class="form-input" placeholder="Masukkan password lama untuk verifikasi" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem;">Password Baru <span style="color:#94a3b8; font-weight:400;">(Opsional)</span></label>
+            <input type="password" id="devCredNewPassInput" class="form-input" placeholder="Kosongkan jika tetap" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem;">Konfirmasi Password Baru</label>
+            <input type="password" id="devCredConfirmPassInput" class="form-input" placeholder="Ulangi password baru" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+        </div>
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevCredsModal" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <span>💾 Simpan Kredensial Developer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Input & Edit Daftar Crew Masing-Masing Armada (CREW LIST) -->
+  <div class="modal-layer" id="modalVesselCrewList">
+    <div class="modal-window modal-wide" style="max-width: 880px;">
+      <div class="modal-top">
+        <div>
+          <h4>Daftar Crew Armada (<span id="modalCrewVesselNameLabel" style="color: #0284c7;">KM Armada</span>)</h4>
+          <p class="text-dim">Isi data awak kapal sesuai posisi jabatan di atas kapal (Master, Mualim, Masinis, Crew/AB).</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseVesselCrewModal">&times;</button>
+      </div>
+      <form id="formVesselCrewList" class="modal-content-form">
+        <input type="hidden" id="crewModalVesselId" value="">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #334155;">Format Resmi CREW LIST (MASTER, MUALIM, MASINIS, CREW/ AB)</span>
+          <button type="button" id="btnAddCrewRow" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 700; cursor: pointer;">
+            + Tambah Baris Crew
+          </button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 390px; overflow-y: auto;">
+          <table class="dash-table" style="width: 100%; border: 1px solid #cbd5e1;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="width: 44px; text-align: center;">No.</th>
+                <th>Name *</th>
+                <th style="width: 155px;">Position *</th>
+                <th style="width: 85px;">Gender</th>
+                <th style="width: 78px;">Age</th>
+                <th style="width: 135px;">Nationality</th>
+                <th style="width: 150px;">Passport / Buku Pelaut</th>
+                <th style="width: 42px; text-align: center;"></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyModalCrewRows">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelVesselCrewModal">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <span>💾 Simpan Daftar Crew Armada</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Global Toast Notification -->
   <div class="toast-popup" id="toastPopup">
     <div class="toast-ic" id="toastIcon">✓</div>
@@ -3851,7 +4958,7 @@
     </div>
   </div>
 
-  <script src="data-store.js?v=2.0"></script>
-  <script src="app.js?v=2.4"></script>
+  <script src="data-store.js?v=2.3"></script>
+  <script src="app.js?v=3.3"></script>
 </body>
 </html>
