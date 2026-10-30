@@ -248,6 +248,8 @@ const App = {
       if (btnComp) btnComp.classList.add('active');
       this.closeCompanyAuthModal();
       this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
+      const brandLogo = document.getElementById('brandLogoImg');
+      if (brandLogo) brandLogo.src = 'assets/tech_solution_emblem.png';
     } else if (viewName === 'companyAuth') {
       this.openCompanyAuthModal();
     } else if (viewName === 'companyDashboard') {
@@ -259,6 +261,10 @@ const App = {
       this.closeCompanyAuthModal();
       this.refreshCompanyDashboard();
       this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
+      const brandLogo = document.getElementById('brandLogoImg');
+      if (brandLogo) brandLogo.src = 'assets/company_portal_emblem.png';
+      const tickyLogo = document.getElementById('tickyBrandLogoImg');
+      if (tickyLogo) tickyLogo.src = 'assets/company_portal_emblem.png';
     } else if (viewName === 'devAdminDashboard') {
       document.body.classList.remove('in-company-portal');
       document.body.classList.add('in-dev-admin');
@@ -284,6 +290,8 @@ const App = {
     }
     this.updateHeaderTenantUI(null);
     document.body.classList.remove('in-company-portal');
+    const brandLogo = document.getElementById('brandLogoImg');
+    if (brandLogo) brandLogo.src = 'assets/tech_solution_emblem.png';
     this.switchView('weatherHome');
     this.showToast('Logout Berhasil', 'Anda telah keluar dari portal operator perusahaan.');
   },
@@ -1132,7 +1140,7 @@ const App = {
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
     setTxt('ticketPaxDocVal', `${docLabel}: ${p0.docNumber || p0.nik || '-'}`);
 
-    const natLabel = (p0.nationality && !['ID', 'Indonesia', 'MY', 'OTHER'].includes(p0.nationality)) ? `🌏 WNA (${p0.nationality})` : p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
+    const natLabel = (p0.nationality && !['ID', 'Indonesia', 'MY', 'Malaysia', 'OTHER'].includes(p0.nationality)) ? `🌏 ${p0.nationality}` : (p0.nationality === 'MY' || p0.nationality === 'Malaysia') ? '🇲🇾 Malaysia' : (p0.nationality === 'OTHER' ? '🌏 Luar Negeri' : '🇮🇩 Indonesia');
     setTxt('ticketPaxNationalityVal', natLabel);
     setTxt('ticketPaxGenderDobVal', `${p0.gender === 'P' ? 'Perempuan' : 'Laki-laki'} • Lahir: ${p0.dob || '-'}`);
 
@@ -2848,6 +2856,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elAvatar = document.getElementById('dashTenantAvatar');
     if (elAvatar) elAvatar.style.background = tenant.brandColor;
 
+    // Logo portal perusahaan begitu masuk portal
+    const tickyLogo = document.getElementById('tickyBrandLogoImg');
+    if (tickyLogo) tickyLogo.src = 'assets/company_portal_emblem.png';
+    const brandLogo = document.getElementById('brandLogoImg');
+    if (brandLogo) brandLogo.src = 'assets/company_portal_emblem.png';
+
     // Fetch Tenant Isolated Data & Enforce Route Scope (Internasional vs Domestik)
     const routeScope = this.getTenantRouteScope(tenant);
     const isTenantIntl = routeScope === 'INTL';
@@ -3954,7 +3968,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       docLabel,
       docNum,
       age: pax.age || (pax.dob ? '-' : 'Dewasa'),
-      nationality: pax.nationality === 'MY' ? 'Malaysia' : (pax.nationality === 'OTHER' ? 'WNA' : ((!pax.nationality || pax.nationality === 'ID' || pax.nationality === 'Indonesia') ? 'Indonesia (WNI)' : pax.nationality)),
+      nationality: (pax.nationality === 'MY' || pax.nationality === 'Malaysia') ? 'Malaysia' : (pax.nationality === 'OTHER' ? 'Luar Negeri' : ((!pax.nationality || pax.nationality === 'ID' || pax.nationality === 'Indonesia') ? 'Indonesia' : pax.nationality)),
       seat: seatName,
       className,
       fare,
@@ -4303,7 +4317,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       seat: booking.seatNumber || '-'
     };
     const isAlreadyBoarded = booking.boardingStatus === 'BOARDED';
-    const natBadge = (p0.nationality && !['ID', 'Indonesia', 'MY', 'OTHER'].includes(p0.nationality)) ? `🌏 WNA (${p0.nationality})` : p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
+    const natBadge = (p0.nationality && !['ID', 'Indonesia', 'MY', 'Malaysia', 'OTHER'].includes(p0.nationality)) ? `🌏 ${p0.nationality}` : (p0.nationality === 'MY' || p0.nationality === 'Malaysia') ? '🇲🇾 Malaysia' : (p0.nationality === 'OTHER' ? '🌏 Luar Negeri' : '🇮🇩 Indonesia');
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
 
     card.innerHTML = `
@@ -7849,9 +7863,9 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         </td>
         <td>
           <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="nationality">
-            <option value="ID" ${row.nationality === 'ID' ? 'selected' : ''}>WNI (ID)</option>
-            <option value="MY" ${row.nationality === 'MY' ? 'selected' : ''}>WNA (MY)</option>
-            ${Array.from(document.getElementById('custPaxNationality')?.options || []).filter(o => !['Indonesia', 'Malaysia', 'Lainnya'].includes(o.value)).map(o => `<option value="${o.value}" ${row.nationality === o.value ? 'selected' : ''}>WNA (${o.value})</option>`).join('')}
+            <option value="ID" ${row.nationality === 'ID' || row.nationality === 'Indonesia' ? 'selected' : ''}>Indonesia</option>
+            <option value="MY" ${row.nationality === 'MY' || row.nationality === 'Malaysia' ? 'selected' : ''}>Malaysia</option>
+            ${Array.from(document.getElementById('custPaxNationality')?.options || []).filter(o => !['Indonesia', 'Malaysia', 'Lainnya'].includes(o.value)).map(o => `<option value="${o.value}" ${row.nationality === o.value ? 'selected' : ''}>${o.value}</option>`).join('')}
           </select>
         </td>
         <td>
@@ -7951,7 +7965,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         <td><code style="color: #0284c7; font-weight: 700;">${p.docNum || '-'}</code></td>
         <td><span class="tag-badge" style="padding: 2px 6px; font-size: 0.72rem;">${p.gender}</span></td>
         <td>${p.paxType}</td>
-        <td><span class="tag-badge" style="background:#f1f5f9;color:#334155;border-color:#cbd5e1;padding:2px 6px;font-size:0.72rem;">${p.nationality}</span></td>
+        <td><span class="tag-badge" style="background:#f1f5f9;color:#334155;border-color:#cbd5e1;padding:2px 6px;font-size:0.72rem;">${(p.nationality === 'ID' || p.nationality === 'Indonesia') ? 'Indonesia' : ((p.nationality === 'MY' || p.nationality === 'Malaysia') ? 'Malaysia' : p.nationality)}</span></td>
         <td>
           <span class="tag-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: #fde68a; font-weight: 800; font-size: 0.76rem;">
             ${p.seat || 'OTOMATIS'}
