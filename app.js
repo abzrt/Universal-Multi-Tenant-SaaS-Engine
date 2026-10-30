@@ -3983,7 +3983,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       destCity: booking.destinationCity || 'Tawau',
       destCode: booking.destCode || 'TWU',
       departDate: booking.departDate || new Date().toISOString().split('T')[0],
-      departTime: booking.departTime || '08:30 WITA',
+      departTime: booking.departTime || '09:00 WITA',
       pier: booking.pier || 'Dermaga 3 Tunon Taka',
       groupName: booking.groupName || (booking.contact ? booking.contact.name : '-'),
       companyName: tenant?.name || 'PT HASNA EXPRESS NUNUKAN',
@@ -6477,8 +6477,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             rowsHtml += `
               <div class="agenda-voyage-row">
                 <div>
-                  <strong style="font-family:var(--font-mono);font-size:1.05rem;color:#0f172a;">${voy.departTime || '08:30'} WITA</strong>
-                  <span style="font-size:0.72rem;color:#64748b;display:block;">Tiba: ${voy.arrivalTime || '10:00'}</span>
+                  <strong style="font-family:var(--font-mono);font-size:1.05rem;color:#0f172a;">${voy.departTime || '09:00'} WITA</strong>
+                  <span style="font-size:0.72rem;color:#64748b;display:block;">Tiba: ${voy.arrivalTime || '11:00'}</span>
                 </div>
                 <div>
                   <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
@@ -7291,6 +7291,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       dateInput.value = defaultDate || new Date().toISOString().split('T')[0];
     }
 
+    // Set default departure & arrival times (09.00 WITA & 11.00 WITA)
+    const depTimeInput = document.getElementById('schedDepartTime');
+    if (depTimeInput) depTimeInput.value = '09:00';
+    const arrTimeInput = document.getElementById('schedArrivalTime');
+    if (arrTimeInput) arrTimeInput.value = '11:00';
+
     modal.classList.add('show');
   },
 
@@ -8033,7 +8039,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           id: scheduleId || `SCH-${tenant.id}-AUTO`,
           companyId: tenant.id,
           date: new Date().toISOString().split('T')[0],
-          departTime: '08:30',
+          departTime: '09:00',
           originId: 'NNK',
           destinationId: 'TWU',
           pier: 'Dermaga 3 Tunon Taka',
@@ -8095,7 +8101,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           destinationCity: destPort.city,
           destCode: destPort.id || 'TWU',
           departDate: targetSched.date || new Date().toISOString().split('T')[0],
-          departTime: `${targetSched.departTime || '08:30'} WITA`,
+          departTime: `${targetSched.departTime || '09:00'} WITA`,
           className,
           pier: targetSched.pier || 'Dermaga Keberangkatan',
           isIntl,
@@ -8141,7 +8147,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             destinationCity: destPort.city,
             destCode: destPort.id || 'TWU',
             departDate: targetSched.date || new Date().toISOString().split('T')[0],
-            departTime: `${targetSched.departTime || '08:30'} WITA`,
+            departTime: `${targetSched.departTime || '09:00'} WITA`,
             className,
             pier: targetSched.pier || 'Dermaga Keberangkatan',
             isIntl,
@@ -8452,7 +8458,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       <VoyageType>PASSENGER_FERRY_CROSSBORDER</VoyageType>
       <OriginPort>NNK (TUNON TAKA)</OriginPort>
       <DestinationPort>TWU (TAWAU FERRY TERMINAL)</DestinationPort>
-      <DepartureTimeWITA>${now.split('T')[0]} 08:30</DepartureTimeWITA>
+      <DepartureTimeWITA>${now.split('T')[0]} 09:00</DepartureTimeWITA>
     </DepartureSchedule>
     <PassengerManifestSummary>
       <TotalPax>${bookings.length}</TotalPax>

@@ -470,33 +470,20 @@
             <!-- SECTION: TIKET & JADWAL -->
             <div class="ticky-nav-section-title">TIKET & JADWAL</div>
 
-            <!-- 2. Daftar Rute & Jadwal (Accordion) -->
-            <div class="ticky-nav-group dash-nav-group" id="groupNavSchedules">
-              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSchedules" title="Daftar Rute & Jadwal">
-                <div class="ticky-nav-left">
-                  <span class="ticky-nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                  </span>
-                  <span class="ticky-nav-label">Daftar Rute & Jadwal</span>
-                </div>
-                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
-              <div class="ticky-sub-menu dash-sub-menu">
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabSchedules">
-                  <span class="ticky-sub-dot"></span>
-                  <span>Lihat Semua Jadwal Rute</span>
-                </a>
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnAddSchedule">
-                  <span class="ticky-sub-dot" style="background:#10b981;"></span>
-                  <span style="color:#10b981;font-weight:700;">+ Buka Jadwal Baru</span>
-                </a>
+            <!-- 2. Daftar Rute & Jadwal (Dedicated Tab) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSchedules" id="btnNavSchedules" title="Daftar Rute & Jadwal">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Daftar Rute & Jadwal</span>
               </div>
-            </div>
+            </button>
 
             <!-- 4. Kalender Pelayaran (Dedicated Tab) -->
             <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCalendar" id="btnNavCalendar" title="Kalender Pelayaran">
@@ -514,31 +501,18 @@
               </div>
             </button>
 
-            <!-- 5. Armada Kapal Saya (Accordion) -->
-            <div class="ticky-nav-group dash-nav-group" id="groupNavFleet">
-              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabFleet" title="Armada Kapal Saya">
-                <div class="ticky-nav-left">
-                  <span class="ticky-nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
-                      <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
-                    </svg>
-                  </span>
-                  <span class="ticky-nav-label">Armada Kapal Saya</span>
-                </div>
-                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
-              <div class="ticky-sub-menu dash-sub-menu">
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabFleet">
-                  <span class="ticky-sub-dot"></span>
-                  <span>Daftar Armada Kapal</span>
-                </a>
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnAddVessel">
-                  <span class="ticky-sub-dot" style="background:#0284c7;"></span>
-                  <span style="color:#0284c7;font-weight:700;">+ Tambah Armada Baru</span>
-                </a>
+            <!-- 5. Armada Kapal Saya (Dedicated Tab) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabFleet" id="btnNavFleet" title="Armada Kapal Saya">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
+                    <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Armada Kapal Saya</span>
               </div>
-            </div>
+            </button>
 
             <!-- SECTION: OPERASIONAL PELABUHAN -->
             <div class="ticky-nav-section-title">OPERASIONAL PELABUHAN</div>
@@ -587,34 +561,17 @@
               </div>
             </button>
 
-            <!-- 9. Tagihan & Riwayat Tiket (Accordion) -->
-            <div class="ticky-nav-group dash-nav-group" id="groupNavKsop">
-              <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus" title="Tagihan & Riwayat Tiket">
-                <div class="ticky-nav-left">
-                  <span class="ticky-nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                  </span>
-                  <span class="ticky-nav-label">Tagihan & Riwayat Tiket</span>
-                </div>
-                <svg class="ticky-chevron dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
-              <div class="ticky-sub-menu dash-sub-menu">
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item active" data-tab="tabManifest">
-                  <span class="ticky-sub-dot"></span>
-                  <span>Manifest Penumpang Resmi</span>
-                </a>
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnBulkPassenger">
-                  <span class="ticky-sub-dot" style="background:#0284c7;"></span>
-                  <span style="color:#0284c7;font-weight:700;">📥 Input Penumpang Massal</span>
-                </a>
-                <a href="javascript:void(0)" class="ticky-sub-item dash-sub-item" id="subBtnExportCsv">
-                  <span class="ticky-sub-dot" style="background:#10b981;"></span>
-                  <span style="color:#10b981;font-weight:700;">⬇ Unduh CSV Manifest</span>
-                </a>
+            <!-- 9. Tagihan & Riwayat Tiket (Dedicated Tab) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabManifest" data-action="ksop-focus" id="btnNavManifest" title="Tagihan & Riwayat Tiket">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Tagihan & Riwayat Tiket</span>
               </div>
-            </div>
+            </button>
 
             <!-- 10. Cek Kurs Valas Online Realtime -->
             <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCurrencyExchange" title="Cek Kurs Valas Online Realtime">
@@ -3261,11 +3218,11 @@
         <div class="form-row-2">
           <div class="input-block" style="margin-bottom: 0.55rem;">
             <label>Jam Berangkat (WITA) *</label>
-            <input type="time" id="schedDepartTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="08:30">
+            <input type="time" id="schedDepartTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="09:00">
           </div>
           <div class="input-block" style="margin-bottom: 0.55rem;">
-            <label>Jam Tiba (WIB) *</label>
-            <input type="time" id="schedArrivalTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="16:00">
+            <label>Jam Tiba (WITA) *</label>
+            <input type="time" id="schedArrivalTime" class="form-input" style="padding: 0.5rem 0.75rem;" required value="11:00">
           </div>
         </div>
         <div class="input-block" style="margin-bottom: 0.55rem;">
@@ -4712,7 +4669,7 @@
             <span style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block;">Asal & Dermaga</span>
             <strong style="font-size: 1.1rem; color: #0f172a;" id="voyageModalOrigCity">Nunukan</strong>
             <span style="font-size: 0.75rem; color: #0284c7; display: block;" id="voyageModalPier">Dermaga Tunon Taka</span>
-            <span style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-top: 0.2rem; display: block;" id="voyageModalDepartTime">08:30 WITA</span>
+            <span style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-top: 0.2rem; display: block;" id="voyageModalDepartTime">09:00 WITA</span>
           </div>
           <div style="text-align: center; padding: 0 1rem;">
             <span style="font-size: 0.72rem; color: #64748b; font-weight: 600;" id="voyageModalDuration">1.5 Jam</span>
@@ -4725,7 +4682,7 @@
             <span style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block;">Tujuan</span>
             <strong style="font-size: 1.1rem; color: #0f172a;" id="voyageModalDestCity">Tawau</strong>
             <span style="font-size: 0.75rem; color: #64748b; display: block;">Terminal Feri</span>
-            <span style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-top: 0.2rem; display: block;" id="voyageModalArrivalTime">10:00 WITA</span>
+            <span style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-top: 0.2rem; display: block;" id="voyageModalArrivalTime">11:00 WITA</span>
           </div>
         </div>
 
@@ -5378,6 +5335,6 @@
   </div>
 
   <script src="data-store.js?v=2.5"></script>
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=4.1"></script>
 </body>
 </html>
