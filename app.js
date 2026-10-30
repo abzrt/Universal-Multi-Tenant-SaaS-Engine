@@ -21,7 +21,7 @@ const App = {
     targetScheduleId: null,
     selectedClass: 'EKONOMI',
     farePerPax: 250000,
-    activeTab: 'PASTE',
+    activeTab: 'GRID',
     paxList: [],
     manualGridRows: []
   },
@@ -50,12 +50,14 @@ const App = {
     this.initPeakSeasonEvents();
     this.initCurrencyAndMdacEvents();
 
-    // Status tenant di header jika ada sesi aktif
-    const loggedInTenant = Store.getCurrentTenant();
-    this.updateHeaderTenantUI(loggedInTenant);
-
-    // Selalu buka ke halaman awal web (weatherHome - Pantauan Cuaca BMKG) saat aplikasi dimuat
-    this.switchView('weatherHome');
+    // Status tenant atau dev admin di header jika ada sesi aktif
+    if (typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) {
+      this.switchView('devAdminDashboard');
+    } else {
+      const loggedInTenant = Store.getCurrentTenant();
+      this.updateHeaderTenantUI(loggedInTenant);
+      this.switchView('weatherHome');
+    }
 
     this.renderCompanyAuthButtons();
   },
@@ -150,10 +152,7 @@ const App = {
   openCompanyAuthModal() {
     this.renderCompanyAuthButtons();
     document.getElementById('tabBtnLogin')?.click();
-    const emailInput = document.getElementById('loginCompEmail');
-    const passInput = document.getElementById('loginCompPassword');
-    if (emailInput) emailInput.value = '';
-    if (passInput) passInput.value = '';
+    this.renderSavedMitraAccountsDropdown();
     const modal = document.getElementById('modalCompanyAuth');
     if (modal) modal.classList.add('show');
   },
@@ -248,6 +247,7 @@ const App = {
       if (weatherPanel) weatherPanel.classList.add('active');
       if (btnComp) btnComp.classList.add('active');
       this.closeCompanyAuthModal();
+      this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
     } else if (viewName === 'companyAuth') {
       this.openCompanyAuthModal();
     } else if (viewName === 'companyDashboard') {
@@ -258,6 +258,7 @@ const App = {
       if (btnComp) btnComp.classList.add('active');
       this.closeCompanyAuthModal();
       this.refreshCompanyDashboard();
+      this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
     } else if (viewName === 'devAdminDashboard') {
       document.body.classList.remove('in-company-portal');
       document.body.classList.add('in-dev-admin');
@@ -266,6 +267,7 @@ const App = {
       this.closeCompanyAuthModal();
       if (typeof this.closeDevAdminModal === 'function') this.closeDevAdminModal();
       if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+      this.updateHeaderTenantUI(null);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
@@ -289,6 +291,17 @@ const App = {
   updateHeaderTenantUI(tenant) {
     const box = document.getElementById('headerTenantBox');
     if (!box) return;
+
+    // Sembunyikan seluruh tombol login tenant / masuk mitra operator saat di mode developer
+    const isDev = (typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) ||
+                  document.body.classList.contains('in-dev-admin') ||
+                  this.activeView === 'devAdminDashboard';
+    if (isDev) {
+      box.innerHTML = '';
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = '';
 
     if (!tenant) {
       box.innerHTML = `
@@ -719,7 +732,7 @@ const App = {
       const mdacBox = document.getElementById('mdacBookingNoticeBox');
       const passExpRow = document.getElementById('passportExpiryRow');
       if (mdacBox) mdacBox.style.display = isIntl ? 'block' : 'none';
-      if (passExpRow) passExpRow.style.display = isIntl ? 'flex' : 'none';
+      if (passExpRow) passExpRow.style.display = isIntl ? 'grid' : 'none';
     }
 
     if (docTypeSelect) {
@@ -778,6 +791,7 @@ const App = {
       checkDup();
     }
 
+    this.updateExchangeRateUI();
     document.getElementById('modalCustomerBooking')?.classList.add('show');
   },
 
@@ -1071,7 +1085,7 @@ const App = {
       })),
       totalAmount,
       paymentMethod: payMethod,
-      paymentStatus: 'PAID',
+      paymentStatus: payMethod === 'Sistem Booked' ? 'BOOKED' : 'PAID',
       boardingStatus: 'NOT_CHECKED_IN',
       createdAt: new Date().toISOString()
     };
@@ -1118,7 +1132,7 @@ const App = {
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
     setTxt('ticketPaxDocVal', `${docLabel}: ${p0.docNumber || p0.nik || '-'}`);
 
-    const natLabel = p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
+    const natLabel = (p0.nationality && !['ID', 'Indonesia', 'MY', 'OTHER'].includes(p0.nationality)) ? `🌏 WNA (${p0.nationality})` : p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
     setTxt('ticketPaxNationalityVal', natLabel);
     setTxt('ticketPaxGenderDobVal', `${p0.gender === 'P' ? 'Perempuan' : 'Laki-laki'} • Lahir: ${p0.dob || '-'}`);
 
@@ -1201,6 +1215,145 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const grid = document.getElementById('demoButtonsGrid');
     if (!grid) return;
     grid.innerHTML = '';
+  },
+
+  // ================= MANAJEMEN KREDENSIAL MITRA TERSIMPAN =================
+  getSavedMitraCredentials() {
+    try {
+      const raw = localStorage.getItem('tech_saved_mitra_creds_v2');
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  },
+
+  saveMitraCredential(identifier, password, comp = null) {
+    if (!identifier || !password) return;
+    try {
+      const saved = this.getSavedMitraCredentials();
+      const key = identifier.toLowerCase().trim();
+      saved[key] = {
+        identifier: identifier.trim(),
+        email: (comp && comp.email) ? comp.email : identifier.trim(),
+        name: (comp && comp.name) ? comp.name : identifier.trim(),
+        shortName: (comp && comp.shortName) ? comp.shortName : identifier.trim(),
+        password: password,
+        lastUsed: Date.now()
+      };
+      localStorage.setItem('tech_saved_mitra_creds_v2', JSON.stringify(saved));
+    } catch (e) {}
+  },
+
+  removeSavedMitraCredential(identifier) {
+    if (!identifier) return;
+    try {
+      const saved = this.getSavedMitraCredentials();
+      const key = identifier.toLowerCase().trim();
+      delete saved[key];
+      localStorage.setItem('tech_saved_mitra_creds_v2', JSON.stringify(saved));
+      this.renderSavedMitraAccountsDropdown();
+    } catch (e) {}
+  },
+
+  renderSavedMitraAccountsDropdown() {
+    const sel = document.getElementById('selectSavedCompanyAccount');
+    const btnForget = document.getElementById('btnForgetSavedAccount');
+    const emailInput = document.getElementById('loginCompEmail');
+    const passInput = document.getElementById('loginCompPassword');
+    const checkRemember = document.getElementById('checkRememberCompLogin');
+
+    if (!sel) return;
+
+    // Ambil kredensial dari localStorage
+    const savedMap = this.getSavedMitraCredentials();
+
+    // Gabungkan dengan mitra yang terdaftar di Store.getCompanies()
+    const allRegistered = typeof Store !== 'undefined' ? Store.getCompanies() : [];
+    const accountList = [];
+
+    // Prioritaskan akun yang disimpan di savedMap
+    Object.keys(savedMap).forEach(key => {
+      accountList.push(savedMap[key]);
+    });
+
+    // Tambahkan mitra terdaftar lain jika belum ada di savedMap dan memiliki password
+    allRegistered.forEach(c => {
+      const cEmail = (c.email || '').toLowerCase().trim();
+      const cName = (c.name || '').toLowerCase().trim();
+      const existing = accountList.find(a => (a.email || '').toLowerCase() === cEmail || (a.identifier || '').toLowerCase() === cEmail || (a.name || '').toLowerCase() === cName);
+      if (!existing && c.password) {
+        accountList.push({
+          identifier: c.email || c.name || c.shortName,
+          email: c.email || '',
+          name: c.name,
+          shortName: c.shortName || c.name,
+          password: c.password,
+          lastUsed: 0
+        });
+      }
+    });
+
+    // Urutkan berdasarkan lastUsed terbaru
+    accountList.sort((a, b) => (b.lastUsed || 0) - (a.lastUsed || 0));
+
+    // Render options
+    sel.innerHTML = '<option value="">-- Pilih Akun Mitra Tersimpan / Terdaftar (' + accountList.length + ' Akun) --</option>';
+
+    accountList.forEach((acc) => {
+      const opt = document.createElement('option');
+      opt.value = acc.identifier || acc.email;
+      opt.dataset.email = acc.email || acc.identifier;
+      opt.dataset.pass = acc.password || '';
+      opt.textContent = `🏢 ${acc.name || acc.shortName} (${acc.email || acc.identifier})`;
+      sel.appendChild(opt);
+    });
+
+    // Listener saat user memilih akun dari dropdown
+    sel.onchange = () => {
+      const chosenVal = sel.value;
+      if (!chosenVal) {
+        if (btnForget) btnForget.style.display = 'none';
+        return;
+      }
+      const opt = sel.options[sel.selectedIndex];
+      if (opt) {
+        const email = opt.dataset.email || chosenVal;
+        const pass = opt.dataset.pass || '';
+        if (emailInput) emailInput.value = email;
+        if (passInput) passInput.value = pass;
+        if (checkRemember) checkRemember.checked = true;
+        if (btnForget) btnForget.style.display = 'inline-block';
+      }
+    };
+
+    // Listener tombol lupa/hapus simpanan
+    if (btnForget) {
+      btnForget.onclick = (e) => {
+        e.preventDefault();
+        const chosenVal = sel.value;
+        if (chosenVal) {
+          this.removeSavedMitraCredential(chosenVal);
+          if (emailInput) emailInput.value = '';
+          if (passInput) passInput.value = '';
+          if (btnForget) btnForget.style.display = 'none';
+          this.showToast('Akun Dihapus', `Simpanan kredensial akun telah dihapus.`);
+        }
+      };
+    }
+
+    // Auto-fill akun yang paling terakhir digunakan jika ada
+    if (accountList.length > 0 && accountList[0].password) {
+      sel.selectedIndex = 1;
+      const topOpt = sel.options[1];
+      if (emailInput) emailInput.value = topOpt.dataset.email || accountList[0].email;
+      if (passInput) passInput.value = topOpt.dataset.pass || accountList[0].password;
+      if (checkRemember) checkRemember.checked = true;
+      if (btnForget) btnForget.style.display = 'inline-block';
+    } else {
+      if (emailInput) emailInput.value = '';
+      if (passInput) passInput.value = '';
+      if (btnForget) btnForget.style.display = 'none';
+    }
   },
 
   // ================= COMPANY AUTHENTICATION =================
@@ -1291,6 +1444,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           this.showToast('Pendaftaran Ditolak', `Pendaftaran perusahaan "${comp.name}" tidak disetujui oleh Admin Developer.`, 'warning');
           return;
         }
+        // Simpan atau hapus kredensial berdasarkan centang Ingat Saya
+        const rememberCheck = document.getElementById('checkRememberCompLogin');
+        if (rememberCheck && rememberCheck.checked) {
+          this.saveMitraCredential(comp.email || identifier, pass, comp);
+        } else {
+          this.removeSavedMitraCredential(comp.email || identifier);
+        }
+
         Store.setCurrentTenant(comp);
         this.updateHeaderTenantUI(comp);
         this.switchView('companyDashboard');
@@ -1331,6 +1492,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       // Add to store (Tanpa membuat armada, jadwal, tiket, atau pengaturan default)
       Store.addCompany(newComp);
+      // Simpan kredensial pendaftaran mitra otomatis
+      this.saveMitraCredential(email, password, newComp);
 
       this.renderCompanyFilterChips();
       if (this.activeView === 'devAdminDashboard') {
@@ -1582,7 +1745,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     document.getElementById('btnLogoutDevAdmin')?.addEventListener('click', () => {
       Store.setDevAdminSession(false);
+      document.body.classList.remove('in-dev-admin');
       this.switchView('weatherHome');
+      this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
       this.showToast('Keluar Mode Developer', 'Sesi Admin Developer telah diakhiri.');
     });
 
@@ -2199,7 +2364,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       tabScanner: 'Gate Scanner QR',
       tabSeats: 'Denah Kursi & Seat',
       tabSettings: 'Pengaturan Portal Perusahaan',
-      tabCargo: 'Kalkulator DWT & Muatan'
+      tabCargo: 'Kalkulator DWT & Muatan',
+      tabCurrencyExchange: 'Pengecekan Kurs Valas Online Realtime'
     };
     if (titleEl && tabTitles[tabKey]) {
       titleEl.innerText = tabTitles[tabKey];
@@ -2235,6 +2401,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (tabKey === 'tabCargo') {
       document.getElementById('paneCargo')?.classList.add('active');
       this.renderCargoCalculator();
+    }
+    if (tabKey === 'tabCurrencyExchange') {
+      document.getElementById('paneCurrencyExchange')?.classList.add('active');
+      this.initCurrencyExchangePane();
     }
   },
 
@@ -3339,7 +3509,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const norm = (item.pax.name || '').trim().toLowerCase();
       if (norm && nameFrequency[norm] > 1) duplicatePaxCount++;
 
-      if (item.pax.nationality === 'MY' || item.pax.nationality === 'OTHER') wnaCount++;
+      if (item.pax.nationality && item.pax.nationality !== 'ID' && item.pax.nationality !== 'Indonesia') wnaCount++;
       else wniCount++;
 
       if (item.booking.boardingStatus === 'BOARDED') boardedCount++;
@@ -3398,7 +3568,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         <td style="text-align: center; font-weight: 700; width: 24px; padding: 4px 3px; font-size: 0.72rem;">${p.gender === 'P' ? '<span style="color: #ec4899;">P</span>' : '<span style="color: #0284c7;">L</span>'}</td>
         <td style="padding: 4px; white-space: nowrap;"><code style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; font-weight: 700; color: #0f172a; font-size: 0.68rem;">${docNum}</code></td>
         <td style="padding: 4px; white-space: nowrap; font-size: 0.7rem;">${p.age ? p.age + ' th' : (p.dob || '-')}</td>
-        <td style="padding: 4px; font-size: 0.7rem; white-space: nowrap;">${p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : 'Indonesia')}</td>
+        <td style="padding: 4px; font-size: 0.7rem; white-space: nowrap;">${p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : (!p.nationality || p.nationality === 'ID' ? 'Indonesia' : p.nationality))}</td>
         <td style="padding: 4px; font-size: 0.68rem; color: var(--text-dim); max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
         <td style="padding: 4px; white-space: nowrap;">
           <span style="font-size: 0.68rem; font-weight: 600; color: #334155;" title="${b.vesselName}">${(b.vesselName || '').replace('PT ', '').replace('Express', 'Exp.').slice(0, 14)}</span>
@@ -3662,7 +3832,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">${count++}</td>
             <td style="padding: 5px 8px; font-family: monospace; border: 1px solid #cbd5e1;">${b.pnr}</td>
             <td style="padding: 5px 8px; font-weight: bold; border: 1px solid #cbd5e1;">${p.name}</td>
-            <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">${p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : 'Indonesia')}</td>
+            <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">${p.nationality === 'MY' ? 'Malaysia' : (p.nationality === 'OTHER' ? 'Asing' : (!p.nationality || p.nationality === 'ID' ? 'Indonesia' : p.nationality))}</td>
             <td style="padding: 5px 8px; font-family: monospace; border: 1px solid #cbd5e1;">${p.docType || 'DOC'}: ${p.docNumber || p.nik}</td>
             <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">${p.gender === 'P' ? 'P' : 'L'}</td>
             <td style="padding: 5px 8px; text-align: center; font-weight: bold; border: 1px solid #cbd5e1;">${p.seat}</td>
@@ -3757,7 +3927,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       : (booking.totalAmount || 250000);
     const docNum = pax.passportNo || pax.docNumber || pax.nik || '-';
     const isIntl = booking.isIntl || booking.destCode === 'TWU' || booking.originCode === 'TWU';
-    const docLabel = (pax.nationality === 'MY' || isIntl) ? 'NO. PASPOR / PLB' : 'NO. KTP / NIK';
+    const docLabel = ((pax.nationality && pax.nationality !== 'ID' && pax.nationality !== 'Indonesia') || isIntl) ? 'NO. PASPOR / PLB' : 'NO. KTP / NIK';
 
     const qrData = JSON.stringify({
       tkt: ticketNo,
@@ -3784,7 +3954,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       docLabel,
       docNum,
       age: pax.age || (pax.dob ? '-' : 'Dewasa'),
-      nationality: pax.nationality === 'MY' ? 'Malaysia' : (pax.nationality === 'OTHER' ? 'WNA' : 'Indonesia (WNI)'),
+      nationality: pax.nationality === 'MY' ? 'Malaysia' : (pax.nationality === 'OTHER' ? 'WNA' : ((!pax.nationality || pax.nationality === 'ID' || pax.nationality === 'Indonesia') ? 'Indonesia (WNI)' : pax.nationality)),
       seat: seatName,
       className,
       fare,
@@ -4133,7 +4303,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       seat: booking.seatNumber || '-'
     };
     const isAlreadyBoarded = booking.boardingStatus === 'BOARDED';
-    const natBadge = p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
+    const natBadge = (p0.nationality && !['ID', 'Indonesia', 'MY', 'OTHER'].includes(p0.nationality)) ? `🌏 WNA (${p0.nationality})` : p0.nationality === 'MY' ? '🇲🇾 WNA (Malaysia)' : (p0.nationality === 'OTHER' ? '🌏 WNA (Foreigner)' : '🇮🇩 WNI (Indonesia)');
     const docLabel = p0.docType === 'KTP' ? 'NIK KTP' : (p0.docType === 'PLB' ? 'PLB' : 'No. Paspor');
 
     card.innerHTML = `
@@ -4152,7 +4322,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <div>Kapal: <strong>${booking.vesselName}</strong></div>
           <div>Rute: <strong>${booking.originCity} ➔ ${booking.destinationCity}</strong> (${booking.departTime})</div>
           <div>Dermaga: <strong>${booking.pier}</strong></div>
-          <div>Status Pembayaran: <strong style="color: var(--accent-green);">${booking.paymentStatus} (LUNAS)</strong></div>
+          <div>Status Pembayaran: <strong style="color: ${booking.paymentStatus === 'BOOKED' ? '#d97706' : 'var(--accent-green)'};">${booking.paymentStatus} (${booking.paymentStatus === 'BOOKED' ? 'BELUM BAYAR' : 'LUNAS'})</strong></div>
         </div>
 
         <div style="margin-top: 1rem;">
@@ -4760,7 +4930,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     else if (rawNat.includes('SINGAP') || rawNat === 'SGP' || rawNat === 'SG') normNat = 'Singapura';
     else if (rawNat.includes('FILIP') || rawNat.includes('PHILIP') || rawNat === 'PHL' || rawNat === 'PH') normNat = 'Filipina';
     else if (rawNat.includes('INDO') || rawNat === 'WNI' || rawNat === 'IDN' || rawNat === 'ID' || !rawNat) normNat = 'Indonesia';
-    else normNat = 'Lainnya';
+    else normNat = Array.from(document.getElementById('editPaxNationality')?.options || []).find(o => o.value.toUpperCase() === rawNat)?.value || 'Lainnya';
     document.getElementById('editPaxNationality').value = normNat;
 
     const rawRemark = (p.remark || 'None').toString().trim().toUpperCase();
@@ -6562,7 +6732,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (!tbody) return;
     const rows = this._currentModalCrewRows || this.getDefaultCrewTemplate();
     const positions = ['MASTER', 'MUALIM', 'MASINIS', 'CREW/ AB', 'KKM', 'JURU MUDI', 'OILER'];
-    const nationalities = ['Indonesia', 'Malaysia', 'Singapura', 'Filipina', 'Lainnya'];
+    const natFromForm = Array.from(document.getElementById('custPaxNationality')?.options || []).map(o => o.value);
+    const nationalities = natFromForm.length ? natFromForm : ['Indonesia', 'Malaysia', 'Singapura', 'Filipina', 'Lainnya'];
 
     tbody.innerHTML = rows.map((r, idx) => {
       const posOptions = positions.map(p => `<option value="${p}" ${r.position === p ? 'selected' : ''}>${p}</option>`).join('');
@@ -7390,9 +7561,24 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       groupInput.value = `Rombongan ${tenant.shortName || tenant.name} (${routeLabel})`;
     }
 
+    // Set default active tab to GRID and sync UI panes
+    this.bulkState.activeTab = 'GRID';
+    const tabBtns = document.querySelectorAll('#bulkInputTabs .bulk-tab-btn');
+    tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-mode') === 'GRID');
+    });
+    const panePaste = document.getElementById('bulkPanePaste');
+    const paneFile = document.getElementById('bulkPaneFile');
+    const paneGrid = document.getElementById('bulkPaneGrid');
+    if (panePaste) panePaste.style.display = 'none';
+    if (paneFile) paneFile.style.display = 'none';
+    if (paneGrid) paneGrid.style.display = 'block';
+
     // Initialize manual grid rows if empty
     if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
       this.initManualGridRows(3);
+    } else {
+      this.renderManualGridTable();
     }
 
     // Render initial state
@@ -7510,7 +7696,9 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       // Nationality
       let nationality = (cols[5] || 'ID').toUpperCase().trim();
       if (!['ID', 'MY', 'OTHER'].includes(nationality)) {
-        if (nationality.includes('MAL') || nationality.includes('MY')) nationality = 'MY';
+        const matchedNat = Array.from(document.getElementById('custPaxNationality')?.options || []).find(o => o.value.toUpperCase() === nationality && o.value !== 'Indonesia' && o.value !== 'Malaysia');
+        if (matchedNat) nationality = matchedNat.value;
+        else if (nationality.includes('MAL') || nationality.includes('MY')) nationality = 'MY';
         else nationality = 'ID';
       }
 
@@ -7663,6 +7851,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="nationality">
             <option value="ID" ${row.nationality === 'ID' ? 'selected' : ''}>WNI (ID)</option>
             <option value="MY" ${row.nationality === 'MY' ? 'selected' : ''}>WNA (MY)</option>
+            ${Array.from(document.getElementById('custPaxNationality')?.options || []).filter(o => !['Indonesia', 'Malaysia', 'Lainnya'].includes(o.value)).map(o => `<option value="${o.value}" ${row.nationality === o.value ? 'selected' : ''}>WNA (${o.value})</option>`).join('')}
           </select>
         </td>
         <td>
@@ -7850,7 +8039,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       const isIntl = (origPort.country !== destPort.country);
 
       const groupName = document.getElementById('bulkGroupNameInput')?.value.trim() || 'Rombongan Penumpang Resmi';
-      const payMethod = document.getElementById('bulkPaymentMethodSelect')?.value || 'CASH';
+      const payMethod = document.getElementById('bulkPaymentMethodSelect')?.value || 'Loket Resmi / Tunai';
       const picName = document.getElementById('bulkPicNameInput')?.value.trim() || (list[0]?.name || 'Koordinator Rombongan');
       const picPhone = document.getElementById('bulkPicPhoneInput')?.value.trim() || '-';
       const pnrMode = document.querySelector('input[name="bulkPnrGroupingMode"]:checked')?.value || 'GROUP';
@@ -7902,7 +8091,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             paxType: p.paxType || 'Dewasa',
             name: p.name,
             gender: p.gender || 'L',
-            docType: p.nationality === 'MY' || isIntl ? 'PASPOR' : 'KTP',
+            docType: (p.nationality && p.nationality !== 'ID' && p.nationality !== 'Indonesia') || isIntl ? 'PASPOR' : 'KTP',
             passportNo: p.docNum,
             docNumber: p.docNum,
             nik: p.docNum,
@@ -7916,7 +8105,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           })),
           totalAmount: totalFare,
           paymentMethod: payMethod,
-          paymentStatus: 'PAID',
+          paymentStatus: payMethod === 'Sistem Booked' ? 'BOOKED' : 'PAID',
           boardingStatus: 'NOT_CHECKED_IN',
           createdAt: new Date().toISOString()
         };
@@ -7948,7 +8137,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
               paxType: p.paxType || 'Dewasa',
               name: p.name,
               gender: p.gender || 'L',
-              docType: p.nationality === 'MY' || isIntl ? 'PASPOR' : 'KTP',
+              docType: (p.nationality && p.nationality !== 'ID' && p.nationality !== 'Indonesia') || isIntl ? 'PASPOR' : 'KTP',
               passportNo: p.docNum,
               docNumber: p.docNum,
               nik: p.docNum,
@@ -7962,7 +8151,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             }],
             totalAmount: fare,
             paymentMethod: payMethod,
-            paymentStatus: 'PAID',
+            paymentStatus: payMethod === 'Sistem Booked' ? 'BOOKED' : 'PAID',
             boardingStatus: 'NOT_CHECKED_IN',
             createdAt: new Date().toISOString()
           };
@@ -8377,6 +8566,101 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
   // ========================================================
   bookingCurrency: 'IDR',
   offlineModeActive: false,
+  exchangeRateLoaded: false,
+
+  async fetchOnlineExchangeRate(showToast = false) {
+    if (typeof this.refreshAllCurrencyRates === 'function') {
+      return this.refreshAllCurrencyRates(showToast);
+    }
+    const btn = document.getElementById('btnRecheckExchangeRate');
+    const iconSpin = document.getElementById('iconRecheckSpin');
+    const rateText = document.getElementById('rateTextVal');
+    const rateDot = document.getElementById('rateStatusDot');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+    }
+    if (iconSpin) {
+      iconSpin.style.animation = 'spinRate 0.8s linear infinite';
+    }
+    if (rateText) {
+      rateText.textContent = 'Memeriksa kurs online...';
+    }
+
+    let liveRate = null;
+    let source = '';
+
+    const endpoints = [
+      'https://open.er-api.com/v6/latest/MYR',
+      'https://api.exchangerate-api.com/v4/latest/MYR'
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const ctrl = new AbortController();
+        const timeoutId = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.rates && data.rates.IDR) {
+            liveRate = Math.round(Number(data.rates.IDR));
+            source = 'Online Live';
+            break;
+          }
+        }
+      } catch (err) {
+        // Fallback to next endpoint
+      }
+    }
+
+    if (liveRate && liveRate > 0) {
+      if (typeof setMyrRate === 'function') {
+        setMyrRate(liveRate);
+      } else {
+        window.MYR_RATE = liveRate;
+      }
+      this.exchangeRateLoaded = true;
+      if (rateDot) rateDot.style.background = '#10b981';
+      this.updateExchangeRateUI(liveRate, source);
+      if (showToast) {
+        this.showToast('Kurs Berhasil Diperbarui', `Kurs online terkini: 1 MYR = Rp ${Number(liveRate).toLocaleString('id-ID')}`);
+      }
+    } else {
+      const current = typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500);
+      if (rateDot) rateDot.style.background = '#f59e0b';
+      this.updateExchangeRateUI(current, 'Offline / Cache');
+      if (showToast) {
+        this.showToast('Koneksi Kurs Terbatas', `Menggunakan kurs operasional: 1 MYR = Rp ${Number(current).toLocaleString('id-ID')}`, 'warning');
+      }
+    }
+
+    if (iconSpin) iconSpin.style.animation = '';
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+
+    this.updateSeatPickerSummary();
+    this.renderClassOptions();
+  },
+
+  updateExchangeRateUI(rate = null, source = 'Online Live') {
+    const r = rate || (typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500));
+    const rateText = document.getElementById('rateTextVal');
+    const labelBox = document.getElementById('labelExchangeRateDisplay');
+    const formatted = Number(r).toLocaleString('id-ID');
+    const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+    if (rateText) {
+      rateText.textContent = `Kurs: 1 MYR = Rp ${formatted}`;
+    }
+    if (labelBox) {
+      labelBox.title = `Sumber: ${source} • Terakhir diperiksa pukul ${timeStr} WITA`;
+    }
+  },
+
   initCurrencyAndMdacEvents() {
     // 1. Currency Switcher Buttons
     const btnIdr = document.getElementById('btnCurrencyIdr');
@@ -8395,6 +8679,15 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       btnIdr?.classList.remove('active');
       this.updateCurrencyUI();
     });
+
+    // 1B. Tombol Recheck Kurs Terkini
+    document.getElementById('btnRecheckExchangeRate')?.addEventListener('click', () => {
+      this.fetchOnlineExchangeRate(true);
+    });
+
+    // Inisialisasi tampilan kurs & ambil data online saat startup
+    this.updateExchangeRateUI();
+    this.fetchOnlineExchangeRate(false);
 
     // 2. MDAC Prefill Copy Button
     document.getElementById('btnPrefillMdacData')?.addEventListener('click', () => {
@@ -8681,6 +8974,385 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           r.style.backgroundColor = area !== 'ALL' ? '#eff6ff' : '';
         } else {
           r.style.display = 'none';
+        }
+      });
+    });
+  },
+
+  // ========================================================
+  // PENGECEKAN KURS VALAS ONLINE REALTIME (OPERASIONAL PELABUHAN)
+  // ========================================================
+  liveExchangeRates: null,
+  liveExchangeSource: 'Belum Terhubung',
+  liveExchangeTime: null,
+  currencyBoardBase: 'MYR',
+  currencyExchangeInitialized: false,
+  currencyExchangeListenersBound: false,
+
+  initCurrencyExchangePane() {
+    this.populateCurrencyDropdowns();
+    this.initCurrencyExchangeListeners();
+    if (!this.liveExchangeRates) {
+      this.refreshAllCurrencyRates(false);
+    } else {
+      this.updateCurrencyHeroDisplay();
+      this.updateCurrencyConverterResult();
+      this.renderWorldCurrenciesTable(document.getElementById('currencySearchInput')?.value || '');
+    }
+  },
+
+  populateCurrencyDropdowns() {
+    const fromSel = document.getElementById('convFromCurrency');
+    const toSel = document.getElementById('convToCurrency');
+    if (!fromSel || !toSel) return;
+    if (fromSel.options && fromSel.options.length > 1) return;
+
+    const list = (typeof MASTER_WORLD_CURRENCIES !== 'undefined' ? MASTER_WORLD_CURRENCIES : (window.MASTER_WORLD_CURRENCIES || []));
+    if (!list || list.length === 0) return;
+
+    fromSel.innerHTML = '';
+    toSel.innerHTML = '';
+
+    list.forEach(c => {
+      const optFrom = document.createElement('option');
+      optFrom.value = c.code;
+      optFrom.textContent = `${c.flag} ${c.code} - ${c.name}`;
+      if (c.code === 'MYR') optFrom.selected = true;
+      fromSel.appendChild(optFrom);
+
+      const optTo = document.createElement('option');
+      optTo.value = c.code;
+      optTo.textContent = `${c.flag} ${c.code} - ${c.name}`;
+      if (c.code === 'IDR') optTo.selected = true;
+      toSel.appendChild(optTo);
+    });
+  },
+
+  initCurrencyExchangeListeners() {
+    if (this.currencyExchangeListenersBound) return;
+    this.currencyExchangeListenersBound = true;
+
+    // Refresh all rates button
+    document.getElementById('btnRefreshAllRates')?.addEventListener('click', () => {
+      this.refreshAllCurrencyRates(true);
+    });
+
+    // Inputs & dropdowns in converter
+    const fromSel = document.getElementById('convFromCurrency');
+    const toSel = document.getElementById('convToCurrency');
+    const amtInput = document.getElementById('convAmountInput');
+
+    fromSel?.addEventListener('change', () => this.updateCurrencyConverterResult());
+    toSel?.addEventListener('change', () => this.updateCurrencyConverterResult());
+    amtInput?.addEventListener('input', () => this.updateCurrencyConverterResult());
+
+    // Swap button
+    document.getElementById('btnSwapCurrencies')?.addEventListener('click', () => {
+      if (!fromSel || !toSel) return;
+      const tmp = fromSel.value;
+      fromSel.value = toSel.value;
+      toSel.value = tmp;
+      this.updateCurrencyConverterResult();
+    });
+
+    // Quick amount buttons
+    document.querySelectorAll('.btn-quick-amount').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amt = btn.getAttribute('data-amt');
+        if (amtInput && amt) {
+          amtInput.value = amt;
+          this.updateCurrencyConverterResult();
+        }
+      });
+    });
+
+    // Apply live rate button
+    document.getElementById('btnApplyLiveRateToTickets')?.addEventListener('click', () => {
+      const current = typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500);
+      this.showToast('Kurs Berhasil Diterapkan', `Tarif tiket loket kini menggunakan kurs live: 1 MYR = Rp ${Number(current).toLocaleString('id-ID')}`);
+      this.updateSeatPickerSummary();
+      this.renderClassOptions();
+    });
+
+    // Board Base Currency Selector (Basis MYR / IDR / USD)
+    document.querySelectorAll('.btn-board-base').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-board-base').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = '#f1f5f9';
+          b.style.color = '#475569';
+        });
+        btn.classList.add('active');
+        btn.style.background = '#0284c7';
+        btn.style.color = '#ffffff';
+        this.currencyBoardBase = btn.getAttribute('data-base') || 'MYR';
+        const searchVal = document.getElementById('currencySearchInput')?.value || '';
+        this.renderWorldCurrenciesTable(searchVal);
+      });
+    });
+
+    // Search input for world currencies
+    document.getElementById('currencySearchInput')?.addEventListener('input', (e) => {
+      this.renderWorldCurrenciesTable(e.target.value);
+    });
+  },
+
+  async refreshAllCurrencyRates(showToast = false) {
+    const btnPane = document.getElementById('btnRefreshAllRates');
+    const iconSpinPane = document.getElementById('iconCurrencyRefreshSpin');
+    const btnModal = document.getElementById('btnRecheckExchangeRate');
+    const iconSpinModal = document.getElementById('iconRecheckSpin');
+    const statusLabel = document.getElementById('lblCurrencySyncStatus');
+
+    if (btnPane) { btnPane.disabled = true; btnPane.style.opacity = '0.7'; }
+    if (btnModal) { btnModal.disabled = true; btnModal.style.opacity = '0.7'; }
+    if (iconSpinPane) iconSpinPane.style.animation = 'spinRate 0.8s linear infinite';
+    if (iconSpinModal) iconSpinModal.style.animation = 'spinRate 0.8s linear infinite';
+    if (statusLabel) {
+      statusLabel.textContent = 'Menyinkronkan...';
+      statusLabel.style.color = '#0284c7';
+    }
+
+    let liveRates = null;
+    let source = '';
+
+    const endpoints = [
+      'https://open.er-api.com/v6/latest/MYR',
+      'https://api.exchangerate-api.com/v4/latest/MYR'
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(tid);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.rates && data.rates.IDR) {
+            liveRates = data.rates;
+            source = url.includes('open.er-api.com') ? 'Open Exchange Rates (Live)' : 'ExchangeRate-API (Live)';
+            break;
+          }
+        }
+      } catch (e) {
+        // Fallback to next endpoint
+      }
+    }
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WITA';
+
+    if (liveRates && liveRates.IDR) {
+      this.liveExchangeRates = liveRates;
+      this.liveExchangeSource = source;
+      this.liveExchangeTime = timeStr;
+
+      const myrToIdr = Math.round(Number(liveRates.IDR));
+      if (typeof setMyrRate === 'function') {
+        setMyrRate(myrToIdr);
+      } else {
+        window.MYR_RATE = myrToIdr;
+      }
+      this.exchangeRateLoaded = true;
+
+      if (statusLabel) {
+        statusLabel.textContent = 'Online Terhubung';
+        statusLabel.style.color = '#10b981';
+      }
+
+      this.updateCurrencyHeroDisplay();
+      this.updateCurrencyConverterResult();
+      this.renderWorldCurrenciesTable(document.getElementById('currencySearchInput')?.value || '');
+      this.updateExchangeRateUI(myrToIdr, source);
+
+      // Update all quick rate labels across app
+      document.querySelectorAll('.lbl-quick-myr-rate').forEach(el => {
+        el.textContent = `Rp ${Number(myrToIdr).toLocaleString('id-ID')}`;
+      });
+
+      if (showToast) {
+        this.showToast('Kurs Terkini Disinkronkan', `1 MYR = Rp ${Number(myrToIdr).toLocaleString('id-ID')} (${source})`);
+      }
+    } else {
+      if (statusLabel) {
+        statusLabel.textContent = 'Mode Offline / Cache';
+        statusLabel.style.color = '#f59e0b';
+      }
+      const current = typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500);
+      this.updateCurrencyHeroDisplay();
+      this.updateCurrencyConverterResult();
+      this.renderWorldCurrenciesTable(document.getElementById('currencySearchInput')?.value || '');
+      this.updateExchangeRateUI(current, 'Offline / Cache');
+
+      if (showToast) {
+        this.showToast('Koneksi Kurs Terbatas', `Menggunakan kurs operasional: 1 MYR = Rp ${Number(current).toLocaleString('id-ID')}`, 'warning');
+      }
+    }
+
+    const lastUpdatedEl = document.getElementById('lblCurrencyLastUpdated');
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = `Terakhir dicek: ${timeStr}`;
+    }
+
+    if (iconSpinPane) iconSpinPane.style.animation = '';
+    if (iconSpinModal) iconSpinModal.style.animation = '';
+    if (btnPane) { btnPane.disabled = false; btnPane.style.opacity = '1'; }
+    if (btnModal) { btnModal.disabled = false; btnModal.style.opacity = '1'; }
+
+    this.updateSeatPickerSummary();
+    this.renderClassOptions();
+  },
+
+  updateCurrencyHeroDisplay() {
+    const currentRate = typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500);
+    const heroRateEl = document.getElementById('heroMyrToIdrDisplay');
+    const heroInverseEl = document.getElementById('heroInverseDisplay');
+    const sourceBadge = document.getElementById('lblRateSourceBadge');
+
+    if (heroRateEl) {
+      heroRateEl.textContent = `1 MYR = Rp ${Number(currentRate).toLocaleString('id-ID')}`;
+    }
+    if (heroInverseEl && currentRate > 0) {
+      const inv = (10000 / currentRate).toFixed(2);
+      heroInverseEl.textContent = `(10.000 IDR ≈ ${inv} MYR)`;
+    }
+    if (sourceBadge && this.liveExchangeSource) {
+      sourceBadge.textContent = `Sumber: ${this.liveExchangeSource}`;
+    }
+  },
+
+  getRateBetween(fromCode, toCode) {
+    if (fromCode === toCode) return 1;
+    const rates = this.liveExchangeRates;
+    if (rates) {
+      const fromInMyr = rates[fromCode] !== undefined ? Number(rates[fromCode]) : null;
+      const toInMyr = rates[toCode] !== undefined ? Number(rates[toCode]) : null;
+      if (fromInMyr && toInMyr && fromInMyr > 0) {
+        return toInMyr / fromInMyr;
+      }
+    }
+
+    // Fallbacks if offline
+    const myrRate = typeof getMyrRate === 'function' ? getMyrRate() : (window.MYR_RATE || 3500);
+    if (fromCode === 'MYR' && toCode === 'IDR') return myrRate;
+    if (fromCode === 'IDR' && toCode === 'MYR') return 1 / myrRate;
+    if (fromCode === 'USD' && toCode === 'IDR') return myrRate * 4.45;
+    if (fromCode === 'SGD' && toCode === 'IDR') return myrRate * 3.48;
+    return 1;
+  },
+
+  updateCurrencyConverterResult() {
+    const fromSel = document.getElementById('convFromCurrency');
+    const toSel = document.getElementById('convToCurrency');
+    const amtInput = document.getElementById('convAmountInput');
+    const formulaEl = document.getElementById('convResultFormula');
+    const valueEl = document.getElementById('convResultValue');
+
+    if (!fromSel || !toSel || !amtInput || !valueEl) return;
+
+    const fromCode = fromSel.value || 'MYR';
+    const toCode = toSel.value || 'IDR';
+    const amount = parseFloat(amtInput.value) || 0;
+
+    const unitRate = this.getRateBetween(fromCode, toCode);
+    const total = amount * unitRate;
+
+    const formatNumber = (num, isIdr = false) => {
+      if (isIdr || num >= 100) {
+        return Number(Math.round(num)).toLocaleString('id-ID');
+      } else if (num >= 1) {
+        return num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      } else {
+        return num.toLocaleString('id-ID', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+      }
+    };
+
+    if (formulaEl) {
+      formulaEl.textContent = `1 ${fromCode} = ${formatNumber(unitRate, toCode === 'IDR')} ${toCode}`;
+    }
+
+    valueEl.textContent = `${Number(amount).toLocaleString('id-ID')} ${fromCode} = ${formatNumber(total, toCode === 'IDR')} ${toCode}`;
+  },
+
+  renderWorldCurrenciesTable(query = '') {
+    const tbody = document.getElementById('worldCurrenciesTableBody');
+    const thBase = document.getElementById('thBaseCol');
+    if (!tbody) return;
+
+    const base = this.currencyBoardBase || 'MYR';
+    if (thBase) {
+      thBase.textContent = `1 Satuan dalam ${base}`;
+    }
+
+    const list = (typeof MASTER_WORLD_CURRENCIES !== 'undefined' ? MASTER_WORLD_CURRENCIES : (window.MASTER_WORLD_CURRENCIES || []));
+    const q = (query || '').toLowerCase().trim();
+
+    const filtered = list.filter(c => {
+      if (!q) return true;
+      return c.code.toLowerCase().includes(q) ||
+             c.name.toLowerCase().includes(q) ||
+             c.country.toLowerCase().includes(q);
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding: 1.5rem; text-align: center; color: #94a3b8;">Tidak ada mata uang yang cocok dengan kata kunci "${query}".</td></tr>`;
+      return;
+    }
+
+    const rows = filtered.map(c => {
+      const rateToBase = this.getRateBetween(c.code, base);
+      const rateToIdr = this.getRateBetween(c.code, 'IDR');
+      const rateToMyr = this.getRateBetween(c.code, 'MYR');
+
+      const formatVal = (num, isIdr = false) => {
+        if (isIdr || num >= 1000) return Number(Math.round(num)).toLocaleString('id-ID');
+        if (num >= 1) return num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+        return num.toLocaleString('id-ID', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+      };
+
+      const isBaseRow = c.code === base;
+
+      return `
+        <tr style="border-bottom: 1px solid #f1f5f9; ${isBaseRow ? 'background: #f0fdf4; font-weight: 700;' : ''}">
+          <td style="padding: 0.65rem 0.85rem; font-weight: 800; color: #0f172a;">
+            <span style="font-size: 1.15rem; margin-right: 0.35rem;">${c.flag}</span>
+            <span style="font-size: 0.88rem;">${c.code}</span>
+            <span style="font-size: 0.72rem; color: #64748b; font-weight: 600; margin-left: 0.25rem;">(${c.symbol})</span>
+          </td>
+          <td style="padding: 0.65rem 0.85rem; color: #334155;">
+            <div>${c.name}</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">${c.country}</div>
+          </td>
+          <td style="padding: 0.65rem 0.85rem; font-weight: 700; color: #0284c7;">
+            ${formatVal(rateToBase)} ${base}
+          </td>
+          <td style="padding: 0.65rem 0.85rem; font-weight: 700; color: #059669;">
+            Rp ${formatVal(rateToIdr, true)}
+          </td>
+          <td style="padding: 0.65rem 0.85rem; font-weight: 700; color: #d97706;">
+            RM ${formatVal(rateToMyr)}
+          </td>
+          <td style="padding: 0.65rem 0.85rem; text-align: center;">
+            <button type="button" class="btn-action-sm btn-select-currency-calc" data-code="${c.code}" style="padding: 3px 10px; font-size: 0.75rem; border-radius: 6px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; cursor: pointer;">
+              Hitung ➔
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rows;
+
+    tbody.querySelectorAll('.btn-select-currency-calc').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.getAttribute('data-code');
+        const fromSel = document.getElementById('convFromCurrency');
+        if (fromSel && code) {
+          fromSel.value = code;
+          this.updateCurrencyConverterResult();
+          fromSel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          fromSel.focus();
         }
       });
     });

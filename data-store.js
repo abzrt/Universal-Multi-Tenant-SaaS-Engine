@@ -115,6 +115,32 @@ const MASTER_PORTS = [
   }
 ];
 
+// Master Daftar Mata Uang Dunia untuk Pengecekan Kurs Realtime & Konversi
+const MASTER_WORLD_CURRENCIES = [
+  { code: 'MYR', name: 'Ringgit Malaysia', flag: '🇲🇾', country: 'Malaysia', symbol: 'RM' },
+  { code: 'IDR', name: 'Rupiah Indonesia', flag: '🇮🇩', country: 'Indonesia', symbol: 'Rp' },
+  { code: 'USD', name: 'Dolar Amerika Serikat', flag: '🇺🇸', country: 'Amerika Serikat', symbol: '$' },
+  { code: 'SGD', name: 'Dolar Singapura', flag: '🇸🇬', country: 'Singapura', symbol: 'S$' },
+  { code: 'EUR', name: 'Euro Uni Eropa', flag: '🇪🇺', country: 'Uni Eropa', symbol: '€' },
+  { code: 'SAR', name: 'Riyal Arab Saudi', flag: '🇸🇦', country: 'Arab Saudi', symbol: '﷼' },
+  { code: 'GBP', name: 'Poundsterling Inggris', flag: '🇬🇧', country: 'Inggris Britania', symbol: '£' },
+  { code: 'AUD', name: 'Dolar Australia', flag: '🇦🇺', country: 'Australia', symbol: 'A$' },
+  { code: 'JPY', name: 'Yen Jepang', flag: '🇯🇵', country: 'Jepang', symbol: '¥' },
+  { code: 'CNY', name: 'Yuan Tiongkok', flag: '🇨🇳', country: 'Tiongkok', symbol: '¥' },
+  { code: 'HKD', name: 'Dolar Hong Kong', flag: '🇭🇰', country: 'Hong Kong', symbol: 'HK$' },
+  { code: 'THB', name: 'Baht Thailand', flag: '🇹🇭', country: 'Thailand', symbol: '฿' },
+  { code: 'PHP', name: 'Peso Filipina', flag: '🇵🇭', country: 'Filipina', symbol: '₱' },
+  { code: 'BND', name: 'Dolar Brunei', flag: '🇧🇳', country: 'Brunei Darussalam', symbol: 'B$' },
+  { code: 'KRW', name: 'Won Korea Selatan', flag: '🇰🇷', country: 'Korea Selatan', symbol: '₩' },
+  { code: 'AED', name: 'Dirham Uni Emirat Arab', flag: '🇦🇪', country: 'Uni Emirat Arab', symbol: 'د.إ' },
+  { code: 'TWD', name: 'Dolar Baru Taiwan', flag: '🇹🇼', country: 'Taiwan', symbol: 'NT$' },
+  { code: 'VND', name: 'Dong Vietnam', flag: '🇻🇳', country: 'Vietnam', symbol: '₫' },
+  { code: 'INR', name: 'Rupee India', flag: '🇮🇳', country: 'India', symbol: '₹' },
+  { code: 'CAD', name: 'Dolar Kanada', flag: '🇨🇦', country: 'Kanada', symbol: 'CA$' },
+  { code: 'CHF', name: 'Franc Swiss', flag: '🇨🇭', country: 'Swiss', symbol: 'CHF' },
+  { code: 'NZD', name: 'Dolar Selandia Baru', flag: '🇳🇿', country: 'Selandia Baru', symbol: 'NZ$' }
+];
+
 // Initial Vessels (Kosong / Tanpa Demo)
 const DEFAULT_VESSELS = [];
 
@@ -946,8 +972,30 @@ function formatRupiah(amount) {
   }).format(amount);
 }
 
-// Format Ringgit Malaysia Helper (Kurs Operasional Maritim: 1 MYR = Rp 3.500)
-const MYR_RATE = 3500;
+// Format Ringgit Malaysia Helper & Real-Time Live Foreign Exchange Rate
+let MYR_RATE = 3500;
+try {
+  const savedRate = localStorage.getItem('tech_live_myr_rate');
+  if (savedRate && !isNaN(Number(savedRate)) && Number(savedRate) > 0) {
+    MYR_RATE = Number(savedRate);
+  }
+} catch (_) {}
+
+function setMyrRate(rate) {
+  if (rate && !isNaN(Number(rate)) && Number(rate) > 0) {
+    MYR_RATE = Number(rate);
+    try {
+      localStorage.setItem('tech_live_myr_rate', String(rate));
+      localStorage.setItem('tech_live_myr_updated', new Date().toISOString());
+    } catch (_) {}
+  }
+  return MYR_RATE;
+}
+
+function getMyrRate() {
+  return MYR_RATE;
+}
+
 function formatRinggit(amount) {
   return new Intl.NumberFormat('ms-MY', {
     style: 'currency',
@@ -971,7 +1019,19 @@ if (typeof window !== 'undefined') {
   window.formatRinggit = formatRinggit;
   window.convertIdrToMyr = convertIdrToMyr;
   window.convertMyrToIdr = convertMyrToIdr;
-  window.MYR_RATE = MYR_RATE;
+  window.getMyrRate = getMyrRate;
+  window.setMyrRate = setMyrRate;
+  window.MASTER_WORLD_CURRENCIES = MASTER_WORLD_CURRENCIES;
+  window.WORLD_CURRENCIES = MASTER_WORLD_CURRENCIES;
+  try {
+    Object.defineProperty(window, 'MYR_RATE', {
+      get() { return getMyrRate(); },
+      set(val) { setMyrRate(val); },
+      configurable: true
+    });
+  } catch (_) {
+    window.MYR_RATE = MYR_RATE;
+  }
   window.logoutTenant = function() {
     try {
       if (window.Store && typeof window.Store.setCurrentTenant === 'function') {

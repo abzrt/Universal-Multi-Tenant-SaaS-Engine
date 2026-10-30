@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=2.1">
+  <link rel="stylesheet" href="style.css?v=2.9">
 </head>
 <body>
 
@@ -22,7 +22,7 @@
       <a href="#" class="brand-link" id="brandHomeLink" title="Tech Solution - Ticketing Services Platform">
         <div class="brand-logo-wrap" id="brandLogoWrap">
           <div class="brand-logo-glow"></div>
-          <img src="assets/tech_solution_emblem.png" alt="TECH SOLUTION Logo" class="brand-logo-img" id="brandLogoImg">
+          <img src="assets/tech_solution_emblem.png" alt="TECH SOLUTION Logo" class="brand-logo-img" id="brandLogoImg" width="38" height="38">
           <div class="brand-logo-shimmer"></div>
         </div>
         <div class="brand-title-wrap">
@@ -327,14 +327,37 @@
         <!-- TAB 1: Masuk Portal Perusahaan -->
         <div id="tabContentLogin" style="display: block;">
           <form id="formCompanyLogin">
+            <!-- Pilihan Cepat Akun Mitra Tersimpan -->
+            <div id="savedAccountsContainer" style="margin-bottom: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>⚡ Akun Mitra Tersimpan:</span>
+                </label>
+                <button type="button" id="btnForgetSavedAccount" style="background: none; border: none; color: #ef4444; font-size: 0.72rem; font-weight: 600; cursor: pointer; display: none;" title="Hapus akun dari daftar simpanan">
+                  Hapus Simpanan
+                </button>
+              </div>
+              <select id="selectSavedCompanyAccount" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.82rem; background: #f8fafc; font-weight: 600; color: #0f172a;">
+                <option value="">-- Pilih Akun Mitra Tersimpan / Terdaftar --</option>
+              </select>
+            </div>
+
             <div class="input-block" style="margin-bottom: 0.85rem;">
               <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Username / Email Perusahaan *</label>
               <input type="text" id="loginCompEmail" class="form-input" placeholder="contoh: admin@ticky.com atau Ticky" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
-            <div class="input-block" style="margin-bottom: 1.15rem;">
+            <div class="input-block" style="margin-bottom: 0.85rem;">
               <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Password *</label>
               <input type="password" id="loginCompPassword" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
+            </div>
+
+            <!-- Fitur Simpan Kredensial (Remember Me) -->
+            <div style="margin-bottom: 1.15rem; display: flex; align-items: center; justify-content: space-between;">
+              <label style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: #334155; font-weight: 600; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="checkRememberCompLogin" checked style="width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer;">
+                <span>Simpan Username/Email & Password</span>
+              </label>
             </div>
 
             <button type="submit" class="btn-primary-block" id="btnLoginSubmit" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); transition: all 0.2s;">
@@ -596,6 +619,22 @@
               </div>
             </div>
 
+            <!-- 10. Cek Kurs Valas Online Realtime -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabCurrencyExchange" title="Cek Kurs Valas Online Realtime">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Cek Kurs Valas Online</span>
+              </div>
+              <span class="badge-live-pulse" style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 6px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Live
+              </span>
+            </button>
+
             <!-- SECTION: PENGATURAN & REGULASI -->
             <div class="ticky-nav-section-title">PENGATURAN & REGULASI</div>
 
@@ -665,7 +704,7 @@
 
               <!-- 1. Avatar Button -->
               <div class="ticky-header-avatar" id="btnHeaderUserAvatar" title="Profil Operator & Perusahaan" role="button" tabindex="0">
-                <img src="assets/avatar-header.svg" alt="Avatar Operator" class="ticky-header-avatar-img" id="imgHeaderUserAvatar">
+                <img src="assets/avatar-header.svg" alt="Avatar Operator" class="ticky-header-avatar-img" id="imgHeaderUserAvatar" width="32" height="32">
                 <div class="ops-user-badge" id="opsUserBadge">
                   <span class="ops-user-name" id="opsHeaderUserName">Petugas Loket Pelabuhan</span>
                   <span class="ops-user-id" id="opsHeaderUserId">KSOP ID: 18830482</span>
@@ -676,7 +715,7 @@
               <div class="ticky-header-dropdown" id="dropdownHeaderProfile" style="width: 260px;">
                 <div class="ticky-dd-header">
                   <div class="ticky-dd-avatar-lg">
-                    <img src="assets/avatar-header.svg" alt="Avatar">
+                    <img src="assets/avatar-header.svg" alt="Avatar" width="38" height="38">
                   </div>
                   <div>
                     <h5 id="dropdownProfileCompanyName" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #0f172a;">Ticky Logistics & Maritime</h5>
@@ -2117,6 +2156,166 @@
         </div>
       </div>
 
+      <!-- SUBTAB: PENGECEKAN KURS VALAS ONLINE REALTIME -->
+      <div class="dash-pane" id="paneCurrencyExchange">
+        <div class="dash-block-panel">
+          <!-- Header Block -->
+          <div class="flex-between align-center" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 1.35rem;">💱</span>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a;">Pengecekan Kurs Valas & Mata Uang Online Realtime</h3>
+                <span class="badge-live-pulse" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 9999px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                  <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span> LIVE SYNC
+                </span>
+              </div>
+              <p class="text-dim" style="margin: 0; font-size: 0.85rem;">Sinkronisasi kurs valuta asing secara langsung dari pasar keuangan global untuk operasional tiket rute internasional Nunukan - Tawau dan valas dunia.</p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div style="font-size: 0.78rem; color: #64748b; text-align: right;">
+                <div>Status: <strong id="lblCurrencySyncStatus" style="color: #10b981;">Online Terhubung</strong></div>
+                <div id="lblCurrencyLastUpdated" style="font-size: 0.73rem;">Terakhir dicek: Menghubungkan...</div>
+              </div>
+              <button type="button" class="btn-primary-action" id="btnRefreshAllRates" style="display: flex; align-items: center; gap: 0.45rem; padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px; background: #0284c7; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);">
+                <svg id="iconCurrencyRefreshSpin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>Recheck Kurs Terkini</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 1. FEATURED CARD: DEFAULT MALAYSIA (MYR) -> INDONESIA (IDR) -->
+          <div style="background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border: 1.5px solid #86efac; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #047857; background: #dcfce7; padding: 3px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                  🇲🇾 ➔ 🇮🇩 KURS DEFAULT OPERASIONAL MARITIM (TAWAU - NUNUKAN)
+                </span>
+                <div style="display: flex; align-items: baseline; gap: 0.75rem; margin-top: 0.6rem; flex-wrap: wrap;">
+                  <span style="font-size: 1.85rem; font-weight: 900; color: #065f46;" id="heroMyrToIdrDisplay">1 MYR = Rp 3.500</span>
+                  <span style="font-size: 0.85rem; color: #0f766e;" id="heroInverseDisplay">(10.000 IDR ≈ 2.86 MYR)</span>
+                </div>
+                <p style="margin: 0.35rem 0 0 0; font-size: 0.82rem; color: #334155;">
+                  Kurs ini dipakai secara otomatis untuk perhitungan konversi tiket ringgit di Loket Operasional dan Manifest Pelabuhan.
+                </p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                <button type="button" id="btnApplyLiveRateToTickets" class="btn-action-sm" style="background: #10b981; color: white; border: none; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Terapkan Sebagai Tarif Tiket Aktif</span>
+                </button>
+                <span style="font-size: 0.72rem; color: #64748b;" id="lblRateSourceBadge">Sumber: Live Financial API (Online)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. INTERACTIVE CONVERTER (DEFAULT: MYR -> IDR, WITH SELECTOR FOR ANY WORLD CURRENCY) -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+              <span>🔄 Kalkulator Konversi Valas Cepat</span>
+              <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">(Pilih Malaysia, Indonesia, atau Valas Dunia)</span>
+            </h4>
+
+            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: end;">
+              <!-- From Currency & Amount -->
+              <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 0.35rem;">
+                  Dari Mata Uang (Asal)
+                </label>
+                <div style="display: flex; gap: 0.5rem;">
+                  <select id="convFromCurrency" class="form-input" style="flex: 1.2; font-weight: 700; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                    <!-- Populated by JS -->
+                  </select>
+                  <input type="number" id="convAmountInput" value="100" min="0" step="any" class="form-input" placeholder="Jumlah..." style="flex: 1; font-weight: 800; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.95rem; text-align: right; color: #0f172a;">
+                </div>
+              </div>
+
+              <!-- Swap Button -->
+              <div style="display: flex; justify-content: center; padding-bottom: 4px;">
+                <button type="button" id="btnSwapCurrencies" title="Tukar Mata Uang Asal & Tujuan" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid #cbd5e1; background: #f1f5f9; color: #0284c7; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- To Currency -->
+              <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 0.35rem;">
+                  Ke Mata Uang (Hasil Konversi)
+                </label>
+                <select id="convToCurrency" class="form-input" style="width: 100%; font-weight: 700; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Result Box -->
+            <div style="margin-top: 1.25rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <div style="font-size: 0.78rem; color: #64748b; font-weight: 600;" id="convResultFormula">1 MYR = Rp 3.500</div>
+                <div style="font-size: 1.45rem; font-weight: 900; color: #0284c7; margin-top: 0.2rem;" id="convResultValue">
+                  100 MYR = Rp 350.000
+                </div>
+              </div>
+              <!-- Quick amount chips -->
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                <span style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Nominal Cepat:</span>
+                <button type="button" class="btn-quick-amount" data-amt="10" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">10</button>
+                <button type="button" class="btn-quick-amount" data-amt="50" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">50</button>
+                <button type="button" class="btn-quick-amount" data-amt="100" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">100</button>
+                <button type="button" class="btn-quick-amount" data-amt="250" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">250</button>
+                <button type="button" class="btn-quick-amount" data-amt="500" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">500</button>
+                <button type="button" class="btn-quick-amount" data-amt="1000" style="padding: 3px 8px; font-size: 0.73rem; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 6px; cursor: pointer; font-weight: 600;">1.000</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. WORLD CURRENCIES LIVE BOARD TABLE -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+              <div>
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.45rem;">
+                  <span>🌐 Papan Kurs Mata Uang Dunia (Live Rates)</span>
+                </h4>
+                <p class="text-dim" style="margin: 0.2rem 0 0 0; font-size: 0.8rem;">Daftar nilai tukar mata uang global terkemuka terhadap Ringgit Malaysia (MYR) dan Rupiah Indonesia (IDR).</p>
+              </div>
+
+              <!-- Filter & Search Controls -->
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="currencySearchInput" placeholder="Cari mata uang (USD, SGD, Arab, Yen...)" style="padding: 0.42rem 0.75rem; font-size: 0.82rem; border: 1px solid #cbd5e1; border-radius: 6px; min-width: 250px;">
+                <div style="display: flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;" id="boardBaseButtonGroup">
+                  <button type="button" class="btn-board-base active" data-base="MYR" style="padding: 0.42rem 0.75rem; font-size: 0.75rem; font-weight: 700; border: none; background: #0284c7; color: white; cursor: pointer;">Basis MYR</button>
+                  <button type="button" class="btn-board-base" data-base="IDR" style="padding: 0.42rem 0.75rem; font-size: 0.75rem; font-weight: 700; border: none; background: #f1f5f9; color: #475569; cursor: pointer;">Basis IDR</button>
+                  <button type="button" class="btn-board-base" data-base="USD" style="padding: 0.42rem 0.75rem; font-size: 0.75rem; font-weight: 700; border: none; background: #f1f5f9; color: #475569; cursor: pointer;">Basis USD</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table Container -->
+            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.83rem;" id="worldCurrenciesTable">
+                <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                  <tr>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569;">Mata Uang</th>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569;">Negara / Wilayah</th>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569;" id="thBaseCol">1 Satuan dalam Basis</th>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569;">Setara Rupiah (IDR)</th>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569;">Setara Ringgit (MYR)</th>
+                    <th style="padding: 0.65rem 0.85rem; font-weight: 800; color: #475569; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="worldCurrenciesTableBody">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- SUBTAB 5: SCANNER & GATE TERMINAL CHECK-IN -->
       <div class="dash-pane" id="paneScanner">
         <div class="dash-block-panel scanner-block">
@@ -3362,21 +3561,6 @@
       </div>
 
       <div class="modal-body-scroll">
-        <!-- Multi-Currency Selector & Exchange Rate Info -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="font-size: 0.8rem; color: #475569;">
-            Mata Uang Pembayaran: <span style="font-size: 0.72rem; color: #64748b;">(Kurs Operasional Maritim: 1 MYR = Rp 3.500)</span>
-          </div>
-          <div class="currency-switcher">
-            <button type="button" class="currency-btn active" id="btnCurrencyIdr" data-curr="IDR">
-              <span>🇮🇩 IDR (Rupiah)</span>
-            </button>
-            <button type="button" class="currency-btn" id="btnCurrencyMyr" data-curr="MYR">
-              <span>🇲🇾 MYR (Ringgit)</span>
-            </button>
-          </div>
-        </div>
-
         <!-- MDAC Arrival Card Warning Notice (Khusus Rute Tawau / Luar Negeri) -->
         <div id="mdacBookingNoticeBox" class="mdac-notice-card" style="display: none;">
           <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
@@ -3503,8 +3687,9 @@
               <label>Tanggal Habis Masa Berlaku Paspor *</label>
               <input type="date" id="custPaxPassportExpInput" class="form-input" value="2029-12-31">
             </div>
-            <div class="input-block" style="display: flex; flex-direction: column; justify-content: center;">
-              <div id="passportExpiryAlert" style="font-size: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-weight: 600;">
+            <div class="input-block">
+              <label>Status Validasi Paspor</label>
+              <div id="passportExpiryAlert" style="font-size: 0.75rem; padding: 0.55rem 0.8rem; border-radius: var(--radius-sm, 6px); background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #059669; font-weight: 600; display: flex; align-items: center; min-height: 38px; box-sizing: border-box;">
                 ✓ Masa berlaku paspor valid (&ge; 6 bulan dari keberangkatan)
               </div>
             </div>
@@ -3533,6 +3718,202 @@
                 <option value="Malaysia">🇲🇾 Malaysia</option>
                 <option value="Singapura">🇸🇬 Singapura</option>
                 <option value="Filipina">🇵🇭 Filipina</option>
+                <option value="Afganistan">🇦🇫 Afganistan</option>
+                <option value="Afrika Selatan">🇿🇦 Afrika Selatan</option>
+                <option value="Albania">🇦🇱 Albania</option>
+                <option value="Aljazair">🇩🇿 Aljazair</option>
+                <option value="Amerika Serikat">🇺🇸 Amerika Serikat</option>
+                <option value="Andorra">🇦🇩 Andorra</option>
+                <option value="Angola">🇦🇴 Angola</option>
+                <option value="Antigua dan Barbuda">🇦🇬 Antigua dan Barbuda</option>
+                <option value="Arab Saudi">🇸🇦 Arab Saudi</option>
+                <option value="Argentina">🇦🇷 Argentina</option>
+                <option value="Armenia">🇦🇲 Armenia</option>
+                <option value="Australia">🇦🇺 Australia</option>
+                <option value="Austria">🇦🇹 Austria</option>
+                <option value="Azerbaijan">🇦🇿 Azerbaijan</option>
+                <option value="Bahama">🇧🇸 Bahama</option>
+                <option value="Bahrain">🇧🇭 Bahrain</option>
+                <option value="Bangladesh">🇧🇩 Bangladesh</option>
+                <option value="Barbados">🇧🇧 Barbados</option>
+                <option value="Belanda">🇳🇱 Belanda</option>
+                <option value="Belarus">🇧🇾 Belarus</option>
+                <option value="Belgia">🇧🇪 Belgia</option>
+                <option value="Belize">🇧🇿 Belize</option>
+                <option value="Benin">🇧🇯 Benin</option>
+                <option value="Bhutan">🇧🇹 Bhutan</option>
+                <option value="Bolivia">🇧🇴 Bolivia</option>
+                <option value="Bosnia dan Herzegovina">🇧🇦 Bosnia dan Herzegovina</option>
+                <option value="Botswana">🇧🇼 Botswana</option>
+                <option value="Brasil">🇧🇷 Brasil</option>
+                <option value="Brunei Darussalam">🇧🇳 Brunei Darussalam</option>
+                <option value="Bulgaria">🇧🇬 Bulgaria</option>
+                <option value="Burkina Faso">🇧🇫 Burkina Faso</option>
+                <option value="Burundi">🇧🇮 Burundi</option>
+                <option value="Ceko">🇨🇿 Ceko</option>
+                <option value="Chad">🇹🇩 Chad</option>
+                <option value="Chili">🇨🇱 Chili</option>
+                <option value="Denmark">🇩🇰 Denmark</option>
+                <option value="Djibouti">🇩🇯 Djibouti</option>
+                <option value="Dominika">🇩🇲 Dominika</option>
+                <option value="Ekuador">🇪🇨 Ekuador</option>
+                <option value="El Salvador">🇸🇻 El Salvador</option>
+                <option value="Eritrea">🇪🇷 Eritrea</option>
+                <option value="Estonia">🇪🇪 Estonia</option>
+                <option value="Eswatini">🇸🇿 Eswatini</option>
+                <option value="Etiopia">🇪🇹 Etiopia</option>
+                <option value="Fiji">🇫🇯 Fiji</option>
+                <option value="Finlandia">🇫🇮 Finlandia</option>
+                <option value="Gabon">🇬🇦 Gabon</option>
+                <option value="Gambia">🇬🇲 Gambia</option>
+                <option value="Georgia">🇬🇪 Georgia</option>
+                <option value="Ghana">🇬🇭 Ghana</option>
+                <option value="Grenada">🇬🇩 Grenada</option>
+                <option value="Guatemala">🇬🇹 Guatemala</option>
+                <option value="Guinea">🇬🇳 Guinea</option>
+                <option value="Guinea Khatulistiwa">🇬🇶 Guinea Khatulistiwa</option>
+                <option value="Guinea-Bissau">🇬🇼 Guinea-Bissau</option>
+                <option value="Guyana">🇬🇾 Guyana</option>
+                <option value="Haiti">🇭🇹 Haiti</option>
+                <option value="Honduras">🇭🇳 Honduras</option>
+                <option value="Hong Kong">🇭🇰 Hong Kong</option>
+                <option value="Hungaria">🇭🇺 Hungaria</option>
+                <option value="India">🇮🇳 India</option>
+                <option value="Inggris (Britania Raya)">🇬🇧 Inggris (Britania Raya)</option>
+                <option value="Irak">🇮🇶 Irak</option>
+                <option value="Iran">🇮🇷 Iran</option>
+                <option value="Irlandia">🇮🇪 Irlandia</option>
+                <option value="Islandia">🇮🇸 Islandia</option>
+                <option value="Israel">🇮🇱 Israel</option>
+                <option value="Italia">🇮🇹 Italia</option>
+                <option value="Jamaika">🇯🇲 Jamaika</option>
+                <option value="Jepang">🇯🇵 Jepang</option>
+                <option value="Jerman">🇩🇪 Jerman</option>
+                <option value="Kaledonia Baru">🇳🇨 Kaledonia Baru</option>
+                <option value="Kamboja">🇰🇭 Kamboja</option>
+                <option value="Kamerun">🇨🇲 Kamerun</option>
+                <option value="Kanada">🇨🇦 Kanada</option>
+                <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
+                <option value="Kenya">🇰🇪 Kenya</option>
+                <option value="Kepulauan Solomon">🇸🇧 Kepulauan Solomon</option>
+                <option value="Kirgizstan">🇰🇬 Kirgizstan</option>
+                <option value="Kiribati">🇰🇮 Kiribati</option>
+                <option value="Kolombia">🇨🇴 Kolombia</option>
+                <option value="Komoro">🇰🇲 Komoro</option>
+                <option value="Kongo">🇨🇬 Kongo</option>
+                <option value="Kongo (Republik Demokratik)">🇨🇩 Kongo (Republik Demokratik)</option>
+                <option value="Korea Selatan">🇰🇷 Korea Selatan</option>
+                <option value="Korea Utara">🇰🇵 Korea Utara</option>
+                <option value="Kosovo">🇽🇰 Kosovo</option>
+                <option value="Kosta Rika">🇨🇷 Kosta Rika</option>
+                <option value="Kroasia">🇭🇷 Kroasia</option>
+                <option value="Kuba">🇨🇺 Kuba</option>
+                <option value="Kuwait">🇰🇼 Kuwait</option>
+                <option value="Laos">🇱🇦 Laos</option>
+                <option value="Latvia">🇱🇻 Latvia</option>
+                <option value="Lebanon">🇱🇧 Lebanon</option>
+                <option value="Lesotho">🇱🇸 Lesotho</option>
+                <option value="Liberia">🇱🇷 Liberia</option>
+                <option value="Libya">🇱🇾 Libya</option>
+                <option value="Liechtenstein">🇱🇮 Liechtenstein</option>
+                <option value="Lituania">🇱🇹 Lituania</option>
+                <option value="Luksemburg">🇱🇺 Luksemburg</option>
+                <option value="Madagaskar">🇲🇬 Madagaskar</option>
+                <option value="Makau">🇲🇴 Makau</option>
+                <option value="Makedonia Utara">🇲🇰 Makedonia Utara</option>
+                <option value="Maladewa">🇲🇻 Maladewa</option>
+                <option value="Malawi">🇲🇼 Malawi</option>
+                <option value="Mali">🇲🇱 Mali</option>
+                <option value="Malta">🇲🇹 Malta</option>
+                <option value="Maroko">🇲🇦 Maroko</option>
+                <option value="Marshall">🇲🇭 Marshall</option>
+                <option value="Mauritania">🇲🇷 Mauritania</option>
+                <option value="Mauritius">🇲🇺 Mauritius</option>
+                <option value="Meksiko">🇲🇽 Meksiko</option>
+                <option value="Mesir">🇪🇬 Mesir</option>
+                <option value="Mikronesia">🇫🇲 Mikronesia</option>
+                <option value="Moldova">🇲🇩 Moldova</option>
+                <option value="Monako">🇲🇨 Monako</option>
+                <option value="Mongolia">🇲🇳 Mongolia</option>
+                <option value="Montenegro">🇲🇪 Montenegro</option>
+                <option value="Mozambik">🇲🇿 Mozambik</option>
+                <option value="Myanmar">🇲🇲 Myanmar</option>
+                <option value="Namibia">🇳🇦 Namibia</option>
+                <option value="Nauru">🇳🇷 Nauru</option>
+                <option value="Nepal">🇳🇵 Nepal</option>
+                <option value="Niger">🇳🇪 Niger</option>
+                <option value="Nigeria">🇳🇬 Nigeria</option>
+                <option value="Nikaragua">🇳🇮 Nikaragua</option>
+                <option value="Norwegia">🇳🇴 Norwegia</option>
+                <option value="Oman">🇴🇲 Oman</option>
+                <option value="Pakistan">🇵🇰 Pakistan</option>
+                <option value="Palau">🇵🇼 Palau</option>
+                <option value="Palestina">🇵🇸 Palestina</option>
+                <option value="Panama">🇵🇦 Panama</option>
+                <option value="Pantai Gading">🇨🇮 Pantai Gading</option>
+                <option value="Papua Nugini">🇵🇬 Papua Nugini</option>
+                <option value="Paraguay">🇵🇾 Paraguay</option>
+                <option value="Peru">🇵🇪 Peru</option>
+                <option value="Polandia">🇵🇱 Polandia</option>
+                <option value="Portugal">🇵🇹 Portugal</option>
+                <option value="Prancis">🇫🇷 Prancis</option>
+                <option value="Qatar">🇶🇦 Qatar</option>
+                <option value="Republik Afrika Tengah">🇨🇫 Republik Afrika Tengah</option>
+                <option value="Republik Dominika">🇩🇴 Republik Dominika</option>
+                <option value="Rumania">🇷🇴 Rumania</option>
+                <option value="Rusia">🇷🇺 Rusia</option>
+                <option value="Rwanda">🇷🇼 Rwanda</option>
+                <option value="Saint Kitts dan Nevis">🇰🇳 Saint Kitts dan Nevis</option>
+                <option value="Saint Lucia">🇱🇨 Saint Lucia</option>
+                <option value="Saint Vincent dan Grenadine">🇻🇨 Saint Vincent dan Grenadine</option>
+                <option value="Samoa">🇼🇸 Samoa</option>
+                <option value="San Marino">🇸🇲 San Marino</option>
+                <option value="Sao Tome dan Principe">🇸🇹 Sao Tome dan Principe</option>
+                <option value="Selandia Baru">🇳🇿 Selandia Baru</option>
+                <option value="Senegal">🇸🇳 Senegal</option>
+                <option value="Serbia">🇷🇸 Serbia</option>
+                <option value="Seychelles">🇸🇨 Seychelles</option>
+                <option value="Sierra Leone">🇸🇱 Sierra Leone</option>
+                <option value="Siprus">🇨🇾 Siprus</option>
+                <option value="Slovenia">🇸🇮 Slovenia</option>
+                <option value="Slowakia">🇸🇰 Slowakia</option>
+                <option value="Somalia">🇸🇴 Somalia</option>
+                <option value="Spanyol">🇪🇸 Spanyol</option>
+                <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+                <option value="Sudan">🇸🇩 Sudan</option>
+                <option value="Sudan Selatan">🇸🇸 Sudan Selatan</option>
+                <option value="Suriah">🇸🇾 Suriah</option>
+                <option value="Suriname">🇸🇷 Suriname</option>
+                <option value="Swedia">🇸🇪 Swedia</option>
+                <option value="Swiss">🇨🇭 Swiss</option>
+                <option value="Taiwan">🇹🇼 Taiwan</option>
+                <option value="Tajikistan">🇹🇯 Tajikistan</option>
+                <option value="Tanjung Verde">🇨🇻 Tanjung Verde</option>
+                <option value="Tanzania">🇹🇿 Tanzania</option>
+                <option value="Thailand">🇹🇭 Thailand</option>
+                <option value="Timor Leste">🇹🇱 Timor Leste</option>
+                <option value="Tiongkok">🇨🇳 Tiongkok</option>
+                <option value="Togo">🇹🇬 Togo</option>
+                <option value="Tonga">🇹🇴 Tonga</option>
+                <option value="Trinidad dan Tobago">🇹🇹 Trinidad dan Tobago</option>
+                <option value="Tunisia">🇹🇳 Tunisia</option>
+                <option value="Turki">🇹🇷 Turki</option>
+                <option value="Turkmenistan">🇹🇲 Turkmenistan</option>
+                <option value="Tuvalu">🇹🇻 Tuvalu</option>
+                <option value="Uganda">🇺🇬 Uganda</option>
+                <option value="Ukraina">🇺🇦 Ukraina</option>
+                <option value="Uni Emirat Arab">🇦🇪 Uni Emirat Arab</option>
+                <option value="Uruguay">🇺🇾 Uruguay</option>
+                <option value="Uzbekistan">🇺🇿 Uzbekistan</option>
+                <option value="Vanuatu">🇻🇺 Vanuatu</option>
+                <option value="Vatikan">🇻🇦 Vatikan</option>
+                <option value="Venezuela">🇻🇪 Venezuela</option>
+                <option value="Vietnam">🇻🇳 Vietnam</option>
+                <option value="Yaman">🇾🇪 Yaman</option>
+                <option value="Yordania">🇯🇴 Yordania</option>
+                <option value="Yunani">🇬🇷 Yunani</option>
+                <option value="Zambia">🇿🇲 Zambia</option>
+                <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
                 <option value="Lainnya">🌏 Negara Lainnya</option>
               </select>
             </div>
@@ -3552,12 +3933,12 @@
           <!-- Opsional: Kontak WhatsApp & Email untuk Tiket -->
           <div class="form-row-2" style="margin-top: 0.25rem;">
             <div class="input-block">
-              <label>Nomor WhatsApp (Pengiriman E-Tiket) *</label>
-              <input type="tel" id="custPaxPhone" class="form-input" placeholder="08xxxxxxxxxx" required value="081298410291">
+              <label>Nomor WhatsApp (Pengiriman E-Tiket)</label>
+              <input type="tel" id="custPaxPhone" class="form-input" placeholder="08xxxxxxxxxx" value="081298410291">
             </div>
             <div class="input-block">
-              <label>Email Pemesan (Pengiriman Dokumen) *</label>
-              <input type="email" id="custPaxEmail" class="form-input" placeholder="nama@email.com" required value="budi.gunawan@gmail.com">
+              <label>Email Pemesan (Pengiriman Dokumen)</label>
+              <input type="email" id="custPaxEmail" class="form-input" placeholder="nama@email.com" value="budi.gunawan@gmail.com">
             </div>
           </div>
 
@@ -3573,21 +3954,9 @@
               <input type="radio" name="custPayMethod" value="Loket Resmi / Tunai" checked>
               <span>Loket Resmi Perusahaan / Pelabuhan</span>
             </label>
-            <label class="pay-method-pill" id="payMethodQris">
-              <input type="radio" name="custPayMethod" value="QRIS Instan">
-              <span>QRIS Instan (BCA, OVO, Dana, GoPay)</span>
-            </label>
-            <label class="pay-method-pill" id="payMethodVa">
-              <input type="radio" name="custPayMethod" value="Virtual Account BCA / Mandiri">
-              <span>Transfer Bank / Virtual Account</span>
-            </label>
-            <label class="pay-method-pill" id="payMethodDuitNow" style="display: none;">
-              <input type="radio" name="custPayMethod" value="DuitNow QR Malaysia">
-              <span>🇲🇾 DuitNow QR (Maybank, CIMB, TNG eWallet)</span>
-            </label>
-            <label class="pay-method-pill" id="payMethodFpx" style="display: none;">
-              <input type="radio" name="custPayMethod" value="FPX Online Banking Malaysia">
-              <span>🇲🇾 FPX Online Banking Malaysia</span>
+            <label class="pay-method-pill" id="payMethodBooked">
+              <input type="radio" name="custPayMethod" value="Sistem Booked">
+              <span>Sistem Booked (Bayar Saat Check-In)</span>
             </label>
           </div>
         </div>
@@ -4023,6 +4392,202 @@
               <option value="Malaysia">🇲🇾 Malaysia</option>
               <option value="Singapura">🇸🇬 Singapura</option>
               <option value="Filipina">🇵🇭 Filipina</option>
+              <option value="Afganistan">🇦🇫 Afganistan</option>
+              <option value="Afrika Selatan">🇿🇦 Afrika Selatan</option>
+              <option value="Albania">🇦🇱 Albania</option>
+              <option value="Aljazair">🇩🇿 Aljazair</option>
+              <option value="Amerika Serikat">🇺🇸 Amerika Serikat</option>
+              <option value="Andorra">🇦🇩 Andorra</option>
+              <option value="Angola">🇦🇴 Angola</option>
+              <option value="Antigua dan Barbuda">🇦🇬 Antigua dan Barbuda</option>
+              <option value="Arab Saudi">🇸🇦 Arab Saudi</option>
+              <option value="Argentina">🇦🇷 Argentina</option>
+              <option value="Armenia">🇦🇲 Armenia</option>
+              <option value="Australia">🇦🇺 Australia</option>
+              <option value="Austria">🇦🇹 Austria</option>
+              <option value="Azerbaijan">🇦🇿 Azerbaijan</option>
+              <option value="Bahama">🇧🇸 Bahama</option>
+              <option value="Bahrain">🇧🇭 Bahrain</option>
+              <option value="Bangladesh">🇧🇩 Bangladesh</option>
+              <option value="Barbados">🇧🇧 Barbados</option>
+              <option value="Belanda">🇳🇱 Belanda</option>
+              <option value="Belarus">🇧🇾 Belarus</option>
+              <option value="Belgia">🇧🇪 Belgia</option>
+              <option value="Belize">🇧🇿 Belize</option>
+              <option value="Benin">🇧🇯 Benin</option>
+              <option value="Bhutan">🇧🇹 Bhutan</option>
+              <option value="Bolivia">🇧🇴 Bolivia</option>
+              <option value="Bosnia dan Herzegovina">🇧🇦 Bosnia dan Herzegovina</option>
+              <option value="Botswana">🇧🇼 Botswana</option>
+              <option value="Brasil">🇧🇷 Brasil</option>
+              <option value="Brunei Darussalam">🇧🇳 Brunei Darussalam</option>
+              <option value="Bulgaria">🇧🇬 Bulgaria</option>
+              <option value="Burkina Faso">🇧🇫 Burkina Faso</option>
+              <option value="Burundi">🇧🇮 Burundi</option>
+              <option value="Ceko">🇨🇿 Ceko</option>
+              <option value="Chad">🇹🇩 Chad</option>
+              <option value="Chili">🇨🇱 Chili</option>
+              <option value="Denmark">🇩🇰 Denmark</option>
+              <option value="Djibouti">🇩🇯 Djibouti</option>
+              <option value="Dominika">🇩🇲 Dominika</option>
+              <option value="Ekuador">🇪🇨 Ekuador</option>
+              <option value="El Salvador">🇸🇻 El Salvador</option>
+              <option value="Eritrea">🇪🇷 Eritrea</option>
+              <option value="Estonia">🇪🇪 Estonia</option>
+              <option value="Eswatini">🇸🇿 Eswatini</option>
+              <option value="Etiopia">🇪🇹 Etiopia</option>
+              <option value="Fiji">🇫🇯 Fiji</option>
+              <option value="Finlandia">🇫🇮 Finlandia</option>
+              <option value="Gabon">🇬🇦 Gabon</option>
+              <option value="Gambia">🇬🇲 Gambia</option>
+              <option value="Georgia">🇬🇪 Georgia</option>
+              <option value="Ghana">🇬🇭 Ghana</option>
+              <option value="Grenada">🇬🇩 Grenada</option>
+              <option value="Guatemala">🇬🇹 Guatemala</option>
+              <option value="Guinea">🇬🇳 Guinea</option>
+              <option value="Guinea Khatulistiwa">🇬🇶 Guinea Khatulistiwa</option>
+              <option value="Guinea-Bissau">🇬🇼 Guinea-Bissau</option>
+              <option value="Guyana">🇬🇾 Guyana</option>
+              <option value="Haiti">🇭🇹 Haiti</option>
+              <option value="Honduras">🇭🇳 Honduras</option>
+              <option value="Hong Kong">🇭🇰 Hong Kong</option>
+              <option value="Hungaria">🇭🇺 Hungaria</option>
+              <option value="India">🇮🇳 India</option>
+              <option value="Inggris (Britania Raya)">🇬🇧 Inggris (Britania Raya)</option>
+              <option value="Irak">🇮🇶 Irak</option>
+              <option value="Iran">🇮🇷 Iran</option>
+              <option value="Irlandia">🇮🇪 Irlandia</option>
+              <option value="Islandia">🇮🇸 Islandia</option>
+              <option value="Israel">🇮🇱 Israel</option>
+              <option value="Italia">🇮🇹 Italia</option>
+              <option value="Jamaika">🇯🇲 Jamaika</option>
+              <option value="Jepang">🇯🇵 Jepang</option>
+              <option value="Jerman">🇩🇪 Jerman</option>
+              <option value="Kaledonia Baru">🇳🇨 Kaledonia Baru</option>
+              <option value="Kamboja">🇰🇭 Kamboja</option>
+              <option value="Kamerun">🇨🇲 Kamerun</option>
+              <option value="Kanada">🇨🇦 Kanada</option>
+              <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
+              <option value="Kenya">🇰🇪 Kenya</option>
+              <option value="Kepulauan Solomon">🇸🇧 Kepulauan Solomon</option>
+              <option value="Kirgizstan">🇰🇬 Kirgizstan</option>
+              <option value="Kiribati">🇰🇮 Kiribati</option>
+              <option value="Kolombia">🇨🇴 Kolombia</option>
+              <option value="Komoro">🇰🇲 Komoro</option>
+              <option value="Kongo">🇨🇬 Kongo</option>
+              <option value="Kongo (Republik Demokratik)">🇨🇩 Kongo (Republik Demokratik)</option>
+              <option value="Korea Selatan">🇰🇷 Korea Selatan</option>
+              <option value="Korea Utara">🇰🇵 Korea Utara</option>
+              <option value="Kosovo">🇽🇰 Kosovo</option>
+              <option value="Kosta Rika">🇨🇷 Kosta Rika</option>
+              <option value="Kroasia">🇭🇷 Kroasia</option>
+              <option value="Kuba">🇨🇺 Kuba</option>
+              <option value="Kuwait">🇰🇼 Kuwait</option>
+              <option value="Laos">🇱🇦 Laos</option>
+              <option value="Latvia">🇱🇻 Latvia</option>
+              <option value="Lebanon">🇱🇧 Lebanon</option>
+              <option value="Lesotho">🇱🇸 Lesotho</option>
+              <option value="Liberia">🇱🇷 Liberia</option>
+              <option value="Libya">🇱🇾 Libya</option>
+              <option value="Liechtenstein">🇱🇮 Liechtenstein</option>
+              <option value="Lituania">🇱🇹 Lituania</option>
+              <option value="Luksemburg">🇱🇺 Luksemburg</option>
+              <option value="Madagaskar">🇲🇬 Madagaskar</option>
+              <option value="Makau">🇲🇴 Makau</option>
+              <option value="Makedonia Utara">🇲🇰 Makedonia Utara</option>
+              <option value="Maladewa">🇲🇻 Maladewa</option>
+              <option value="Malawi">🇲🇼 Malawi</option>
+              <option value="Mali">🇲🇱 Mali</option>
+              <option value="Malta">🇲🇹 Malta</option>
+              <option value="Maroko">🇲🇦 Maroko</option>
+              <option value="Marshall">🇲🇭 Marshall</option>
+              <option value="Mauritania">🇲🇷 Mauritania</option>
+              <option value="Mauritius">🇲🇺 Mauritius</option>
+              <option value="Meksiko">🇲🇽 Meksiko</option>
+              <option value="Mesir">🇪🇬 Mesir</option>
+              <option value="Mikronesia">🇫🇲 Mikronesia</option>
+              <option value="Moldova">🇲🇩 Moldova</option>
+              <option value="Monako">🇲🇨 Monako</option>
+              <option value="Mongolia">🇲🇳 Mongolia</option>
+              <option value="Montenegro">🇲🇪 Montenegro</option>
+              <option value="Mozambik">🇲🇿 Mozambik</option>
+              <option value="Myanmar">🇲🇲 Myanmar</option>
+              <option value="Namibia">🇳🇦 Namibia</option>
+              <option value="Nauru">🇳🇷 Nauru</option>
+              <option value="Nepal">🇳🇵 Nepal</option>
+              <option value="Niger">🇳🇪 Niger</option>
+              <option value="Nigeria">🇳🇬 Nigeria</option>
+              <option value="Nikaragua">🇳🇮 Nikaragua</option>
+              <option value="Norwegia">🇳🇴 Norwegia</option>
+              <option value="Oman">🇴🇲 Oman</option>
+              <option value="Pakistan">🇵🇰 Pakistan</option>
+              <option value="Palau">🇵🇼 Palau</option>
+              <option value="Palestina">🇵🇸 Palestina</option>
+              <option value="Panama">🇵🇦 Panama</option>
+              <option value="Pantai Gading">🇨🇮 Pantai Gading</option>
+              <option value="Papua Nugini">🇵🇬 Papua Nugini</option>
+              <option value="Paraguay">🇵🇾 Paraguay</option>
+              <option value="Peru">🇵🇪 Peru</option>
+              <option value="Polandia">🇵🇱 Polandia</option>
+              <option value="Portugal">🇵🇹 Portugal</option>
+              <option value="Prancis">🇫🇷 Prancis</option>
+              <option value="Qatar">🇶🇦 Qatar</option>
+              <option value="Republik Afrika Tengah">🇨🇫 Republik Afrika Tengah</option>
+              <option value="Republik Dominika">🇩🇴 Republik Dominika</option>
+              <option value="Rumania">🇷🇴 Rumania</option>
+              <option value="Rusia">🇷🇺 Rusia</option>
+              <option value="Rwanda">🇷🇼 Rwanda</option>
+              <option value="Saint Kitts dan Nevis">🇰🇳 Saint Kitts dan Nevis</option>
+              <option value="Saint Lucia">🇱🇨 Saint Lucia</option>
+              <option value="Saint Vincent dan Grenadine">🇻🇨 Saint Vincent dan Grenadine</option>
+              <option value="Samoa">🇼🇸 Samoa</option>
+              <option value="San Marino">🇸🇲 San Marino</option>
+              <option value="Sao Tome dan Principe">🇸🇹 Sao Tome dan Principe</option>
+              <option value="Selandia Baru">🇳🇿 Selandia Baru</option>
+              <option value="Senegal">🇸🇳 Senegal</option>
+              <option value="Serbia">🇷🇸 Serbia</option>
+              <option value="Seychelles">🇸🇨 Seychelles</option>
+              <option value="Sierra Leone">🇸🇱 Sierra Leone</option>
+              <option value="Siprus">🇨🇾 Siprus</option>
+              <option value="Slovenia">🇸🇮 Slovenia</option>
+              <option value="Slowakia">🇸🇰 Slowakia</option>
+              <option value="Somalia">🇸🇴 Somalia</option>
+              <option value="Spanyol">🇪🇸 Spanyol</option>
+              <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+              <option value="Sudan">🇸🇩 Sudan</option>
+              <option value="Sudan Selatan">🇸🇸 Sudan Selatan</option>
+              <option value="Suriah">🇸🇾 Suriah</option>
+              <option value="Suriname">🇸🇷 Suriname</option>
+              <option value="Swedia">🇸🇪 Swedia</option>
+              <option value="Swiss">🇨🇭 Swiss</option>
+              <option value="Taiwan">🇹🇼 Taiwan</option>
+              <option value="Tajikistan">🇹🇯 Tajikistan</option>
+              <option value="Tanjung Verde">🇨🇻 Tanjung Verde</option>
+              <option value="Tanzania">🇹🇿 Tanzania</option>
+              <option value="Thailand">🇹🇭 Thailand</option>
+              <option value="Timor Leste">🇹🇱 Timor Leste</option>
+              <option value="Tiongkok">🇨🇳 Tiongkok</option>
+              <option value="Togo">🇹🇬 Togo</option>
+              <option value="Tonga">🇹🇴 Tonga</option>
+              <option value="Trinidad dan Tobago">🇹🇹 Trinidad dan Tobago</option>
+              <option value="Tunisia">🇹🇳 Tunisia</option>
+              <option value="Turki">🇹🇷 Turki</option>
+              <option value="Turkmenistan">🇹🇲 Turkmenistan</option>
+              <option value="Tuvalu">🇹🇻 Tuvalu</option>
+              <option value="Uganda">🇺🇬 Uganda</option>
+              <option value="Ukraina">🇺🇦 Ukraina</option>
+              <option value="Uni Emirat Arab">🇦🇪 Uni Emirat Arab</option>
+              <option value="Uruguay">🇺🇾 Uruguay</option>
+              <option value="Uzbekistan">🇺🇿 Uzbekistan</option>
+              <option value="Vanuatu">🇻🇺 Vanuatu</option>
+              <option value="Vatikan">🇻🇦 Vatikan</option>
+              <option value="Venezuela">🇻🇪 Venezuela</option>
+              <option value="Vietnam">🇻🇳 Vietnam</option>
+              <option value="Yaman">🇾🇪 Yaman</option>
+              <option value="Yordania">🇯🇴 Yordania</option>
+              <option value="Yunani">🇬🇷 Yunani</option>
+              <option value="Zambia">🇿🇲 Zambia</option>
+              <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
               <option value="Lainnya">🌏 Negara Lainnya</option>
             </select>
           </div>
@@ -4088,6 +4653,7 @@
             <label>Status Pembayaran *</label>
             <select id="editTicketPaymentStatus" class="form-input">
               <option value="PAID">PAID (Lunas)</option>
+              <option value="BOOKED">BOOKED (Dipesan / Belum Bayar)</option>
               <option value="UNPAID">UNPAID (Menunggu Bayar)</option>
               <option value="REFUNDED">REFUNDED (Dibatalkan / Pengembalian)</option>
             </select>
@@ -4425,10 +4991,8 @@
             <div class="input-block" style="margin-bottom: 0;">
               <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Status & Metode Bayar *</label>
               <select id="bulkPaymentMethodSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
-                <option value="CASH">Lunas Tunai (Cash Loket)</option>
-                <option value="TRANSFER">Lunas Transfer Bank / QRIS</option>
-                <option value="INVOICE">Tagihan Rombongan / Invoice Agen</option>
-                <option value="CHARTER">Charter Resmi Perusahaan</option>
+                <option value="Loket Resmi / Tunai">Loket Resmi Perusahaan / Pelabuhan</option>
+                <option value="Sistem Booked">Sistem Booked (Bayar Saat Check-In)</option>
               </select>
             </div>
 
@@ -4461,7 +5025,7 @@
           </div>
         </div>
 
-        <!-- STEP 2: Pilih Metode Input Data Penumpang -->
+                <!-- STEP 2: Pilih Metode Input Data Penumpang -->
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
             <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
@@ -4475,52 +5039,19 @@
 
           <!-- Nav Tabs: 3 Opsi Input -->
           <div class="bulk-input-tabs" id="bulkInputTabs">
-            <button type="button" class="bulk-tab-btn active" data-mode="PASTE">
+            <button type="button" class="bulk-tab-btn active" data-mode="GRID">
+              ✍️ Tabel Grid Interaktif
+            </button>
+            <button type="button" class="bulk-tab-btn" data-mode="PASTE">
               📋 Copy-Paste Cepat dari Excel
             </button>
             <button type="button" class="bulk-tab-btn" data-mode="FILE">
               📂 Unggah File CSV / Excel
             </button>
-            <button type="button" class="bulk-tab-btn" data-mode="GRID">
-              ✍️ Tabel Grid Interaktif
-            </button>
           </div>
 
-          <!-- PANE 1: COPY-PASTE DARI SPREADSHEET -->
-          <div id="bulkPanePaste" class="bulk-input-pane">
-            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-              <span style="font-size: 0.78rem; color: #64748b;">
-                Salin baris data dari Excel/Google Sheets dan tempel (Paste) langsung ke kotak di bawah.
-              </span>
-              <button type="button" id="btnLoadBulkDemoData" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
-                + Muat 10 Contoh Data Demo
-              </button>
-            </div>
-            <textarea id="bulkPasteTextarea" class="form-input" rows="5" placeholder="Contoh format kolom:&#10;Ahmad Dahlan	A1234567	L	Dewasa	ID&#10;Siti Fatimah	6401024508900001	P	Dewasa	ID&#10;Muhammad Rizki	B8765432	L	Anak	ID&#10;&#10;*Format otomatis membaca pemisah Tab, Koma, atau Titik Koma." style="width: 100%; font-family: monospace; font-size: 0.8rem; background: #ffffff; color: #0f172a; border-color: #cbd5e1;"></textarea>
-            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem; gap: 0.5rem;">
-              <button type="button" class="btn-action-sm" id="btnParsePastedText" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
-                ⚡ Proses & Analisis Teks Tempel
-              </button>
-            </div>
-          </div>
-
-          <!-- PANE 2: UPLOAD FILE CSV -->
-          <div id="bulkPaneFile" class="bulk-input-pane" style="display: none;">
-            <div class="bulk-dropzone" id="bulkDropzoneArea">
-              <input type="file" id="bulkFileInput" accept=".csv,.txt,.tsv" style="display: none;">
-              <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">📂</div>
-              <strong style="color: #0f172a; font-size: 0.95rem; display: block;">Pilih atau Tarik Berkas CSV / Excel ke Sini</strong>
-              <span style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Mendukung format .csv, .tsv, dan .txt dengan pemisah koma atau tab</span>
-              <div style="margin-top: 0.85rem;">
-                <button type="button" class="btn-action-sm" id="btnBrowseBulkFile" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
-                  Pilih File dari Komputer
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- PANE 3: TABEL GRID INTERAKTIF -->
-          <div id="bulkPaneGrid" class="bulk-input-pane" style="display: none;">
+          <!-- PANE 1: TABEL GRID INTERAKTIF (FIRST & DEFAULT) -->
+          <div id="bulkPaneGrid" class="bulk-input-pane">
             <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
               <span style="font-size: 0.78rem; color: #64748b;">Ketik langsung data penumpang pada tabel baris demi baris:</span>
               <div style="display: flex; gap: 0.4rem;">
@@ -4547,6 +5078,39 @@
                   <!-- Injected by JS -->
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- PANE 2: COPY-PASTE DARI SPREADSHEET (SECOND) -->
+          <div id="bulkPanePaste" class="bulk-input-pane" style="display: none;">
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.78rem; color: #64748b;">
+                Salin baris data dari Excel/Google Sheets dan tempel (Paste) langsung ke kotak di bawah.
+              </span>
+              <button type="button" id="btnLoadBulkDemoData" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                + Muat 10 Contoh Data Demo
+              </button>
+            </div>
+            <textarea id="bulkPasteTextarea" class="form-input" rows="5" placeholder="Contoh format kolom:&#10;Ahmad Dahlan	A1234567	L	Dewasa	ID&#10;Siti Fatimah	6401024508900001	P	Dewasa	ID&#10;Muhammad Rizki	B8765432	L	Anak	ID&#10;&#10;*Format otomatis membaca pemisah Tab, Koma, atau Titik Koma." style="width: 100%; font-family: monospace; font-size: 0.8rem; background: #ffffff; color: #0f172a; border-color: #cbd5e1;"></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem; gap: 0.5rem;">
+              <button type="button" class="btn-action-sm" id="btnParsePastedText" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
+                ⚡ Proses & Analisis Teks Tempel
+              </button>
+            </div>
+          </div>
+
+          <!-- PANE 3: UPLOAD FILE CSV (THIRD) -->
+          <div id="bulkPaneFile" class="bulk-input-pane" style="display: none;">
+            <div class="bulk-dropzone" id="bulkDropzoneArea">
+              <input type="file" id="bulkFileInput" accept=".csv,.txt,.tsv" style="display: none;">
+              <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">📂</div>
+              <strong style="color: #0f172a; font-size: 0.95rem; display: block;">Pilih atau Tarik Berkas CSV / Excel ke Sini</strong>
+              <span style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Mendukung format .csv, .tsv, dan .txt dengan pemisah koma atau tab</span>
+              <div style="margin-top: 0.85rem;">
+                <button type="button" class="btn-action-sm" id="btnBrowseBulkFile" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+                  Pilih File dari Komputer
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -4958,7 +5522,7 @@
     </div>
   </div>
 
-  <script src="data-store.js?v=2.3"></script>
-  <script src="app.js?v=3.3"></script>
+  <script src="data-store.js?v=2.5"></script>
+  <script src="app.js?v=3.7"></script>
 </body>
 </html>
