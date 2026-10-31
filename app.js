@@ -191,29 +191,11 @@ const App = {
         this.switchView('weatherHome');
       });
 
-      // Interactive 3D Cursor Tilt & Magnetic Depth on Tech Solution Logo
+      // Clean logo interaction without 3D glow distortion
       const logoWrap = document.getElementById('brandLogoWrap');
-      const logoImg = document.getElementById('brandLogoImg');
       if (logoWrap) {
-        brandHome.addEventListener('mousemove', (e) => {
-          const rect = logoWrap.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          const deltaX = (e.clientX - centerX) / (rect.width / 2);
-          const deltaY = (e.clientY - centerY) / (rect.height / 2);
-
-          const tiltX = -deltaY * 18;
-          const tiltY = deltaX * 18;
-
-          logoWrap.style.transform = `perspective(500px) rotateX(${tiltX.toFixed(1)}deg) rotateY(${tiltY.toFixed(1)}deg) translateY(-3px) scale(1.1)`;
-          if (logoImg) {
-            logoImg.style.transform = `translateZ(25px) scale(1.15) translate(${(deltaX * 3).toFixed(1)}px, ${(deltaY * 3).toFixed(1)}px)`;
-          }
-        });
-
         brandHome.addEventListener('mouseleave', () => {
           logoWrap.style.transform = '';
-          if (logoImg) logoImg.style.transform = '';
         });
       }
     }
@@ -249,7 +231,7 @@ const App = {
       this.closeCompanyAuthModal();
       this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
       const brandLogo = document.getElementById('brandLogoImg');
-      if (brandLogo) brandLogo.src = 'assets/tech_solution_emblem.png';
+      if (brandLogo) brandLogo.src = 'assets/ferry_logo.png?v=6.0';
     } else if (viewName === 'companyAuth') {
       this.openCompanyAuthModal();
     } else if (viewName === 'companyDashboard') {
@@ -262,9 +244,9 @@ const App = {
       this.refreshCompanyDashboard();
       this.updateHeaderTenantUI(typeof Store !== 'undefined' ? Store.getCurrentTenant() : null);
       const brandLogo = document.getElementById('brandLogoImg');
-      if (brandLogo) brandLogo.src = 'assets/company_portal_emblem.png';
+      if (brandLogo) brandLogo.src = 'assets/ferry_logo.png?v=6.0';
       const tickyLogo = document.getElementById('tickyBrandLogoImg');
-      if (tickyLogo) tickyLogo.src = 'assets/company_portal_emblem.png';
+      if (tickyLogo) tickyLogo.src = 'assets/ferry_logo.png?v=6.0';
     } else if (viewName === 'devAdminDashboard') {
       document.body.classList.remove('in-company-portal');
       document.body.classList.add('in-dev-admin');
@@ -291,7 +273,7 @@ const App = {
     this.updateHeaderTenantUI(null);
     document.body.classList.remove('in-company-portal');
     const brandLogo = document.getElementById('brandLogoImg');
-    if (brandLogo) brandLogo.src = 'assets/tech_solution_emblem.png';
+    if (brandLogo) brandLogo.src = 'assets/ferry_logo.png?v=6.0';
     this.switchView('weatherHome');
     this.showToast('Logout Berhasil', 'Anda telah keluar dari portal operator perusahaan.');
   },
@@ -1473,7 +1455,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('formCompanyRegister').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('regCompName').value.trim();
-      const category = document.getElementById('regCompCategory').value;
+      const defaultCategory = 'Kapal Penumpang Internasional (Nunukan - Tawau)';
       const email = document.getElementById('regCompEmail').value.trim();
       const password = document.getElementById('regCompPassword').value;
       const phone = document.getElementById('regCompPhone').value.trim();
@@ -1485,7 +1467,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         name,
         shortName: name,
         code: randomCode,
-        category,
+        category: defaultCategory,
+        routes: [defaultCategory],
         email,
         password,
         phone,
@@ -1916,7 +1899,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                       ✅ Setujui
                     </button>
                   ` : ''}
-                  ${(!isRejected && !isFrozen) ? `
+                  ${isPending ? `
                     <button type="button" class="btn-dev-reject-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
                       ❌ Tolak
                     </button>
@@ -2008,7 +1991,62 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     }
 
-    // 1B. Render Developer Pricing & Port Pass Management Tables
+    // 1B. Master Penetapan Tarif Resmi Seluruh Rute Kapal (Developer Tariff Authority)
+    const tbodyDevMasterRoutes = document.getElementById('tbodyDevMasterRouteTariffs');
+    if (tbodyDevMasterRoutes && Store.getMasterRouteTariffs) {
+      const masterRoutes = Store.getMasterRouteTariffs();
+      tbodyDevMasterRoutes.innerHTML = masterRoutes.map(r => {
+        const isIntl = r.category === 'Internasional' || r.originId === 'TWU' || r.destinationId === 'TWU';
+        const badgeColor = isIntl ? '#fbbf24' : '#38bdf8';
+        const badgeBg = isIntl ? 'rgba(245, 158, 11, 0.2)' : 'rgba(56, 189, 248, 0.2)';
+        const totalPax = (Number(r.ticketPrice) || 0) + (Number(r.portPassFee) || 0);
+        const origPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.originId) : null;
+        const destPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.destinationId) : null;
+        const origCity = origPort ? origPort.city.split(' ')[0] : (r.originName ? r.originName.split(' ')[0].replace(/\(.*$/, '').trim() : r.originId);
+        const destCity = destPort ? destPort.city.split(' ')[0] : (r.destinationName ? r.destinationName.split(' ')[0].replace(/\(.*$/, '').trim() : r.destinationId);
+        const routeShortName = `${origCity} - ${destCity}`;
+
+        return `
+          <tr style="background: #162032; color: #e2e8f0;">
+            <td style="white-space: nowrap;"><code style="color: #38bdf8; font-weight: 700;">${r.id}</code></td>
+            <td style="white-space: nowrap;">
+              <strong style="color: #f8fafc; font-size: 0.88rem;">${routeShortName}</strong>
+              <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">${r.notes || 'Rute Pelayaran Resmi'}</div>
+            </td>
+            <td style="white-space: nowrap;">
+              <span class="tag-badge" style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}66; font-weight: 700; font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 6px;">
+                ${r.category || (isIntl ? 'Internasional' : 'Domestik')}
+              </span>
+            </td>
+            <td style="white-space: nowrap;"><strong style="color: #34d399; font-size: 0.88rem;">${formatRupiah(r.ticketPrice)}</strong></td>
+            <td style="white-space: nowrap;"><strong style="color: #38bdf8; font-size: 0.85rem;">${formatRupiah(r.portPassFee)}</strong></td>
+            <td style="white-space: nowrap;"><strong style="color: #fbbf24; font-size: 0.88rem;">${formatRupiah(totalPax)}</strong></td>
+            <td style="white-space: nowrap;"><span style="color: #a78bfa; font-size: 0.76rem; font-weight: 600;">⚓ Semua Armada Kapal</span></td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button type="button" class="btn-dev-edit-master-route" data-id="${r.id}" style="display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+                🏷️ Edit Tarif Rute Ini
+              </button>
+              <button type="button" class="btn-dev-delete-master-route" data-id="${r.id}" title="Hapus Rute Ini" style="display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 6px; padding: 0.35rem 0.6rem; font-size: 0.76rem; font-weight: 700; cursor: pointer; margin-left: 0.3rem;">
+                🗑️ Hapus
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbodyDevMasterRoutes.querySelectorAll('.btn-dev-edit-master-route').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const routeId = btn.getAttribute('data-id');
+          this.openEditRouteTariffModal(routeId);
+        });
+      });
+
+      tbodyDevMasterRoutes.querySelectorAll('.btn-dev-delete-master-route').forEach(btn => {
+        btn.addEventListener('click', () => this.deleteMasterRouteTariff(btn.getAttribute('data-id')));
+      });
+    }
+
+    // 1C. Render Developer Pricing & Port Pass Management Tables (Per Perusahaan & Armada)
     const tbodyDevTariffs = document.getElementById('tbodyDevScheduleTariffs');
     if (tbodyDevTariffs) {
       const uniqueDevSchedules = [];
@@ -2022,7 +2060,48 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       });
 
       if (uniqueDevSchedules.length === 0) {
-        tbodyDevTariffs.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 1.5rem; color: #94a3b8;">Belum ada jadwal / rute armada aktif untuk diatur tarifnya.</td></tr>`;
+        // Tampilkan seluruh master rute resmi agar developer dapat langsung mengedit tarif tiket semua rute
+        const masterRoutes = (Store.getMasterRouteTariffs ? Store.getMasterRouteTariffs() : []);
+        tbodyDevTariffs.innerHTML = masterRoutes.map(r => {
+          const totalPax = (Number(r.ticketPrice) || 0) + (Number(r.portPassFee) || 0);
+          return `
+            <tr style="background: #162032; color: #e2e8f0;">
+              <td style="white-space: nowrap;">
+                <div style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; display: inline-block;"></span>
+                  <strong style="color: #f8fafc; font-size: 0.82rem;">[STANDAR MASTER] Seluruh Operator</strong>
+                </div>
+              </td>
+              <td style="white-space: nowrap;">
+                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; font-weight: 800;">⛴️ Semua Armada Kapal</span>
+              </td>
+              <td style="white-space: nowrap; font-weight: 600; color: #cbd5e1;">${r.originId} ➔ ${r.destinationId} <small style="color: #94a3b8;">(${r.category})</small></td>
+              <td style="white-space: nowrap; color: #cbd5e1;">Reguler Harian</td>
+              <td style="white-space: nowrap;"><strong style="color: #34d399; font-size: 0.85rem;">${formatRupiah(r.ticketPrice)}</strong></td>
+              <td style="white-space: nowrap;"><strong style="color: #38bdf8; font-size: 0.82rem;">${formatRupiah(r.portPassFee)}</strong></td>
+              <td style="white-space: nowrap;"><strong style="color: #fbbf24; font-size: 0.85rem;">${formatRupiah(totalPax)}</strong></td>
+              <td style="text-align: right; white-space: nowrap;">
+                <button type="button" class="btn-dev-edit-master-route" data-id="${r.id}" style="display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 6px; padding: 0.32rem 0.65rem; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
+                  🏷️ Edit Tarif Rute Ini
+                </button>
+                <button type="button" class="btn-dev-delete-master-route" data-id="${r.id}" title="Hapus Rute Ini" style="display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 6px; padding: 0.32rem 0.55rem; font-size: 0.74rem; font-weight: 700; cursor: pointer; margin-left: 0.3rem;">
+                  🗑️ Hapus
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        tbodyDevTariffs.querySelectorAll('.btn-dev-edit-master-route').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const routeId = btn.getAttribute('data-id');
+            this.openEditRouteTariffModal(routeId);
+          });
+        });
+
+        tbodyDevTariffs.querySelectorAll('.btn-dev-delete-master-route').forEach(btn => {
+          btn.addEventListener('click', () => this.deleteMasterRouteTariff(btn.getAttribute('data-id')));
+        });
       } else {
         tbodyDevTariffs.innerHTML = uniqueDevSchedules.map(s => {
           const comp = companies.find(c => c.id === s.companyId);
@@ -2081,7 +2160,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         COUNTER: 'Bayar di Loket Pelabuhan'
       };
       if (allPasses.length === 0) {
-        tbodyDevPP.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 1.5rem; color: #94a3b8;">Belum ada data pas pelabuhan terdaftar.</td></tr>`;
+        tbodyDevPP.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 1.5rem; color: #94a3b8;">Belum ada data pas pelabuhan terdaftar.</td></tr>`;
       } else {
         tbodyDevPP.innerHTML = allPasses.map(pp => `
           <tr style="background: #162032; color: #e2e8f0;">
@@ -2092,7 +2171,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <span class="tag-badge" style="background: ${pp.routeType === 'Internasional' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(56, 189, 248, 0.2)'}; color: ${pp.routeType === 'Internasional' ? '#fbbf24' : '#38bdf8'}; border-color: ${pp.routeType === 'Internasional' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(56, 189, 248, 0.4)'}; font-weight: 700;">${pp.routeType || 'Domestik'}</span>
             </td>
             <td style="white-space: nowrap;"><strong style="color: #34d399;">${formatRupiah(pp.priceAdult || 0)}</strong></td>
-            <td style="white-space: nowrap;"><strong style="color: #cbd5e1;">${formatRupiah(pp.priceChild || 0)}</strong></td>
             <td><small style="color: #cbd5e1;">${modeLabels[pp.billingMode] || pp.billingMode}</small></td>
             <td style="white-space: nowrap;"><span class="status-pill ${pp.status === 'Nonaktif' ? 'waiting' : 'paid'}">${pp.status || 'Aktif'}</span></td>
             <td style="text-align: right; white-space: nowrap;">
@@ -2680,6 +2758,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       if (submitBtn) submitBtn.innerText = 'Simpan & Daftarkan Armada';
       if (editIdInput) editIdInput.value = '';
       if (passInput) passInput.value = '';
+      this.populateVesselTypeDropdown();
       document.getElementById('formAddVessel')?.reset();
       document.getElementById('modalAddVessel').classList.add('show');
     });
@@ -2701,7 +2780,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const reg = document.getElementById('vesselRegInput').value.trim();
       const type = document.getElementById('vesselTypeInput').value;
       const capacity = parseInt(document.getElementById('vesselCapacityInput').value, 10);
-      const facStr = document.getElementById('vesselFacInput').value;
+      const facStr = document.getElementById('vesselFacInput')?.value || '';
       const facilities = facStr.split(',').map(s => s.trim()).filter(Boolean);
       const enteredPass = document.getElementById('vesselAuthPassword')?.value?.trim();
 
@@ -2798,6 +2877,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         status: 'Aktif',
         priceEconomy: priceEko,
         portPassFee,
+        categoryType: (originId === 'TWU' || destinationId === 'TWU') ? 'INTERNATIONAL' : 'DOMESTIC',
         classes: [
           { id: 'cls-eko', name: 'Tiket Reguler', price: priceEko, quota: vessel ? vessel.capacity : 120, available: vessel ? vessel.capacity : 120, booked: 0 }
         ]
@@ -2858,9 +2938,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Logo portal perusahaan begitu masuk portal
     const tickyLogo = document.getElementById('tickyBrandLogoImg');
-    if (tickyLogo) tickyLogo.src = 'assets/company_portal_emblem.png';
+    if (tickyLogo) tickyLogo.src = 'assets/ferry_logo.png?v=6.0';
     const brandLogo = document.getElementById('brandLogoImg');
-    if (brandLogo) brandLogo.src = 'assets/company_portal_emblem.png';
+    if (brandLogo) brandLogo.src = 'assets/ferry_logo.png?v=6.0';
 
     // Fetch Tenant Isolated Data & Enforce Route Scope (Internasional vs Domestik)
     const routeScope = this.getTenantRouteScope(tenant);
@@ -2868,21 +2948,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const fleet = Store.getVesselsByCompany(tenant.id);
     let allTenantSchedules = Store.getSchedulesByCompany(tenant.id);
 
-    // Filter jadwal agar hanya membaca rute yang sesuai dengan jalur layanan perusahaan login
-    let schedules = allTenantSchedules.filter(s => {
-      const sIsIntl = s.originId === 'TWU' || s.destinationId === 'TWU' || s.categoryType === 'INTERNATIONAL';
-      return isTenantIntl ? sIsIntl : !sIsIntl;
-    });
-
-
+    // Seluruh jadwal dan tiket resmi milik perusahaan selalu tampil di dashboard perusahaan
+    let schedules = allTenantSchedules;
 
     // Sinkronisasi opsi dropdown rute di Manifest, Kalender, dan Modal Armada sesuai jalur perusahaan login
     this.syncRouteScopedUIForTenant(tenant, routeScope);
 
-    const bookings = Store.getBookingsByCompany(tenant.id).filter(b => {
-      const bIsIntl = Boolean(b.isIntl || b.destCode === 'TWU' || b.originCode === 'TWU');
-      return isTenantIntl ? bIsIntl : !bIsIntl;
-    });
+    const bookings = Store.getBookingsByCompany(tenant.id);
 
     // Update Badges Count (Safe Optional Chaining)
     const badgeFleet = document.getElementById('countFleetBadge');
@@ -3121,7 +3193,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const tbodyFleet = document.getElementById('tbodyFleetList');
     tbodyFleet.innerHTML = '';
     if (fleet.length === 0) {
-      tbodyFleet.innerHTML = `<tr><td colspan="7" class="text-center text-dim" style="padding: 2rem;">Belum ada armada yang didaftarkan. Klik "Tambah Armada Baru" di atas.</td></tr>`;
+      tbodyFleet.innerHTML = `<tr><td colspan="6" class="text-center text-dim" style="padding: 2rem;">Belum ada armada yang didaftarkan. Klik "Tambah Armada Baru" di atas.</td></tr>`;
     } else {
       fleet.forEach(v => {
         const crewArr = Array.isArray(v.crewList) ? v.crewList.filter(c => c && c.name && c.name.trim()) : [];
@@ -3131,7 +3203,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <td><code style="color: var(--primary-cyan);">${v.regNumber}</code></td>
           <td>${v.type}</td>
           <td>${v.capacity} Penumpang</td>
-          <td><small class="text-dim">${(v.facilities && v.facilities.length > 0) ? v.facilities.join(', ') : 'Standar Penumpang, Life Jacket'}</small></td>
           <td><span class="status-pill paid">${v.status}</span></td>
           <td style="white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap;">
@@ -4497,13 +4568,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const routeType = document.getElementById('portPassRouteType')?.value || 'Internasional';
       const operator = document.getElementById('portPassOperatorInput')?.value?.trim() || 'KSOP / Otoritas Pelabuhan';
       const priceAdult = parseFloat(document.getElementById('portPassAdultInput')?.value) || 0;
-      const priceChild = parseFloat(document.getElementById('portPassChildInput')?.value) || 0;
+      const priceChild = priceAdult; // Hanya 1 kategori tarif pas pelabuhan
       const billingMode = document.getElementById('portPassBillingMode')?.value || 'INCLUDED';
       const status = document.getElementById('portPassStatusSelect')?.value || 'Aktif';
 
       if (editId) {
         Store.updatePortPass(editId, { name, portId, routeType, operator, priceAdult, priceChild, billingMode, status });
-        this.showToast('Pas Pelabuhan Diperbarui', `Tarif "${name}" berhasil disimpan (Dewasa: ${formatRupiah(priceAdult)}, Anak: ${formatRupiah(priceChild)}).`);
+        this.showToast('Pas Pelabuhan Diperbarui', `Tarif "${name}" berhasil disimpan (Tarif Pas: ${formatRupiah(priceAdult)}).`);
       } else {
         const newItem = {
           id: `PP-${portId}-${Date.now().toString(36).toUpperCase().slice(-4)}`,
@@ -4534,6 +4605,155 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       document.getElementById('modalEditPortPass')?.classList.remove('show');
       if (Store.getCurrentTenant()) this.refreshCompanyDashboard();
       if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+    });
+
+    // Master Route Tariffs Modal Listeners (Developer Only)
+    document.getElementById('btnDevOpenAddMasterRoute')?.addEventListener('click', () => this.openAddMasterRouteModal());
+    document.getElementById('btnCloseEditRouteTariff')?.addEventListener('click', () => {
+      document.getElementById('modalEditRouteTariff')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelEditRouteTariff')?.addEventListener('click', () => {
+      document.getElementById('modalEditRouteTariff')?.classList.remove('show');
+    });
+    document.getElementById('formEditRouteTariff')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+        this.showToast('Akses Dibatasi', 'Pengaturan tarif resmi rute hanya dapat diubah di menu Login Developer.', 'warning');
+        return;
+      }
+      const routeId = document.getElementById('editRouteId')?.value;
+      const origId = document.getElementById('editRouteOriginId')?.value;
+      const destId = document.getElementById('editRouteDestinationId')?.value;
+      const newPrice = parseFloat(document.getElementById('editRouteTicketPrice')?.value) || 0;
+      const newPass = parseFloat(document.getElementById('editRoutePortPassPrice')?.value) || 0;
+      const newNotes = document.getElementById('editRouteNotes')?.value?.trim() || '';
+
+      const updated = Store.saveMasterRouteTariff(routeId, {
+        ticketPrice: newPrice,
+        portPassFee: newPass,
+        notes: newNotes
+      });
+
+      if (updated) {
+        // Sinkronkan seluruh jadwal aktif pada lintasan rute ini
+        const allScheds = Store.getSchedules ? Store.getSchedules() : [];
+        let schedUpdatedCount = 0;
+        allScheds.forEach(s => {
+          if (s.originId === origId && s.destinationId === destId) {
+            s.priceEconomy = newPrice;
+            s.portPassFee = newPass;
+            const quotaVal = (s.classes && s.classes[0] && s.classes[0].quota) ? s.classes[0].quota : (s.quotaTotal || 200);
+            const availVal = (s.classes && s.classes[0] && s.classes[0].available !== undefined) ? s.classes[0].available : quotaVal;
+            s.classes = [
+              { id: 'cls-eko', name: 'Tiket Reguler', price: newPrice, quota: quotaVal, available: availVal }
+            ];
+            Store.updateSchedule(s.id, s);
+            schedUpdatedCount++;
+          }
+        });
+
+        // Sinkronkan ke master pas pelabuhan resmi jika sesuai
+        if (Store.getPortPasses && Store.updatePortPass) {
+          const passes = Store.getPortPasses();
+          const rType = updated.category || (destId === 'TWU' || origId === 'TWU' ? 'Internasional' : 'Domestik');
+          const matchPass = passes.find(p => p.portId === origId && p.routeType === rType);
+          if (matchPass) {
+            Store.updatePortPass(matchPass.id, { priceAdult: newPass });
+          }
+        }
+
+        document.getElementById('modalEditRouteTariff')?.classList.remove('show');
+        if (Store.getCurrentTenant()) this.refreshCompanyDashboard();
+        if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+        this.showToast('Tarif Resmi Diperbarui', `Rute ${updated.originName || origId} ➔ ${updated.destinationName || destId}: Tiket ${formatRupiah(newPrice)} • Pas Pelabuhan ${formatRupiah(newPass)}.`);
+      }
+    });
+
+    document.getElementById('btnCloseAddMasterRoute')?.addEventListener('click', () => {
+      document.getElementById('modalAddMasterRoute')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelAddMasterRoute')?.addEventListener('click', () => {
+      document.getElementById('modalAddMasterRoute')?.classList.remove('show');
+    });
+    document.getElementById('formAddMasterRoute')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+        this.showToast('Akses Dibatasi', 'Penambahan rute hanya dapat dilakukan oleh Developer.', 'warning');
+        return;
+      }
+      const orig = document.getElementById('addRouteOriginSelect')?.value;
+      const dest = document.getElementById('addRouteDestSelect')?.value;
+      if (orig === dest) {
+        this.showToast('Pelabuhan Sama', 'Pelabuhan asal dan tujuan tidak boleh sama.', 'warning');
+        return;
+      }
+      const origPort = MASTER_PORTS.find(p => p.id === orig);
+      const destPort = MASTER_PORTS.find(p => p.id === dest);
+      const cat = document.getElementById('addRouteCategorySelect')?.value || 'Internasional';
+      const price = parseFloat(document.getElementById('addRouteTicketPrice')?.value) || 0;
+      const pass = parseFloat(document.getElementById('addRoutePortPassPrice')?.value) || 0;
+      const notes = document.getElementById('addRouteNotes')?.value?.trim() || '';
+      if (price <= 0) {
+        this.showToast('Tarif Tidak Valid', 'Masukkan tarif resmi tiket kapal yang valid.', 'warning');
+        return;
+      }
+      if (!Store.addMasterRouteTariff || !Store.saveMasterRouteTariff) {
+        this.showToast('Muat Ulang Halaman', 'Data sistem belum diperbarui. Tekan Ctrl + F5 lalu coba simpan kembali.', 'warning');
+        return;
+      }
+
+      const newRoute = {
+        id: `ROUTE-${orig}-${dest}`,
+        originId: orig,
+        destinationId: dest,
+        originName: origPort ? origPort.city.split(' ')[0] : orig,
+        destinationName: destPort ? destPort.city.split(' ')[0] : dest,
+        category: cat,
+        ticketPrice: price,
+        portPassFee: pass,
+        notes: notes || `Rute Pelayaran Resmi ${orig} ke ${dest}`
+      };
+
+      if (Store.getMasterRouteTariffById && Store.getMasterRouteTariffById(newRoute.id)) {
+        Store.saveMasterRouteTariff(newRoute.id, newRoute);
+      } else {
+        Store.addMasterRouteTariff(newRoute);
+      }
+
+      // Include: Tambah / perbarui Pas Pelabuhan sesuai pelabuhan asal & kategori rute
+      if (Store.getPortPasses && Store.addPortPass && Store.updatePortPass) {
+        const ppName = document.getElementById('addRoutePortPassName')?.value?.trim() || `Pas Pelabuhan ${cat} ${origPort ? origPort.name : orig}`;
+        const ppOperator = document.getElementById('addRoutePortPassOperator')?.value?.trim() || 'KSOP / Otoritas Pelabuhan';
+        const ppBilling = document.getElementById('addRoutePortPassBilling')?.value || 'INCLUDED';
+        const existingPass = Store.getPortPasses().find(p => p.portId === orig && p.routeType === cat);
+        if (existingPass) {
+          Store.updatePortPass(existingPass.id, { name: ppName, operator: ppOperator, priceAdult: pass, priceChild: pass, billingMode: ppBilling, status: 'Aktif' });
+        } else {
+          Store.addPortPass({
+            id: `PP-${orig}-${Date.now().toString(36).toUpperCase().slice(-4)}`,
+            companyId: '',
+            portId: orig,
+            name: ppName,
+            operator: ppOperator,
+            routeType: cat,
+            priceAdult: pass,
+            priceChild: pass,
+            billingMode: ppBilling,
+            status: 'Aktif'
+          });
+        }
+        // Sinkronkan tarif pas ke jadwal yang sudah ada pada rute ini
+        (Store.getSchedules ? Store.getSchedules() : []).forEach(s => {
+          if (s.originId === orig && s.destinationId === dest) {
+            s.portPassFee = pass;
+            Store.updateSchedule(s.id, s);
+          }
+        });
+      }
+
+      document.getElementById('modalAddMasterRoute')?.classList.remove('show');
+      if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+      this.showToast('Rute Baru Ditambahkan', `Rute ${newRoute.originName} ➔ ${newRoute.destinationName} berhasil ditambahkan dengan tarif ${formatRupiah(price)} • Pas Pelabuhan ${formatRupiah(pass)}.`);
     });
 
     // Customer Booking Modal
@@ -5367,6 +5587,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     setVal('settingCompanyPhone', tenant.phone);
     setVal('settingCompanyCategory', tenant.category);
     setVal('settingCompanyColor', tenant.brandColor || '#7c3aed');
+
+    // Sync route checkboxes in settings after login
+    const cat = (tenant.category || '').toLowerCase();
+    const routeIntlCb = document.getElementById('settingRouteIntl');
+    const routeDomCb = document.getElementById('settingRouteDom');
+    if (routeIntlCb) {
+      routeIntlCb.checked = cat.includes('internasional') || cat.includes('tawau') || !cat;
+    }
+    if (routeDomCb) {
+      routeDomCb.checked = cat.includes('domestik') || cat.includes('parepare');
+    }
     setVal('settingCompanyDescription', tenant.description);
 
     if (tenant.bankAccount) {
@@ -5564,7 +5795,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const newName = getVal('settingCompanyName');
       const newShortName = getVal('settingCompanyShortName');
       const newPhone = getVal('settingCompanyPhone');
-      const newCategory = getVal('settingCompanyCategory');
+      const checkedRoutes = Array.from(document.querySelectorAll('input[name="settingCompRoutes"]:checked')).map(cb => cb.value);
+      if (checkedRoutes.length === 0) {
+        this.showToast('Peringatan', 'Silakan pilih minimal satu rute pelayaran operasional.', 'warning');
+        return;
+      }
+      const newCategory = checkedRoutes.join(', ');
+      const catHidden = document.getElementById('settingCompanyCategory');
+      if (catHidden) catHidden.value = newCategory;
       const newColor = getVal('settingCompanyColor');
       const newDesc = getVal('settingCompanyDescription');
 
@@ -5608,7 +5846,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       tenant.shortName = newShortName;
       tenant.phone = newPhone;
       tenant.category = newCategory;
+      tenant.routes = checkedRoutes;
       tenant.brandColor = newColor;
+      this.syncRouteScopedUIForTenant(tenant);
       if (document.getElementById('settingCompanyDescription')) tenant.description = newDesc;
       if (document.getElementById('settingCompanyBankName')) tenant.bankAccount = { bank: bankName, number: bankNumber, holder: bankHolder };
 
@@ -6220,19 +6460,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elPeriod = document.getElementById('calKpiPeriodLabel');
     if (elPeriod) elPeriod.innerText = `${monthNames[month]} ${year}`;
 
-    // Get company fleet, schedules & bookings (Hanya sesuai rute perusahaan login)
+    // Get company fleet, schedules & bookings (Milik perusahaan login)
     const scope = this.getTenantRouteScope(tenant);
     const isTenantIntl = scope === 'INTL';
+    const isTenantBoth = scope === 'BOTH';
     this.syncRouteScopedUIForTenant(tenant, scope);
     const fleet = Store.getVesselsByCompany(tenant.id);
-    const schedules = Store.getSchedulesByCompany(tenant.id).filter(s => {
-      const sIsIntl = s.originId === 'TWU' || s.destinationId === 'TWU' || s.categoryType === 'INTERNATIONAL';
-      return isTenantIntl ? sIsIntl : !sIsIntl;
-    });
-    const bookings = Store.getBookingsByCompany(tenant.id).filter(b => {
-      const bIsIntl = Boolean(b.isIntl || b.destCode === 'TWU' || b.originCode === 'TWU');
-      return isTenantIntl ? bIsIntl : !bIsIntl;
-    });
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const bookings = Store.getBookingsByCompany(tenant.id);
 
     // Populate filter vessel dropdown if needed
     const filterSelect = document.getElementById('calFilterVesselSelect');
@@ -6610,7 +6845,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     sel.innerHTML = '';
     if (!fleet || fleet.length === 0) {
       sel.innerHTML = '<option value="">-- Belum Ada Armada --</option>';
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-dim" style="padding: 1.5rem;">Tambahkan armada kapal terlebih dahulu untuk mengisi daftar crew.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-dim" style="padding: 1.5rem;">Tambahkan armada kapal terlebih dahulu untuk mengisi daftar crew.</td></tr>';
       return;
     }
 
@@ -6875,6 +7110,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     const nameInput = document.getElementById('vesselNameInput');
     const regInput = document.getElementById('vesselRegInput');
+    this.populateVesselTypeDropdown();
     const typeInput = document.getElementById('vesselTypeInput');
     const capInput = document.getElementById('vesselCapacityInput');
     const facInput = document.getElementById('vesselFacInput');
@@ -6882,7 +7118,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     if (nameInput) nameInput.value = vessel.name || '';
     if (regInput) regInput.value = vessel.regNumber || '';
-    if (typeInput) typeInput.value = vessel.type || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    if (typeInput) {
+      if (vessel.type && ![...typeInput.options].some(o => o.value === vessel.type)) {
+        typeInput.add(new Option(vessel.type, vessel.type));
+      }
+      typeInput.value = vessel.type || typeInput.options[0]?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    }
     if (capInput) capInput.value = vessel.capacity || 250;
     if (facInput) facInput.value = (vessel.facilities && vessel.facilities.length > 0) ? vessel.facilities.join(', ') : '';
     if (passInput) passInput.value = '';
@@ -6939,6 +7180,95 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (passInput) passInput.value = '';
 
     document.getElementById('modalEditSchedulePrice')?.classList.add('show');
+  },
+
+  openEditRouteTariffModal(routeId) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Pengaturan tarif rute pelayaran hanya dapat diubah di menu Login Developer.', 'warning');
+      return;
+    }
+    const r = Store.getMasterRouteTariffById ? Store.getMasterRouteTariffById(routeId) : null;
+    if (!r) {
+      this.showToast('Rute Tidak Ditemukan', `Rute ${routeId} tidak ditemukan.`, 'warning');
+      return;
+    }
+
+    const idEl = document.getElementById('editRouteId');
+    const origEl = document.getElementById('editRouteOriginId');
+    const destEl = document.getElementById('editRouteDestinationId');
+    const labelEl = document.getElementById('editRouteNameLabel');
+    const displayEl = document.getElementById('editRouteDisplayName');
+    const catEl = document.getElementById('editRouteCategory');
+    const portsEl = document.getElementById('editRoutePorts');
+    const priceEl = document.getElementById('editRouteTicketPrice');
+    const passEl = document.getElementById('editRoutePortPassPrice');
+    const notesEl = document.getElementById('editRouteNotes');
+
+    const origPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.originId) : null;
+    const destPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.destinationId) : null;
+    const origCity = origPort ? origPort.city.split(' ')[0] : (r.originName ? r.originName.split(' ')[0].replace(/\(.*$/, '').trim() : r.originId);
+    const destCity = destPort ? destPort.city.split(' ')[0] : (r.destinationName ? r.destinationName.split(' ')[0].replace(/\(.*$/, '').trim() : r.destinationId);
+    const shortLabel = `${origCity} - ${destCity}`;
+
+    if (idEl) idEl.value = r.id;
+    if (origEl) origEl.value = r.originId;
+    if (destEl) destEl.value = r.destinationId;
+    if (labelEl) labelEl.innerText = shortLabel;
+    if (displayEl) displayEl.value = shortLabel;
+    if (catEl) catEl.value = r.category || 'Internasional';
+    if (portsEl) portsEl.value = `${r.originId} ➔ ${r.destinationId}`;
+    if (priceEl) priceEl.value = r.ticketPrice || 430000;
+    if (passEl) passEl.value = r.portPassFee !== undefined ? r.portPassFee : 50000;
+    if (notesEl) notesEl.value = r.notes || '';
+
+    document.getElementById('modalEditRouteTariff')?.classList.add('show');
+  },
+
+  deleteMasterRouteTariff(routeId) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Penghapusan rute hanya dapat dilakukan oleh Developer.', 'warning');
+      return;
+    }
+    if (!Store.deleteMasterRouteTariff) {
+      this.showToast('Muat Ulang Halaman', 'Data sistem belum diperbarui. Tekan Ctrl + F5 lalu coba kembali.', 'warning');
+      return;
+    }
+    const r = Store.getMasterRouteTariffById ? Store.getMasterRouteTariffById(routeId) : null;
+    const label = r ? `${r.originName || r.originId} ➔ ${r.destinationName || r.destinationId}` : routeId;
+    if (!confirm(`Hapus rute "${label}" dari daftar tarif resmi?`)) return;
+    Store.deleteMasterRouteTariff(routeId);
+    if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+    this.showToast('Rute Dihapus', `Rute ${label} telah dihapus dari daftar tarif resmi.`);
+  },
+
+  openAddMasterRouteModal() {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Penambahan rute baru hanya dapat dilakukan oleh Developer.', 'warning');
+      return;
+    }
+    document.getElementById('formAddMasterRoute')?.reset();
+    const origSel = document.getElementById('addRouteOriginSelect');
+    const destSel = document.getElementById('addRouteDestSelect');
+    const catSel = document.getElementById('addRouteCategorySelect');
+    const syncPassByRoute = () => {
+      const o = origSel ? origSel.value : 'NNK';
+      const d = destSel ? destSel.value : 'TWU';
+      const isIntl = o === 'TWU' || d === 'TWU';
+      const cat = isIntl ? 'Internasional' : 'Domestik';
+      if (catSel) catSel.value = cat;
+      const oPort = MASTER_PORTS.find(p => p.id === o);
+      const nameEl = document.getElementById('addRoutePortPassName');
+      const priceEl = document.getElementById('addRoutePortPassPrice');
+      const ticketEl = document.getElementById('addRouteTicketPrice');
+      const existingPass = Store.getPortPasses ? Store.getPortPasses().find(p => p.portId === o && p.routeType === cat) : null;
+      if (nameEl) nameEl.value = existingPass ? existingPass.name : `Pas Pelabuhan ${cat} ${oPort ? oPort.name : o}`;
+      if (priceEl) priceEl.value = existingPass ? (existingPass.priceAdult || 0) : (isIntl ? 50000 : 10000);
+      if (ticketEl) ticketEl.value = isIntl ? 430000 : 250000;
+    };
+    if (origSel) origSel.onchange = syncPassByRoute;
+    if (destSel) destSel.onchange = syncPassByRoute;
+    syncPassByRoute();
+    document.getElementById('modalAddMasterRoute')?.classList.add('show');
   },
 
   openDeleteVesselModal(vesselId, scheduleId, vesselName) {
@@ -7066,16 +7396,26 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
   getTenantRouteScope(tenant = null) {
     const t = tenant || Store.getCurrentTenant();
-    if (!t) return 'INTL';
-    const cat = (t.category || '').toLowerCase();
-    if (cat.includes('internasional') || cat.includes('tawau') || cat.includes('lintas batas')) return 'INTL';
-    if (cat.includes('domestik') || cat.includes('parepare')) return 'DOM';
+    if (!t) return 'BOTH';
     const fleet = Store.getVessels ? Store.getVesselsByCompany(t.id) : [];
-    if (fleet.length > 0) {
-      const fTypes = fleet.map(v => (v.type || '').toLowerCase()).join(' ');
-      if (fTypes.includes('domestik') || fTypes.includes('parepare')) return 'DOM';
-    }
-    return 'INTL';
+    const scheds = Store.getSchedules ? Store.getSchedulesByCompany(t.id) : [];
+
+    // Deteksi otomatis dari seluruh armada & rute jadwal yang terdaftar
+    const fTypes = fleet.map(v => `${v.type || ''} ${v.name || ''}`).join(' ').toLowerCase();
+    const sRoutes = scheds.map(s => `${s.originId} ${s.destinationId}`).join(' ');
+    const fHasIntl = fTypes.includes('internasional') || fTypes.includes('tawau') || sRoutes.includes('TWU');
+    const fHasDom = fTypes.includes('domestik') || fTypes.includes('parepare') || sRoutes.includes('PRE');
+    if (fHasIntl && fHasDom) return 'BOTH';
+    if (fHasDom && !fHasIntl) return 'DOM';
+    if (fHasIntl && !fHasDom) return 'INTL';
+
+    const cat = (t.category || '').toLowerCase();
+    const hasIntl = cat.includes('internasional') || cat.includes('tawau') || cat.includes('lintas batas');
+    const hasDom = cat.includes('domestik') || cat.includes('parepare');
+    if (hasIntl && hasDom) return 'BOTH';
+    if (hasIntl) return 'INTL';
+    if (hasDom) return 'DOM';
+    return 'BOTH';
   },
 
   getDefaultPortPassForScope(scope = 'INTL', originPortId = 'NNK') {
@@ -7097,47 +7437,99 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
   syncRouteScopedUIForTenant(tenant, routeScope = null) {
     const scope = routeScope || this.getTenantRouteScope(tenant);
+    const isBoth = scope === 'BOTH';
     const isIntl = scope === 'INTL';
 
     // 1. Filter Route Select in Manifest
     const manifestRouteSel = document.getElementById('manifestFilterRoute');
     if (manifestRouteSel) {
-      manifestRouteSel.innerHTML = isIntl
-        ? '<option value="TAWAU">🌏 Rute Internasional: Nunukan ➔ Tawau</option>'
-        : '<option value="PAREPARE">🇮🇩 Rute Domestik: Nunukan ➔ Parepare</option>';
-      manifestRouteSel.value = isIntl ? 'TAWAU' : 'PAREPARE';
+      if (isBoth) {
+        manifestRouteSel.innerHTML = '<option value="ALL">Semua Rute (Internasional & Domestik)</option>'
+          + '<option value="TAWAU">🌏 Rute Internasional: Nunukan ➔ Tawau</option>'
+          + '<option value="PAREPARE">🇮🇩 Rute Domestik: Nunukan ➔ Parepare</option>';
+        manifestRouteSel.value = 'ALL';
+      } else {
+        manifestRouteSel.innerHTML = isIntl
+          ? '<option value="TAWAU">🌏 Rute Internasional: Nunukan ➔ Tawau</option>'
+          : '<option value="PAREPARE">🇮🇩 Rute Domestik: Nunukan ➔ Parepare</option>';
+        manifestRouteSel.value = isIntl ? 'TAWAU' : 'PAREPARE';
+      }
     }
 
     // 2. Filter Route Select in Voyage Calendar
     const calRouteSel = document.getElementById('calFilterRouteSelect');
     if (calRouteSel) {
-      calRouteSel.innerHTML = isIntl
-        ? '<option value="INTL">🌏 Rute Internasional (Nunukan ➔ Tawau)</option>'
-        : '<option value="DOM">🇮🇩 Rute Domestik (Nunukan ➔ Parepare)</option>';
-      calRouteSel.value = isIntl ? 'INTL' : 'DOM';
-      if (this.calendarState) {
-        this.calendarState.filterRoute = isIntl ? 'INTL' : 'DOM';
+      if (isBoth) {
+        calRouteSel.innerHTML = '<option value="ALL">Semua Rute Pelayaran</option>'
+          + '<option value="INTL">🌏 Rute Internasional (Nunukan ➔ Tawau)</option>'
+          + '<option value="DOM">🇮🇩 Rute Domestik (Nunukan ➔ Parepare)</option>';
+        calRouteSel.value = 'ALL';
+        if (this.calendarState) {
+          this.calendarState.filterRoute = 'ALL';
+        }
+      } else {
+        calRouteSel.innerHTML = isIntl
+          ? '<option value="INTL">🌏 Rute Internasional (Nunukan ➔ Tawau)</option>'
+          : '<option value="DOM">🇮🇩 Rute Domestik (Nunukan ➔ Parepare)</option>';
+        calRouteSel.value = isIntl ? 'INTL' : 'DOM';
+        if (this.calendarState) {
+          this.calendarState.filterRoute = isIntl ? 'INTL' : 'DOM';
+        }
       }
     }
 
-    // 3. Filter Vessel Type Select in Modal Tambah/Edit Armada
+    // 3. Filter Vessel Type Select in Modal Tambah/Edit Armada sesuai seluruh rute di menu Developer
+    this.populateVesselTypeDropdown(scope);
+  },
+
+  populateVesselTypeDropdown(preferredScope = null) {
     const vesselTypeSel = document.getElementById('vesselTypeInput');
-    if (vesselTypeSel) {
-      vesselTypeSel.innerHTML = isIntl
-        ? '<option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>'
-        : '<option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>';
+    if (!vesselTypeSel) return;
+    const currentVal = vesselTypeSel.value;
+    const masterRoutes = (typeof Store !== 'undefined' && Store.getMasterRouteTariffs) ? Store.getMasterRouteTariffs() : [];
+    
+    if (masterRoutes.length > 0) {
+      vesselTypeSel.innerHTML = masterRoutes.map(r => {
+        const origPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.originId) : null;
+        const destPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.destinationId) : null;
+        const origCity = origPort ? origPort.city.split(' ')[0] : (r.originName ? r.originName.split(' ')[0] : r.originId);
+        const destCity = destPort ? destPort.city.split(' ')[0] : (r.destinationName ? r.destinationName.split(' ')[0] : r.destinationId);
+        const val = `Kapal Penumpang ${r.category || 'Reguler'} (${origCity} - ${destCity})`;
+        return `<option value="${val}">${val}</option>`;
+      }).join('');
+    } else {
+      vesselTypeSel.innerHTML = `
+        <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+        <option value="Kapal Penumpang Internasional (Tawau - Nunukan)">Kapal Penumpang Internasional (Tawau - Nunukan)</option>
+        <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+        <option value="Kapal Penumpang Domestik (Parepare - Nunukan)">Kapal Penumpang Domestik (Parepare - Nunukan)</option>
+      `;
+    }
+
+    if (currentVal && [...vesselTypeSel.options].some(o => o.value === currentVal)) {
+      vesselTypeSel.value = currentVal;
+    } else if (preferredScope) {
+      const matchOpt = [...vesselTypeSel.options].find(o => {
+        const txt = o.value.toLowerCase();
+        if (preferredScope === 'INTL') return txt.includes('internasional') || txt.includes('tawau');
+        if (preferredScope === 'DOM') return txt.includes('domestik') || txt.includes('parepare');
+        return false;
+      });
+      if (matchOpt) vesselTypeSel.value = matchOpt.value;
     }
   },
 
   renderPortPassTables() {
     const tenant = Store.getCurrentTenant();
     const scope = this.getTenantRouteScope(tenant);
+    const isBoth = scope === 'BOTH';
     const isIntl = scope === 'INTL';
     const allPasses = Store.getPortPasses ? Store.getPortPasses() : [];
 
     // Hanya tampilkan Pas Pelabuhan yang sesuai dengan rute layanan perusahaan login (Internasional vs Domestik)
     const passes = allPasses.filter(pp => {
       if (pp.companyId && tenant && pp.companyId !== tenant.id) return false;
+      if (isBoth) return true;
       if (isIntl) {
         return pp.routeType === 'Internasional' || pp.portId === 'TWU';
       } else {
@@ -7149,6 +7541,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       document.getElementById('tbodyPortPassList'),
       document.getElementById('tbodySettingsPortPassList')
     ].filter(Boolean);
+    if (tbodies.length === 0) return;
 
     const modeLabels = {
       INCLUDED: 'Termasuk di Tiket (Bundling)',
@@ -7159,7 +7552,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     tbodies.forEach(tbody => {
       tbody.innerHTML = '';
       if (passes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-dim" style="padding: 1.5rem;">Belum ada pengaturan pas pelabuhan. Klik "+ Tambah Pas Pelabuhan" untuk menambahkan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-dim" style="padding: 1.5rem;">Belum ada pengaturan pas pelabuhan. Klik "+ Tambah Pas Pelabuhan" untuk menambahkan.</td></tr>`;
         return;
       }
       passes.forEach(pp => {
@@ -7170,7 +7563,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <td><small class="text-dim">${pp.operator || '-'}</small></td>
           <td><span class="tag-badge" style="background: ${pp.routeType === 'Internasional' ? '#fef3c7' : '#e0f2fe'}; color: ${pp.routeType === 'Internasional' ? '#d97706' : '#0284c7'}; font-weight: 700;">${pp.routeType || 'Domestik'}</span></td>
           <td><strong style="color: #0f766e;">${formatRupiah(pp.priceAdult || 0)}</strong></td>
-          <td><strong>${formatRupiah(pp.priceChild || 0)}</strong></td>
           <td><small>${modeLabels[pp.billingMode] || pp.billingMode}</small></td>
           <td><span class="status-pill ${pp.status === 'Nonaktif' ? 'waiting' : 'paid'}">${pp.status || 'Aktif'}</span></td>
           <td style="white-space: nowrap;">
@@ -7232,47 +7624,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (!tenant) return;
 
     const scope = this.getTenantRouteScope(tenant);
+    const isBoth = scope === 'BOTH';
     const isIntl = scope === 'INTL';
 
-    // Filter Pelabuhan Asal & Tujuan di Modal Buka Jadwal Baru sesuai rute layanan perusahaan login
-    const allowedPorts = MASTER_PORTS.filter(p => isIntl ? (p.id === 'NNK' || p.id === 'TWU') : (p.id === 'NNK' || p.id === 'PRE'));
-    const origSel = document.getElementById('schedOriginSelect');
-    const destSel = document.getElementById('schedDestSelect');
-    if (origSel && destSel) {
-      origSel.innerHTML = '';
-      destSel.innerHTML = '';
-      allowedPorts.forEach(port => {
-        origSel.add(new Option(`${port.name} (${port.city})`, port.id));
-        destSel.add(new Option(`${port.name} (${port.city})`, port.id));
-      });
-      origSel.value = 'NNK';
-      destSel.value = isIntl ? 'TWU' : 'PRE';
-    }
-
-    // Set default tarif tiket & pas pelabuhan sesuai rute perusahaan
-    const existingScheds = Store.getSchedulesByCompany(tenant.id).filter(s => {
-      const sIsIntl = s.originId === 'TWU' || s.destinationId === 'TWU' || s.categoryType === 'INTERNATIONAL';
-      return isIntl ? sIsIntl : !sIsIntl;
-    });
-    const baseSched = existingScheds[0];
-    const priceEkoEl = document.getElementById('schedPriceEko');
-    const portPassEl = document.getElementById('schedPortPassPrice');
-    const pierEl = document.getElementById('schedPierInput');
-    if (priceEkoEl) {
-      priceEkoEl.value = (baseSched && baseSched.classes && baseSched.classes[0]) ? baseSched.classes[0].price : (isIntl ? 430000 : 250000);
-    }
-    if (portPassEl) {
-      portPassEl.value = baseSched ? this.getSchedulePortPassFee(baseSched, tenant) : this.getDefaultPortPassForScope(scope, 'NNK');
-    }
-    if (pierEl) {
-      pierEl.value = baseSched && baseSched.pier ? baseSched.pier : (isIntl ? 'Dermaga Lintas Batas Internasional' : 'Dermaga Nusantara Domestik');
-    }
-
-    // Populate vessels in modal dropdown
+    // Populate vessels in modal dropdown terlebih dahulu
     const vesselSel = document.getElementById('schedVesselSelect');
+    const fleet = Store.getVesselsByCompany(tenant.id);
     if (vesselSel) {
       vesselSel.innerHTML = '';
-      const fleet = Store.getVesselsByCompany(tenant.id);
       if (fleet.length === 0) {
         vesselSel.innerHTML = '<option value="">-- Daftarkan Armada Terlebih Dahulu --</option>';
       } else {
@@ -7284,6 +7643,85 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         });
       }
     }
+
+    // Tampilkan SEMUA rute & pelabuhan yang telah ditetapkan di menu developer
+    const allPorts = MASTER_PORTS.slice();
+    const masterRoutes = (typeof Store !== 'undefined' && Store.getMasterRouteTariffs) ? Store.getMasterRouteTariffs() : [];
+    masterRoutes.forEach(r => {
+      if (r.originId && !allPorts.some(p => p.id === r.originId)) {
+        allPorts.push({ id: r.originId, name: r.originName || r.originId, city: r.originName || r.originId });
+      }
+      if (r.destinationId && !allPorts.some(p => p.id === r.destinationId)) {
+        allPorts.push({ id: r.destinationId, name: r.destinationName || r.destinationId, city: r.destinationName || r.destinationId });
+      }
+    });
+
+    const origSel = document.getElementById('schedOriginSelect');
+    const destSel = document.getElementById('schedDestSelect');
+    if (origSel && destSel) {
+      origSel.innerHTML = '';
+      destSel.innerHTML = '';
+      allPorts.forEach(port => {
+        origSel.add(new Option(`${port.name} (${port.city})`, port.id));
+        destSel.add(new Option(`${port.name} (${port.city})`, port.id));
+      });
+      origSel.value = 'NNK';
+      destSel.value = isIntl ? 'TWU' : (isBoth ? 'TWU' : 'PRE');
+    }
+
+    // Fungsi sinkronisasi tarif harga tiket, pas pelabuhan, & dermaga sesuai master developer
+    const syncRouteTariffAndPier = () => {
+      const oVal = origSel ? origSel.value : 'NNK';
+      const dVal = destSel ? destSel.value : 'PRE';
+      const isDestIntl = dVal === 'TWU' || oVal === 'TWU';
+      const pEko = document.getElementById('schedPriceEko');
+      const pPass = document.getElementById('schedPortPassPrice');
+      const pPier = document.getElementById('schedPierInput');
+      const rTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) ? Store.getMasterRouteTariff(oVal, dVal) : null;
+      if (pEko) pEko.value = rTariff ? rTariff.ticketPrice : (isDestIntl ? 430000 : 250000);
+      if (pPass) pPass.value = rTariff ? rTariff.portPassFee : (isDestIntl ? 50000 : 10000);
+      if (pPier) pPier.value = isDestIntl ? 'Dermaga Lintas Batas Internasional' : 'Dermaga Nusantara Domestik';
+    };
+
+    // Sinkronisasi otomatis rute pelayaran berdasarkan kapal yang dipilih
+    const syncRouteFromSelectedVessel = () => {
+      if (!vesselSel || !origSel || !destSel) return;
+      const vid = vesselSel.value;
+      const v = fleet.find(item => item.id === vid);
+      if (!v) {
+        syncRouteTariffAndPier();
+        return;
+      }
+      const vType = (v.type || '').toLowerCase();
+      const vName = (v.name || '').toLowerCase();
+      if (vType.includes('parepare - nunukan') || vName.includes('parepare - nunukan')) {
+        origSel.value = 'PRE';
+        destSel.value = 'NNK';
+      } else if (vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator')) {
+        origSel.value = 'NNK';
+        destSel.value = 'PRE';
+      } else if (vType.includes('tawau - nunukan') || vName.includes('tawau - nunukan')) {
+        origSel.value = 'TWU';
+        destSel.value = 'NNK';
+      } else if (vType.includes('tawau') || vType.includes('internasional') || vName.includes('labuan')) {
+        origSel.value = 'NNK';
+        destSel.value = 'TWU';
+      }
+      syncRouteTariffAndPier();
+    };
+
+    if (vesselSel) {
+      vesselSel.onchange = syncRouteFromSelectedVessel;
+    }
+    if (origSel) {
+      origSel.onchange = syncRouteTariffAndPier;
+    }
+    if (destSel) {
+      destSel.onchange = syncRouteTariffAndPier;
+    }
+
+    // Jalankan auto-sync langsung saat modal pertama kali dibuka
+    syncRouteFromSelectedVessel();
 
     // Set default date
     const dateInput = document.getElementById('schedDateInput');

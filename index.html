@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=3.1">
+  <link rel="stylesheet" href="style.css?v=3.4">
 </head>
 <body>
 
@@ -21,9 +21,7 @@
       <!-- Brand Logo (Updated with Tech Solution Uploaded Logo) -->
       <a href="#" class="brand-link" id="brandHomeLink" title="Tech Solution - Ticketing Services Platform">
         <div class="brand-logo-wrap" id="brandLogoWrap">
-          <div class="brand-logo-glow"></div>
-          <img src="assets/tech_solution_emblem.png" alt="TECH SOLUTION Logo" class="brand-logo-img" id="brandLogoImg" width="38" height="38">
-          <div class="brand-logo-shimmer"></div>
+          <img src="assets/ferry_logo.png?v=6.0" alt="TECH SOLUTION Logo" class="brand-logo-img" id="brandLogoImg" width="38" height="38">
         </div>
         <div class="brand-title-wrap">
           <span class="brand-name">TECH <span class="brand-highlight">SOLUTION</span></span>
@@ -328,7 +326,7 @@
         <div id="tabContentLogin" style="display: block;">
           <form id="formCompanyLogin">
             <!-- Pilihan Cepat Akun Mitra Tersimpan -->
-            <div id="savedAccountsContainer" style="margin-bottom: 0.85rem;">
+            <div id="savedAccountsContainer" style="display: none; margin-bottom: 0.85rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
                 <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.35rem;">
                   <span>⚡ Akun Mitra Tersimpan:</span>
@@ -375,13 +373,7 @@
               <input type="text" id="regCompName" class="form-input" placeholder="Contoh: PT Samudera Maju Bahari" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem;" required>
             </div>
 
-            <div class="input-block" style="margin-bottom: 0.85rem;">
-              <label style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Kategori Layanan *</label>
-              <select id="regCompCategory" class="form-input" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: #ffffff;" required>
-                <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
-                <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
-              </select>
-            </div>
+
 
             <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
               <div class="input-block">
@@ -443,9 +435,9 @@
           <div class="ticky-brand-row">
             <a href="javascript:void(0)" class="ticky-brand-logo" id="tickyBrandHome" title="Buka / Ciutkan Sidebar">
               <div class="ticky-brand-icon" style="background: transparent !important; box-shadow: none !important; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <img src="assets/company_portal_emblem.png" alt="Logo Portal Perusahaan" id="tickyBrandLogoImg" width="34" height="34" style="width: 34px; height: 34px; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 2px 5px rgba(2, 132, 199, 0.35));">
+                <img src="assets/ferry_logo.png?v=6.0" alt="Logo Portal Perusahaan" id="tickyBrandLogoImg" width="34" height="34">
               </div>
-              <span class="ticky-brand-title" id="tickyBrandTitle">Ticky</span>
+              <span class="ticky-brand-title" id="tickyBrandTitle">TickyTECH</span>
             </a>
           </div>
 
@@ -469,6 +461,19 @@
 
             <!-- SECTION: TIKET & JADWAL -->
             <div class="ticky-nav-section-title">TIKET & JADWAL</div>
+
+            <!-- 5. Armada Kapal Saya (Dedicated Tab) -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabFleet" id="btnNavFleet" title="Armada Kapal Saya">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
+                    <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Armada Kapal Saya</span>
+              </div>
+            </button>
 
             <!-- 2. Daftar Rute & Jadwal (Dedicated Tab) -->
             <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabSchedules" id="btnNavSchedules" title="Daftar Rute & Jadwal">
@@ -498,19 +503,6 @@
                   </svg>
                 </span>
                 <span class="ticky-nav-label">Kalender Pelayaran</span>
-              </div>
-            </button>
-
-            <!-- 5. Armada Kapal Saya (Dedicated Tab) -->
-            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabFleet" id="btnNavFleet" title="Armada Kapal Saya">
-              <div class="ticky-nav-left">
-                <span class="ticky-nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path>
-                    <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"></path>
-                  </svg>
-                </span>
-                <span class="ticky-nav-label">Armada Kapal Saya</span>
               </div>
             </button>
 
@@ -1744,7 +1736,7 @@
           <div class="block-header flex-between align-center">
             <div>
               <h4>Daftar Armada Kapal Milik Perusahaan</h4>
-              <p class="text-dim">Kelola data kapal, nomor registrasi IMO, kapasitas kursi, dan fasilitas operasional.</p>
+              <p class="text-dim">Kelola data kapal, nomor registrasi IMO, dan kapasitas kursi.</p>
             </div>
             <button type="button" class="btn-primary-action" id="btnOpenAddVessel">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
@@ -1760,7 +1752,6 @@
                   <th>No Registrasi / IMO</th>
                   <th>Tipe Sarana</th>
                   <th>Kapasitas Pax</th>
-                  <th>Fasilitas Penumpang</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
@@ -1782,12 +1773,7 @@
                 <select id="fleetCrewVesselSelect" class="form-input" style="padding: 0.42rem 0.8rem; font-size: 0.82rem; min-width: 220px; font-weight: 700; color: #0284c7; border-color: #93c5fd; background: #f0f9ff;">
                   <option value="">-- Pilih Armada --</option>
                 </select>
-                <button type="button" class="btn-primary-action" id="btnOpenEditCrewFromPreview" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 0.45rem 0.9rem; font-size: 0.8rem;">
-                  <span>✏️ Isi / Edit Crew Armada</span>
-                </button>
-                <button type="button" class="btn-secondary-action" id="btnPrintVesselCrewList" style="background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
-                  <span>🖨️ Cetak Crew List</span>
-                </button>
+
               </div>
             </div>
 
@@ -1852,44 +1838,7 @@
             </table>
           </div>
 
-          <!-- Bagian Pengaturan Pas Pelabuhan (Bisa Diedit) -->
-          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;" id="sectionPortPassManagement">
-            <div class="block-header flex-between align-center" style="flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                  <span class="tag-badge" style="background: rgba(13, 148, 136, 0.12); color: #0f766e; border-color: #99f6e4; font-weight: 700;">
-                    🎫 RETRIBUSI & PAS PELABUHAN RESMI
-                  </span>
-                </div>
-                <h4 style="font-size: 1.02rem;">Daftar Tarif Pas Pelabuhan Resmi (Port Pass)</h4>
-                <p class="text-dim">Informasi resmi besaran tarif pas masuk pelabuhan (Dewasa & Anak). Pengaturan tarif hanya dapat diubah di Menu Login Developer.</p>
-              </div>
-              <span class="tag-badge" style="background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 8px;">
-                👁️ Mode Lihat Saja (Perusahaan)
-              </span>
-            </div>
 
-            <div class="table-responsive">
-              <table class="dash-table">
-                <thead>
-                  <tr>
-                    <th>Kode Pas</th>
-                    <th>Nama Pas Pelabuhan & Terminal</th>
-                    <th>Pengelola / Otoritas</th>
-                    <th>Kategori Rute</th>
-                    <th>Tarif Dewasa</th>
-                    <th>Tarif Anak</th>
-                    <th>Metode Pemungutan</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyPortPassList">
-                  <!-- Rendered by JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -2477,19 +2426,26 @@
                     </div>
                   </div>
 
-                  <div class="form-row-2">
+                  <div class="form-row-2" style="align-items: flex-start; margin-bottom: 0.85rem;">
                     <div class="input-block">
-                      <label>Kategori Layanan *</label>
-                      <select id="settingCompanyCategory" class="form-input" style="background: #ffffff;" required>
-                        <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
-                        <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
-                        <option value="Speedboat Reguler & VIP">Speedboat Reguler & VIP</option>
-                        <option value="Kapal Logistik & Kargo">Kapal Logistik & Kargo</option>
-                      </select>
+                      <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 0.35rem; display: block;">
+                        Jalur Rute Pelayaran Operasional * <span style="font-size: 0.72rem; color: #64748b; font-weight: 400;">(Bisa pilih lebih dari satu)</span>
+                      </label>
+                      <div style="display: flex; flex-direction: column; gap: 0.45rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.65rem 0.85rem;">
+                        <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.83rem; color: #1e293b; cursor: pointer; user-select: none;">
+                          <input type="checkbox" name="settingCompRoutes" id="settingRouteIntl" value="Kapal Penumpang Internasional (Nunukan - Tawau)" class="setting-comp-route-cb" style="width: 17px; height: 17px; accent-color: #7c3aed; cursor: pointer;">
+                          <span>🌏 <strong>Internasional:</strong> Nunukan ➔ Tawau</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.83rem; color: #1e293b; cursor: pointer; user-select: none;">
+                          <input type="checkbox" name="settingCompRoutes" id="settingRouteDom" value="Kapal Penumpang Domestik (Nunukan - Parepare)" class="setting-comp-route-cb" style="width: 17px; height: 17px; accent-color: #7c3aed; cursor: pointer;">
+                          <span>🇮🇩 <strong>Domestik:</strong> Nunukan ➔ Parepare</span>
+                        </label>
+                      </div>
+                      <input type="hidden" id="settingCompanyCategory" value="Kapal Penumpang Internasional (Nunukan - Tawau)">
                     </div>
                     <div class="input-block">
-                      <label>Warna Brand Utama</label>
-                      <select id="settingCompanyColor" class="form-input" style="background: #ffffff;">
+                      <label style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 0.35rem; display: block;">Warna Brand Utama</label>
+                      <select id="settingCompanyColor" class="form-input" style="background: #ffffff; padding: 0.65rem 0.85rem;">
                         <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
                         <option value="#0284c7">Biru Samudera (#0284c7)</option>
                         <option value="#0d9488">Teal Pesisir (#0d9488)</option>
@@ -2945,9 +2901,41 @@
             <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Kelola dan ubah harga tiket resmi serta tarif pas pelabuhan untuk setiap perusahaan dan armada kapal. Perusahaan hanya dapat melihat tarif yang Anda tetapkan di sini.</p>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <button type="button" id="btnDevOpenAddPortPass" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.5rem 0.95rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <button type="button" id="btnDevOpenAddPortPass" style="display: none !important; background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.5rem 0.95rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
               <span>🎫 + Tambah Pas Pelabuhan Baru</span>
             </button>
+          </div>
+        </div>
+
+        <!-- MASTER TABEL TARIF: PENGATURAN HARGA TIKET SEMUA RUTE KAPAL (DEVELOPER) -->
+        <div style="margin-bottom: 1.35rem; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 1rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h4 style="font-size: 0.92rem; font-weight: 800; color: #38bdf8; margin: 0;">🌐 Pengaturan Tarif Tiket Resmi Semua Rute Kapal (Standar Acuan Sistem)</h4>
+              <p style="margin: 0.2rem 0 0 0; font-size: 0.76rem; color: #94a3b8;">Kelola dan ubah harga tiket resmi serta tarif pas pelabuhan untuk setiap rute pelayaran kapal. Seluruh jadwal armada dan reservasi akan mengikuti tarif ini.</p>
+            </div>
+            <button type="button" id="btnDevOpenAddMasterRoute" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.5); padding: 0.42rem 0.85rem; border-radius: 7px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>➕ Tambah Rute Baru</span>
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="dash-table dev-dark-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Kode Rute</th>
+                  <th>Rute Lintasan Pelayaran</th>
+                  <th>Kategori</th>
+                  <th>Harga Tiket Resmi</th>
+                  <th>Tarif Pas Pelabuhan</th>
+                  <th>Total Biaya / Pax</th>
+                  <th>Cakupan Berlaku</th>
+                  <th style="text-align: right;">Aksi Developer</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDevMasterRouteTariffs">
+                <!-- Rendered dynamically by renderDevAdminDashboard() -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -2975,30 +2963,7 @@
           </div>
         </div>
 
-        <!-- SUB-TABEL TARIF 2: MASTER PENGATURAN PAS PELABUHAN (PORT PASS) -->
-        <div>
-          <h4 style="font-size: 0.88rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.6rem 0;">🎫 Master Pengaturan Tarif Pas Pelabuhan Resmi (Port Pass)</h4>
-          <div class="table-responsive">
-            <table class="dash-table dev-dark-table" style="width: 100%;">
-              <thead>
-                <tr>
-                  <th>Kode Pas</th>
-                  <th>Nama Pas Pelabuhan & Terminal</th>
-                  <th>Pengelola / Otoritas</th>
-                  <th>Kategori Rute</th>
-                  <th>Tarif Dewasa</th>
-                  <th>Tarif Anak</th>
-                  <th>Metode Pemungutan</th>
-                  <th>Status</th>
-                  <th style="text-align: right;">Aksi Developer</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyDevPortPassList">
-                <!-- Rendered dynamically by renderDevAdminDashboard() -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+
       </div>
 
       <!-- SECTION 2: RINCIAN TRANSAKSI HARIAN SETIAP PERUSAHAAN BESERTA ARMADANYA -->
@@ -3122,7 +3087,9 @@
             <label>Kategori Layanan / Tipe Kapal</label>
             <select id="vesselTypeInput" class="form-input">
               <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+              <option value="Kapal Penumpang Internasional (Tawau - Nunukan)">Kapal Penumpang Internasional (Tawau - Nunukan)</option>
               <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+              <option value="Kapal Penumpang Domestik (Parepare - Nunukan)">Kapal Penumpang Domestik (Parepare - Nunukan)</option>
             </select>
           </div>
         </div>
@@ -3130,10 +3097,7 @@
           <label>Kapasitas Total Penumpang (Kursi) *</label>
           <input type="number" id="vesselCapacityInput" class="form-input" placeholder="Contoh: 850" min="20" required>
         </div>
-        <div class="input-block">
-          <label>Fasilitas Penumpang (Pisahkan dengan koma)</label>
-          <input type="text" id="vesselFacInput" class="form-input" placeholder="Contoh: Full AC, Kantin, WiFi Satelit, Musholla" value="Full AC Sentral, Kantin, Colokan Listrik, Musholla">
-        </div>
+        <input type="hidden" id="vesselFacInput" value="">
         <div class="input-block" id="vesselPasswordBlock">
           <label>🔒 Konfirmasi Password Portal Perusahaan *</label>
           <input type="password" id="vesselAuthPassword" class="form-input" placeholder="Masukkan password login portal perusahaan" required autocomplete="current-password">
@@ -3321,15 +3285,10 @@
           <label>Pengelola / Otoritas Pelabuhan *</label>
           <input type="text" id="portPassOperatorInput" class="form-input" placeholder="Contoh: KSOP / Pelindo Tunon Taka Nunukan" required>
         </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label>Tarif Pas Dewasa (Rp) *</label>
-            <input type="number" id="portPassAdultInput" class="form-input" min="0" step="1000" value="25000" required>
-          </div>
-          <div class="input-block">
-            <label>Tarif Pas Anak (Rp) *</label>
-            <input type="number" id="portPassChildInput" class="form-input" min="0" step="1000" value="15000" required>
-          </div>
+        <div class="input-block">
+          <label>Tarif Pas Pelabuhan (Rp) *</label>
+          <input type="number" id="portPassAdultInput" class="form-input" min="0" step="1000" value="25000" required>
+          <input type="hidden" id="portPassChildInput" value="0">
         </div>
         <div class="form-row-2">
           <div class="input-block">
@@ -3356,6 +3315,137 @@
         <div class="modal-bottom-actions">
           <button type="button" class="btn-cancel" id="btnCancelEditPortPass">Batal</button>
           <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;">Simpan Pas Pelabuhan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Tarif Resmi Rute Kapal Developer -->
+  <div class="modal-layer" id="modalEditRouteTariff">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-top">
+        <div>
+          <h4>Edit Tarif Resmi Rute Pelayaran</h4>
+          <p class="text-dim">Perbarui harga tiket resmi &amp; pas pelabuhan untuk rute <strong id="editRouteNameLabel" style="color: var(--primary-cyan);">-</strong>.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseEditRouteTariff">&times;</button>
+      </div>
+      <form id="formEditRouteTariff" class="modal-content-form">
+        <input type="hidden" id="editRouteId">
+        <input type="hidden" id="editRouteOriginId">
+        <input type="hidden" id="editRouteDestinationId">
+        <div class="input-block">
+          <label>Lintasan Rute Pelayaran</label>
+          <input type="text" id="editRouteDisplayName" class="form-input" readonly style="background: #f8fafc; font-weight: 700; color: #0284c7;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Kategori Lintasan</label>
+            <input type="text" id="editRouteCategory" class="form-input" readonly style="background: #f8fafc; font-weight: 600;">
+          </div>
+          <div class="input-block">
+            <label>Pelabuhan Asal ➔ Tujuan</label>
+            <input type="text" id="editRoutePorts" class="form-input" readonly style="background: #f8fafc; font-weight: 600;">
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Tarif Resmi Tiket Kapal (Rp) *</label>
+          <input type="number" id="editRouteTicketPrice" class="form-input" min="10000" step="5000" required placeholder="Contoh: 430000">
+          <small class="text-dim">Tarif acuan resmi yang berlaku untuk seluruh armada &amp; jadwal pada rute ini.</small>
+        </div>
+        <div class="input-block">
+          <label>Tarif Pas Pelabuhan Penumpang (Rp) *</label>
+          <input type="number" id="editRoutePortPassPrice" class="form-input" min="0" step="1000" required placeholder="Contoh: 50000">
+          <small class="text-dim">Retribusi / pas masuk pelabuhan resmi untuk rute ini.</small>
+        </div>
+        <div class="input-block">
+          <label>Catatan Operasional / Regulasi (Opsional)</label>
+          <input type="text" id="editRouteNotes" class="form-input" placeholder="Contoh: SK Penetapan Tarif Resmi KSOP / Dishub">
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelEditRouteTariff">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; font-weight: 800;">
+            💾 Simpan Tarif Resmi Rute
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Master Rute Pelayaran Baru Developer -->
+  <div class="modal-layer" id="modalAddMasterRoute">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-top">
+        <div>
+          <h4>➕ Tambah Rute Pelayaran Baru</h4>
+          <p class="text-dim">Tambahkan master lintasan rute kapal baru ke dalam sistem tiket.</p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseAddMasterRoute">&times;</button>
+      </div>
+      <form id="formAddMasterRoute" class="modal-content-form" novalidate>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label>Pelabuhan Asal *</label>
+            <select id="addRouteOriginSelect" class="form-input" required>
+              <option value="NNK">Pelabuhan Tunon Taka (Nunukan)</option>
+              <option value="TWU">Tawau Ferry Terminal (Malaysia)</option>
+              <option value="PRE">Pelabuhan Nusantara (Parepare)</option>
+            </select>
+          </div>
+          <div class="input-block">
+            <label>Pelabuhan Tujuan *</label>
+            <select id="addRouteDestSelect" class="form-input" required>
+              <option value="TWU">Tawau Ferry Terminal (Malaysia)</option>
+              <option value="NNK">Pelabuhan Tunon Taka (Nunukan)</option>
+              <option value="PRE">Pelabuhan Nusantara (Parepare)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Kategori Rute *</label>
+          <select id="addRouteCategorySelect" class="form-input" required>
+            <option value="Internasional">Internasional (Luar Negeri)</option>
+            <option value="Domestik">Domestik (Dalam Negeri)</option>
+          </select>
+        </div>
+        <div class="input-block">
+          <label>Tarif Resmi Tiket Kapal (Rp) *</label>
+          <input type="number" id="addRouteTicketPrice" class="form-input" min="0" step="any" value="430000" required>
+        </div>
+        <div style="border: 1px dashed rgba(13, 148, 136, 0.45); background: rgba(13, 148, 136, 0.06); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.9rem;">
+          <div style="font-size: 0.82rem; font-weight: 800; color: #0f766e; margin-bottom: 0.6rem;">🎫 Pas Pelabuhan Rute Ini (Otomatis Ditambahkan)</div>
+          <div class="input-block">
+            <label>Nama Pas Pelabuhan / Terminal *</label>
+            <input type="text" id="addRoutePortPassName" class="form-input" placeholder="Contoh: Pas Pelabuhan Internasional Tunon Taka" required>
+          </div>
+          <div class="input-block">
+            <label>Pengelola / Otoritas Pelabuhan *</label>
+            <input type="text" id="addRoutePortPassOperator" class="form-input" value="KSOP / Otoritas Pelabuhan" required>
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label>Tarif Pas Pelabuhan (Rp) *</label>
+              <input type="number" id="addRoutePortPassPrice" class="form-input" min="0" step="any" value="50000" required>
+            </div>
+            <div class="input-block">
+              <label>Metode Pemungutan di Tiket</label>
+              <select id="addRoutePortPassBilling" class="form-input">
+                <option value="INCLUDED">Termasuk Harga Tiket (Bundling)</option>
+                <option value="ADDON">Ditambahkan Otomatis ke Harga Tiket</option>
+                <option value="COUNTER">Dibayar Terpisah di Loket Pelabuhan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="input-block">
+          <label>Catatan Operasional / Regulasi</label>
+          <input type="text" id="addRouteNotes" class="form-input" placeholder="Contoh: Rute penyeberangan resmi baru">
+        </div>
+        <div class="modal-bottom-actions">
+          <button type="button" class="btn-cancel" id="btnCancelAddMasterRoute">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800;">
+            ➕ Simpan Rute Baru
+          </button>
         </div>
       </form>
     </div>
@@ -5334,7 +5424,7 @@
     </div>
   </div>
 
-  <script src="data-store.js?v=2.5"></script>
-  <script src="app.js?v=4.1"></script>
+  <script src="data-store.js?v=3.0"></script>
+  <script src="app.js?v=5.4"></script>
 </body>
 </html>

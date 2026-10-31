@@ -390,8 +390,8 @@ const Store = {
     }
     const list = JSON.parse(raw) || [];
     return list.map(v => {
-      if (!Array.isArray(v.facilities) || v.facilities.length === 0) {
-        v.facilities = ['AC Reclining', 'Toilet Bersih', 'Life Jacket KSOP'];
+      if (!Array.isArray(v.facilities)) {
+        v.facilities = [];
       }
       return v;
     });
@@ -402,8 +402,8 @@ const Store = {
   },
 
   addVessel(vessel) {
-    if (!Array.isArray(vessel.facilities) || vessel.facilities.length === 0) {
-      vessel.facilities = ['AC Reclining', 'Toilet Bersih', 'Life Jacket KSOP'];
+    if (!Array.isArray(vessel.facilities)) {
+      vessel.facilities = [];
     }
     const list = this.getVessels();
     list.push(vessel);
@@ -938,6 +938,115 @@ const Store = {
       return list[idx];
     }
     return null;
+  },
+
+  // 7. Master Penetapan Tarif Resmi Seluruh Rute Kapal (Developer Tariff Authority)
+  getMasterRouteTariffs() {
+    const defaultRoutes = [
+      {
+        id: 'ROUTE-NNK-TWU',
+        originId: 'NNK',
+        destinationId: 'TWU',
+        originName: 'Nunukan',
+        destinationName: 'Tawau',
+        category: 'Internasional',
+        ticketPrice: 430000,
+        portPassFee: 50000,
+        notes: 'Rute Lintas Batas RI - Malaysia'
+      },
+      {
+        id: 'ROUTE-TWU-NNK',
+        originId: 'TWU',
+        destinationId: 'NNK',
+        originName: 'Tawau',
+        destinationName: 'Nunukan',
+        category: 'Internasional',
+        ticketPrice: 430000,
+        portPassFee: 50000,
+        notes: 'Rute Lintas Batas Malaysia - RI'
+      },
+      {
+        id: 'ROUTE-NNK-PRE',
+        originId: 'NNK',
+        destinationId: 'PRE',
+        originName: 'Nunukan',
+        destinationName: 'Parepare',
+        category: 'Domestik',
+        ticketPrice: 250000,
+        portPassFee: 10000,
+        notes: 'Rute Antar Pulau Domestik'
+      },
+      {
+        id: 'ROUTE-PRE-NNK',
+        originId: 'PRE',
+        destinationId: 'NNK',
+        originName: 'Parepare',
+        destinationName: 'Nunukan',
+        category: 'Domestik',
+        ticketPrice: 250000,
+        portPassFee: 10000,
+        notes: 'Rute Antar Pulau Domestik'
+      }
+    ];
+
+    try {
+      const raw = localStorage.getItem('tech_master_route_tariffs_v1');
+      if (!raw) {
+        localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(defaultRoutes));
+        return defaultRoutes;
+      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map(r => {
+          const origPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.originId) : null;
+          const destPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.destinationId) : null;
+          const origCity = origPort ? origPort.city.split(' ')[0] : (r.originName ? r.originName.split(' ')[0].replace(/\(.*$/, '').trim() : r.originId);
+          const destCity = destPort ? destPort.city.split(' ')[0] : (r.destinationName ? r.destinationName.split(' ')[0].replace(/\(.*$/, '').trim() : r.destinationId);
+          return {
+            ...r,
+            originName: origCity,
+            destinationName: destCity
+          };
+        });
+      }
+      return defaultRoutes;
+    } catch (e) {
+      return defaultRoutes;
+    }
+  },
+
+  getMasterRouteTariff(originId, destinationId) {
+    const list = this.getMasterRouteTariffs();
+    return list.find(r => r.originId === originId && r.destinationId === destinationId) || null;
+  },
+
+  getMasterRouteTariffById(routeId) {
+    const list = this.getMasterRouteTariffs();
+    return list.find(r => r.id === routeId) || null;
+  },
+
+  saveMasterRouteTariff(routeId, updatedFields) {
+    const list = this.getMasterRouteTariffs();
+    const idx = list.findIndex(r => r.id === routeId);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updatedFields };
+      localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(list));
+      return list[idx];
+    }
+    return null;
+  },
+
+  addMasterRouteTariff(newRoute) {
+    const list = this.getMasterRouteTariffs();
+    list.push(newRoute);
+    localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(list));
+    return newRoute;
+  },
+
+  deleteMasterRouteTariff(routeId) {
+    const list = this.getMasterRouteTariffs().filter(r => r.id !== routeId);
+    localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(list));
+    return list;
   },
 
   // Hapus semua data transaksi & master data di aplikasi
