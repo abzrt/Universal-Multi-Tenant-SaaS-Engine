@@ -623,8 +623,8 @@
 
             <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.75rem;">
               <!-- Realtime Weather Logo, Kota Nunukan & Hari Tanggal Tahun -->
-              <div id="headerRealtimeWeatherWidget" style="display: inline-flex; align-items: center; gap: 0.65rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 0.32rem 0.85rem 0.32rem 0.45rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);">
-                <div id="headerWeatherLogoIcon" style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #fef3c7 0%, #bae6fd 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;" title="Cuaca Real-Time Nunukan">
+              <div id="headerRealtimeWeatherWidget" class="header-realtime-weather-widget" style="display: inline-flex; align-items: center; gap: 0.65rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 0.32rem 0.85rem 0.32rem 0.45rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); cursor: pointer; user-select: none;" title="Klik untuk menyembunyikan rincian cuaca (hanya menyisakan logo)">
+                <div id="headerWeatherLogoIcon" style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #fef3c7 0%, #bae6fd 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;" title="Logo Cuaca Real-Time Nunukan">
                   <span id="headerWeatherSvgWrap" style="display: inline-flex; align-items: center; justify-content: center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
@@ -632,7 +632,7 @@
                   </span>
                   <span style="position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; border-radius: 50%; background: #10b981; border: 1.5px solid #ffffff;" title="Live Realtime"></span>
                 </div>
-                <div style="display: flex; flex-direction: column; line-height: 1.25;">
+                <div id="headerWeatherInfoBox" style="display: flex; flex-direction: column; line-height: 1.25;">
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
                     <strong id="headerWeatherCityName" style="font-size: 0.8rem; font-weight: 800; color: #0f172a;">Nunukan</strong>
                     <span id="headerWeatherTempBadge" style="font-size: 0.71rem; font-weight: 700; color: #0284c7; background: #f0f9ff; padding: 1px 6px; border-radius: 99px; border: 1px solid #bae6fd; white-space: nowrap; margin-left: auto;">29°C • Cerah Berawan</span>

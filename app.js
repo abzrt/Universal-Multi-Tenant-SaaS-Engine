@@ -9930,6 +9930,34 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (!this._weatherHeaderInterval) {
       this._weatherHeaderInterval = setInterval(updateHeaderRealtimeWeather, 600000);
     }
+
+    // Toggle collapse / expand logo cuaca on click
+    const weatherWidget = document.getElementById('headerRealtimeWeatherWidget');
+    if (weatherWidget && !this._weatherWidgetClickBound) {
+      this._weatherWidgetClickBound = true;
+      const updateWidgetTitle = (isCollapsed) => {
+        weatherWidget.title = isCollapsed
+          ? 'Klik logo cuaca untuk menampilkan rincian cuaca & waktu'
+          : 'Klik untuk menyembunyikan rincian cuaca (hanya menyisakan logo)';
+      };
+
+      // Restore saved state from localStorage if any
+      const isSavedCollapsed = localStorage.getItem('tech_weather_collapsed') === 'true';
+      if (isSavedCollapsed) {
+        weatherWidget.classList.add('is-collapsed');
+        updateWidgetTitle(true);
+      } else {
+        updateWidgetTitle(false);
+      }
+
+      weatherWidget.addEventListener('click', () => {
+        const isNowCollapsed = weatherWidget.classList.toggle('is-collapsed');
+        try {
+          localStorage.setItem('tech_weather_collapsed', isNowCollapsed ? 'true' : 'false');
+        } catch (_) {}
+        updateWidgetTitle(isNowCollapsed);
+      });
+    }
   },
 
   initOpsFilterEvents() {

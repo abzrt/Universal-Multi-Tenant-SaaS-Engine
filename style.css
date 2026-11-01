@@ -3217,6 +3217,27 @@ body.in-company-portal .dash-sidebar-nav {
   gap: 0.5rem;
 }
 
+/* Realtime Weather Header Widget (Collapsible Toggle) */
+.header-realtime-weather-widget {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-realtime-weather-widget:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+}
+
+.header-realtime-weather-widget.is-collapsed {
+  padding: 2px !important;
+  gap: 0 !important;
+}
+
+.header-realtime-weather-widget.is-collapsed #headerWeatherInfoBox {
+  display: none !important;
+}
+
 .ticky-header-avatar {
   width: 32px;
   height: 32px;
