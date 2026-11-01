@@ -457,9 +457,7 @@ const App = {
           </p>
           <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
             <button type="button" class="btn-quick-route" data-from="NNK" data-to="TWU" onclick="App.setRoute('NNK', 'TWU')">🇲🇾 Nunukan ➔ Tawau</button>
-            <button type="button" class="btn-quick-route" data-from="TWU" data-to="NNK" onclick="App.setRoute('TWU', 'NNK')">🇮🇩 Tawau ➔ Nunukan</button>
             <button type="button" class="btn-quick-route" data-from="NNK" data-to="PRE" onclick="App.setRoute('NNK', 'PRE')">🚢 Nunukan ➔ Parepare</button>
-            <button type="button" class="btn-quick-route" data-from="PRE" data-to="NNK" onclick="App.setRoute('PRE', 'NNK')">🚢 Parepare ➔ Nunukan</button>
           </div>
         </div>
       `;
@@ -470,7 +468,7 @@ const App = {
       const comp = Store.getCompanyById(sch.companyId) || { name: 'Operator Resmi', brandColor: '#0284c7' };
       const vessel = Store.getVessels().find(v => v.id === sch.vesselId);
       const vesselName = vessel ? vessel.name : (sch.vesselNameCustom || 'Kapal Penyeberangan');
-      const minPrice = (sch.classes && sch.classes.length > 0) ? Math.min(...sch.classes.map(c => c.price)) : (sch.priceEconomy || 250000);
+      const minPrice = (sch.classes && sch.classes.length > 0) ? Math.min(...sch.classes.map(c => c.price)) : (sch.priceEconomy || 690000);
       const isIntl = sch.categoryType === 'INTERNATIONAL' || sch.originId === 'TWU' || sch.destinationId === 'TWU';
 
       const card = document.createElement('div');
@@ -738,8 +736,8 @@ const App = {
 
     // Configure Class Options - Membaca Tarif Tiket & Pas Pelabuhan Sesuai Jadwal Perusahaan Login
     const isNunukanTawau = (origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl;
-    const ticketFare = (sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 250000));
-    const portPassFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 25000 : 10000));
+    const ticketFare = (sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 690000));
+    const portPassFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 25000 : 30000));
     const basePrice = ticketFare + portPassFee;
     this.bookingClasses = [
       { 
@@ -940,8 +938,8 @@ const App = {
     const isNunukanTawau = (origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl;
 
     // Rincian Resmi Biaya Tiket Sesuai Pengaturan Jadwal & Pas Pelabuhan Perusahaan Login:
-    let operatorBasePerPax = currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (isNunukanTawau ? 430000 : 250000);
-    let taxPerPax = currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : (isNunukanTawau ? 25000 : 10000);
+    let operatorBasePerPax = currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (isNunukanTawau ? 430000 : 690000);
+    let taxPerPax = currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : (isNunukanTawau ? 25000 : 30000);
     let totalPerPax = operatorBasePerPax + taxPerPax;
 
     const totalOperatorBase = operatorBasePerPax * calcCount;
@@ -2113,7 +2111,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           const dest = MASTER_PORTS.find(p => p.id === s.destinationId);
           const origSimple = orig ? orig.city.split(' ')[0] : s.originId;
           const destSimple = dest ? dest.city.split(' ')[0] : s.destinationId;
-          const regPrice = (s.classes && s.classes[0] && s.classes[0].price) ? Number(s.classes[0].price) : Number(s.priceEconomy || 250000);
+          const regPrice = (s.classes && s.classes[0] && s.classes[0].price) ? Number(s.classes[0].price) : Number(s.priceEconomy || 690000);
           const passFee = this.getSchedulePortPassFee(s, comp);
           const totalPax = regPrice + passFee;
 
@@ -3261,7 +3259,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         const dest = MASTER_PORTS.find(p => p.id === s.destinationId);
         const tr = document.createElement('tr');
         const passFee = this.getSchedulePortPassFee(s, tenant);
-        const regPrice = (s.classes && s.classes[0] && s.classes[0].price) ? s.classes[0].price : (s.priceEconomy || 250000);
+        const regPrice = (s.classes && s.classes[0] && s.classes[0].price) ? s.classes[0].price : (s.priceEconomy || 690000);
         const shortId = `JDW-${String(idx + 1).padStart(2, '0')}`;
         const origSimple = orig ? orig.city.split(' ')[0] : s.originId;
         const destSimple = dest ? dest.city.split(' ')[0] : s.destinationId;
@@ -7158,7 +7156,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (routeInfoEl) routeInfoEl.value = `${vName} (${orig ? orig.name : s.originId} ➔ ${dest ? dest.name : s.destinationId}) • ${s.departTime} WITA`;
 
     let vipPrice = 750000;
-    let ekoPrice = s.priceEconomy || 250000;
+    let ekoPrice = s.priceEconomy || 690000;
     if (s.classes && s.classes.length > 0) {
       const vipClass = s.classes.find(c => c.id === 'cls-vip' || (c.name && c.name.toLowerCase().includes('vip')));
       const ekoClass = s.classes.find(c => c.id === 'cls-eko' || (c.name && c.name.toLowerCase().includes('ekonomi')));
@@ -7173,7 +7171,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const portPassInput = document.getElementById('editSchedPortPassPrice');
     if (portPassInput) {
       const isTwu = s.originId === 'TWU' || s.destinationId === 'TWU';
-      portPassInput.value = s.portPassFee !== undefined ? s.portPassFee : (isTwu ? 25000 : 10000);
+      portPassInput.value = s.portPassFee !== undefined ? s.portPassFee : (isTwu ? 25000 : 30000);
     }
 
     const passInput = document.getElementById('editSchedAuthPassword');
@@ -7262,8 +7260,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const ticketEl = document.getElementById('addRouteTicketPrice');
       const existingPass = Store.getPortPasses ? Store.getPortPasses().find(p => p.portId === o && p.routeType === cat) : null;
       if (nameEl) nameEl.value = existingPass ? existingPass.name : `Pas Pelabuhan ${cat} ${oPort ? oPort.name : o}`;
-      if (priceEl) priceEl.value = existingPass ? (existingPass.priceAdult || 0) : (isIntl ? 50000 : 10000);
-      if (ticketEl) ticketEl.value = isIntl ? 430000 : 250000;
+      if (priceEl) priceEl.value = existingPass ? (existingPass.priceAdult || 0) : (isIntl ? 50000 : 30000);
+      if (ticketEl) ticketEl.value = isIntl ? 430000 : 690000;
     };
     if (origSel) origSel.onchange = syncPassByRoute;
     if (destSel) destSel.onchange = syncPassByRoute;
@@ -7424,7 +7422,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const matched = passes.find(p => p.portId === originPortId && p.routeType === targetRouteType)
       || passes.find(p => p.routeType === targetRouteType);
     if (matched && matched.priceAdult !== undefined) return Number(matched.priceAdult);
-    return scope === 'INTL' ? 50000 : 10000;
+    return scope === 'INTL' ? 50000 : 30000;
   },
 
   getSchedulePortPassFee(s, tenant = null) {
@@ -7500,9 +7498,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     } else {
       vesselTypeSel.innerHTML = `
         <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
-        <option value="Kapal Penumpang Internasional (Tawau - Nunukan)">Kapal Penumpang Internasional (Tawau - Nunukan)</option>
         <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
-        <option value="Kapal Penumpang Domestik (Parepare - Nunukan)">Kapal Penumpang Domestik (Parepare - Nunukan)</option>
       `;
     }
 
@@ -7678,8 +7674,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const pPass = document.getElementById('schedPortPassPrice');
       const pPier = document.getElementById('schedPierInput');
       const rTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) ? Store.getMasterRouteTariff(oVal, dVal) : null;
-      if (pEko) pEko.value = rTariff ? rTariff.ticketPrice : (isDestIntl ? 430000 : 250000);
-      if (pPass) pPass.value = rTariff ? rTariff.portPassFee : (isDestIntl ? 50000 : 10000);
+      if (pEko) pEko.value = rTariff ? rTariff.ticketPrice : (isDestIntl ? 430000 : 690000);
+      if (pPass) pPass.value = rTariff ? rTariff.portPassFee : (isDestIntl ? 50000 : 30000);
       if (pPier) pPier.value = isDestIntl ? 'Dermaga Lintas Batas Internasional' : 'Dermaga Nusantara Domestik';
     };
 
@@ -8056,7 +8052,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (targetSched && classSelect) {
       const ticketPrice = (targetSched.classes && targetSched.classes[0] && targetSched.classes[0].price)
         ? Number(targetSched.classes[0].price)
-        : Number(targetSched.priceEconomy || (this.getTenantRouteScope(tenant) === 'INTL' ? 430000 : 250000));
+        : Number(targetSched.priceEconomy || (this.getTenantRouteScope(tenant) === 'INTL' ? 430000 : 690000));
       const passFee = this.getSchedulePortPassFee(targetSched, tenant);
       const totalPerPax = ticketPrice + passFee;
 

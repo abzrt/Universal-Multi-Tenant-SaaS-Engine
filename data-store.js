@@ -445,7 +445,7 @@ const Store = {
     return list.map(s => {
       if (!Array.isArray(s.classes) || s.classes.length === 0) {
         const isTwu = s.originId === 'TWU' || s.destinationId === 'TWU';
-        const defaultPrice = isTwu ? 480000 : (s.priceEconomy || 250000);
+        const defaultPrice = isTwu ? 480000 : (s.priceEconomy || 690000);
         s.classes = [
           { id: 'cls-eko', name: 'Tiket Reguler', price: defaultPrice, quota: s.quotaTotal || 200, available: 200 }
         ];
@@ -464,7 +464,7 @@ const Store = {
   addSchedule(schedule) {
     if (!Array.isArray(schedule.classes) || schedule.classes.length === 0) {
       const isTwu = schedule.originId === 'TWU' || schedule.destinationId === 'TWU';
-      const defaultPrice = isTwu ? 480000 : (schedule.priceEconomy || 250000);
+      const defaultPrice = isTwu ? 480000 : (schedule.priceEconomy || 690000);
       schedule.classes = [
         { id: 'cls-eko', name: 'Main Deck', price: defaultPrice, quota: schedule.quotaTotal || 200, available: 200 }
       ];
@@ -955,36 +955,14 @@ const Store = {
         notes: 'Rute Lintas Batas RI - Malaysia'
       },
       {
-        id: 'ROUTE-TWU-NNK',
-        originId: 'TWU',
-        destinationId: 'NNK',
-        originName: 'Tawau',
-        destinationName: 'Nunukan',
-        category: 'Internasional',
-        ticketPrice: 430000,
-        portPassFee: 50000,
-        notes: 'Rute Lintas Batas Malaysia - RI'
-      },
-      {
         id: 'ROUTE-NNK-PRE',
         originId: 'NNK',
         destinationId: 'PRE',
         originName: 'Nunukan',
         destinationName: 'Parepare',
         category: 'Domestik',
-        ticketPrice: 250000,
-        portPassFee: 10000,
-        notes: 'Rute Antar Pulau Domestik'
-      },
-      {
-        id: 'ROUTE-PRE-NNK',
-        originId: 'PRE',
-        destinationId: 'NNK',
-        originName: 'Parepare',
-        destinationName: 'Nunukan',
-        category: 'Domestik',
-        ticketPrice: 250000,
-        portPassFee: 10000,
+        ticketPrice: 690000,
+        portPassFee: 30000,
         notes: 'Rute Antar Pulau Domestik'
       }
     ];
@@ -997,7 +975,27 @@ const Store = {
       }
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.map(r => {
+        // Hapus rute parepare - nunukan dan tawau - nunukan di developer mode
+        const filtered = parsed.filter(r => {
+          const isTawauToNunukan = (r.originId === 'TWU' && r.destinationId === 'NNK') || r.id === 'ROUTE-TWU-NNK';
+          const isParepareToNunukan = (r.originId === 'PRE' && r.destinationId === 'NNK') || r.id === 'ROUTE-PRE-NNK';
+          return !isTawauToNunukan && !isParepareToNunukan;
+        });
+
+        let updatedStorage = filtered.length !== parsed.length;
+        filtered.forEach(r => {
+          if ((r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) && (r.ticketPrice === 250000 || r.portPassFee === 10000)) {
+            r.ticketPrice = 690000;
+            r.portPassFee = 30000;
+            updatedStorage = true;
+          }
+        });
+
+        if (updatedStorage) {
+          localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(filtered));
+        }
+
+        return filtered.map(r => {
           const origPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.originId) : null;
           const destPort = typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.find(p => p.id === r.destinationId) : null;
           const origCity = origPort ? origPort.city.split(' ')[0] : (r.originName ? r.originName.split(' ')[0].replace(/\(.*$/, '').trim() : r.originId);
