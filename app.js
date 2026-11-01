@@ -5793,10 +5793,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const newName = getVal('settingCompanyName');
       const newShortName = getVal('settingCompanyShortName');
       const newPhone = getVal('settingCompanyPhone');
-      const checkedRoutes = Array.from(document.querySelectorAll('input[name="settingCompRoutes"]:checked')).map(cb => cb.value);
-      if (checkedRoutes.length === 0) {
+      const routeCheckboxes = Array.from(document.querySelectorAll('input[name="settingCompRoutes"]'));
+      let checkedRoutes = routeCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
+      if (routeCheckboxes.length > 0 && checkedRoutes.length === 0) {
         this.showToast('Peringatan', 'Silakan pilih minimal satu rute pelayaran operasional.', 'warning');
         return;
+      }
+      if (checkedRoutes.length === 0) {
+        checkedRoutes = tenant.routes || (tenant.category ? [tenant.category] : ['Kapal Penumpang Internasional (Nunukan - Tawau)']);
       }
       const newCategory = checkedRoutes.join(', ');
       const catHidden = document.getElementById('settingCompanyCategory');
@@ -5843,8 +5847,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       tenant.name = newName;
       tenant.shortName = newShortName;
       tenant.phone = newPhone;
-      tenant.category = newCategory;
-      tenant.routes = checkedRoutes;
+      if (routeCheckboxes.length > 0) {
+        tenant.category = newCategory;
+        tenant.routes = checkedRoutes;
+      }
       tenant.brandColor = newColor;
       this.syncRouteScopedUIForTenant(tenant);
       if (document.getElementById('settingCompanyDescription')) tenant.description = newDesc;
