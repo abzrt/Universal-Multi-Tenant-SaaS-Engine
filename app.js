@@ -1821,6 +1821,71 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Perusahaan Terdaftar', `"${name}" berhasil didaftarkan dan langsung Aktif (Approved). Siap digunakan untuk login.`);
     });
 
+    // ----------------- DEVELOPER MODE: EDIT DATA PERUSAHAAN -----------------
+    const closeDevEditComp = () => {
+      document.getElementById('modalDevEditCompany')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevEditCompany')?.addEventListener('click', closeDevEditComp);
+    document.getElementById('btnCancelDevEditCompany')?.addEventListener('click', closeDevEditComp);
+
+    document.getElementById('formDevEditCompany')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const compId = document.getElementById('devEditCompId')?.value;
+      const name = (document.getElementById('devEditCompName')?.value || '').trim();
+      const shortName = (document.getElementById('devEditCompShortName')?.value || name).trim();
+      const code = (document.getElementById('devEditCompCode')?.value || '').trim().toUpperCase();
+      const category = document.getElementById('devEditCompCategory')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+      const email = (document.getElementById('devEditCompEmail')?.value || '').trim();
+      const password = document.getElementById('devEditCompPassword')?.value || '';
+      const phone = (document.getElementById('devEditCompPhone')?.value || '').trim();
+      const color = document.getElementById('devEditCompColor')?.value || '#0284c7';
+
+      if (!compId || !name || !email) {
+        this.showToast('Data Tidak Lengkap', 'Nama perusahaan dan email resmi wajib diisi.', 'warning');
+        return;
+      }
+
+      const existing = Store.getCompanyById(compId);
+      if (!existing) {
+        this.showToast('Gagal Menyimpan', 'Perusahaan tidak ditemukan dalam sistem.', 'warning');
+        return;
+      }
+
+      // Cek apakah email sudah digunakan perusahaan lain
+      const duplicateEmail = Store.getCompanies().find(c => c.id !== compId && c.email && c.email.toLowerCase() === email.toLowerCase());
+      if (duplicateEmail) {
+        this.showToast('Email Sudah Terdaftar', `Email "${email}" telah digunakan oleh perusahaan lain.`, 'warning');
+        return;
+      }
+
+      const updatedFields = {
+        name,
+        shortName,
+        code: code || existing.code,
+        category,
+        routes: [category],
+        email,
+        phone,
+        brandColor: color
+      };
+      if (password) {
+        updatedFields.password = password;
+      }
+
+      Store.updateCompany(compId, updatedFields);
+      const updatedComp = Store.getCompanyById(compId);
+
+      // Simpan pembaruan kredensial jika email atau password diubah
+      if (email && password) {
+        this.saveMitraCredential(email, password, updatedComp);
+      }
+
+      closeDevEditComp();
+      this.renderCompanyFilterChips();
+      this.renderDevAdminDashboard();
+      this.showToast('Perusahaan Diperbarui', `Perubahan data "${name}" berhasil disimpan.`);
+    });
+
     // ----------------- DEVELOPER MODE: TAMBAH ARMADA -----------------
     document.getElementById('btnDevOpenAddVessel')?.addEventListener('click', () => {
       this.openDevAddVesselModal();
@@ -2041,7 +2106,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Pengaturan Kursi Disimpan', `Denah kursi "${vessel.name}" (${capacity} Kursi - ${deckName}) berhasil disimpan. Otomatis menjadi default saat ${comp ? comp.name : 'perusahaan'} login.`);
     });
 
-    ['modalDevAddCompany', 'modalDevAddVessel', 'modalDevConfigSeats'].forEach(mId => {
+    ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevConfigSeats'].forEach(mId => {
       const el = document.getElementById(mId);
       if (el) {
         el.addEventListener('click', (e) => {
@@ -2164,8 +2229,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <td style="background: transparent;">
                 <div style="display: flex; align-items: center; gap: 0.55rem;">
                   <span style="width: 10px; height: 10px; border-radius: 50%; background: ${c.brandColor || '#38bdf8'}; display: inline-block; flex-shrink: 0;"></span>
-                  <div>
-                    <strong style="color: #f8fafc; font-size: 0.84rem; white-space: nowrap;">${c.name}</strong>
+                  <div class="btn-dev-edit-company-trigger" data-id="${c.id}" style="cursor: pointer;" title="Klik untuk edit data ${c.name}">
+                    <strong class="dev-comp-name-link" style="color: #f8fafc; font-size: 0.84rem; white-space: nowrap; text-decoration: underline; text-decoration-color: rgba(56, 189, 248, 0.4); text-underline-offset: 3px;">${c.name}</strong>
                     <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace; white-space: nowrap;">ID: ${c.id} • Kode: ${c.code || '-'}</div>
                   </div>
                 </div>
@@ -2242,6 +2307,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             this.renderCompanyFilterChips();
             this.renderDevAdminDashboard();
             this.showToast('Perusahaan Ditolak', `Status pendaftaran "${comp ? comp.name : compId}" diubah menjadi Ditolak.`, 'warning');
+          });
+        });
+
+        tbodyComp.querySelectorAll('.btn-dev-edit-company-trigger').forEach(el => {
+          el.addEventListener('click', () => {
+            const compId = el.getAttribute('data-id');
+            this.openDevEditCompanyModal(compId);
           });
         });
 
@@ -7607,6 +7679,41 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
   // ================= DEVELOPER PORTAL: MODAL HELPERS =================
+  openDevEditCompanyModal(compId) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const comp = Store.getCompanyById(compId);
+    if (!comp) {
+      this.showToast('Perusahaan Tidak Ditemukan', 'Data perusahaan tidak ditemukan dalam sistem.', 'warning');
+      return;
+    }
+
+    const idInput = document.getElementById('devEditCompId');
+    const nameInput = document.getElementById('devEditCompName');
+    const shortNameInput = document.getElementById('devEditCompShortName');
+    const codeInput = document.getElementById('devEditCompCode');
+    const catSelect = document.getElementById('devEditCompCategory');
+    const emailInput = document.getElementById('devEditCompEmail');
+    const passInput = document.getElementById('devEditCompPassword');
+    const phoneInput = document.getElementById('devEditCompPhone');
+    const colorSelect = document.getElementById('devEditCompColor');
+
+    if (idInput) idInput.value = comp.id;
+    if (nameInput) nameInput.value = comp.name || '';
+    if (shortNameInput) shortNameInput.value = comp.shortName || comp.name || '';
+    if (codeInput) codeInput.value = comp.code || '';
+    if (catSelect) catSelect.value = comp.category || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    if (emailInput) emailInput.value = comp.email || '';
+    if (passInput) passInput.value = comp.password || '';
+    if (phoneInput) phoneInput.value = comp.phone || '';
+    if (colorSelect) colorSelect.value = comp.brandColor || '#0284c7';
+
+    document.getElementById('modalDevEditCompany')?.classList.add('show');
+    setTimeout(() => nameInput?.focus(), 80);
+  },
+
   openDevAddCompanyModal() {
     if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
       this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');

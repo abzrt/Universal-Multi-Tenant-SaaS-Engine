@@ -3238,6 +3238,20 @@ body.in-company-portal .dash-sidebar-nav {
   display: none !important;
 }
 
+/* Developer Mode: Company Name Clickable Link */
+.dev-comp-name-link {
+  transition: all 0.2s ease;
+}
+
+.btn-dev-edit-company-trigger:hover .dev-comp-name-link {
+  color: #38bdf8 !important;
+  text-decoration-color: #38bdf8 !important;
+}
+
+.btn-dev-edit-company-trigger:hover {
+  opacity: 0.92;
+}
+
 .ticky-header-avatar {
   width: 32px;
   height: 32px;

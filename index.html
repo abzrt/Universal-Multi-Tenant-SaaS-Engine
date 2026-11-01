@@ -2918,29 +2918,7 @@
           </div>
         </div>
 
-        <!-- SUB-TABEL TARIF 1: HARGA TIKET & PAS PELABUHAN PER PERUSAHAAN / ARMADA -->
-        <div style="margin-bottom: 1.35rem;">
-          <h4 style="font-size: 0.88rem; font-weight: 800; color: #e2e8f0; margin: 0 0 0.6rem 0;">⛴️ Daftar Harga Tiket & Pas Pelabuhan Per Perusahaan & Armada Kapal</h4>
-          <div class="table-responsive">
-            <table class="dash-table dev-dark-table" style="width: 100%;">
-              <thead>
-                <tr>
-                  <th>Perusahaan Pelayaran</th>
-                  <th>Nama Armada Kapal</th>
-                  <th>Rute Lintasan</th>
-                  <th>Jam Keberangkatan</th>
-                  <th>Harga Tiket Resmi</th>
-                  <th>Tarif Pas Pelabuhan</th>
-                  <th>Total Tarif / Pax</th>
-                  <th style="text-align: right;">Aksi Tarif Developer</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyDevScheduleTariffs">
-                <!-- Rendered dynamically by renderDevAdminDashboard() -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+
 
 
       </div>
@@ -5409,6 +5387,80 @@
           <button type="button" class="btn-cancel" id="btnCancelDevAddCompany" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
           <button type="submit" class="btn-submit-action" id="btnSubmitDevAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
             <span>💾 Simpan &amp; Daftarkan Perusahaan</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Perusahaan (Developer Mode) -->
+  <div class="modal-layer" id="modalDevEditCompany">
+    <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">✏️</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Edit Data Perusahaan</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Ubah identitas, rute, email login, password, dan kontak resmi mitra.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevEditCompany" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevEditCompany" class="modal-content-form" style="padding-top: 1rem;">
+        <input type="hidden" id="devEditCompId" value="">
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Resmi Perusahaan / Operator *</label>
+          <input type="text" id="devEditCompName" class="form-input" placeholder="Contoh: PT. Pelayaran Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Singkat / Brand *</label>
+            <input type="text" id="devEditCompShortName" class="form-input" placeholder="Contoh: Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kode Maskapai / Operator</label>
+            <input type="text" id="devEditCompCode" class="form-input" placeholder="Contoh: AB" maxlength="5" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-family: monospace; font-weight: 700;">
+          </div>
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Jalur Rute Pelayaran *</label>
+          <select id="devEditCompCategory" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">🌏 Internasional: Nunukan ➔ Tawau</option>
+            <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">🇮🇩 Domestik: Nunukan ➔ Parepare</option>
+            <option value="Keduanya (Internasional & Domestik)">🌐 Keduanya: Internasional &amp; Domestik</option>
+          </select>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Email Resmi (Username Login) *</label>
+            <input type="email" id="devEditCompEmail" class="form-input" placeholder="operator@perusahaan.com" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Password Login Portal *</label>
+            <input type="text" id="devEditCompPassword" class="form-input" placeholder="Password login portal" required minlength="4" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 600;">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Telepon / WhatsApp Kantor *</label>
+            <input type="text" id="devEditCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Warna Brand Utama</label>
+            <select id="devEditCompColor" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <option value="#0284c7">Biru Samudera (#0284c7)</option>
+              <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
+              <option value="#0d9488">Teal Bahari (#0d9488)</option>
+              <option value="#10b981">Hijau Zamrud (#10b981)</option>
+              <option value="#e11d48">Merah Ruby (#e11d48)</option>
+              <option value="#f59e0b">Kuning Emas (#f59e0b)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevEditCompany" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevEditCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <span>💾 Simpan Perubahan Perusahaan</span>
           </button>
         </div>
       </form>
