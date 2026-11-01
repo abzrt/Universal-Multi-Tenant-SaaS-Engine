@@ -328,10 +328,10 @@ body.in-company-portal .dash-sidebar-nav {
 }
 
 .brand-name {
-  font-family: var(--font-mono);
-  font-size: 1.18rem;
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
   line-height: 1.1;
   display: block;
   color: #0f172a;
