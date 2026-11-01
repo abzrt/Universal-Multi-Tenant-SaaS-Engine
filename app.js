@@ -1754,6 +1754,301 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
     document.getElementById('devFilterVessel')?.addEventListener('change', () => this.renderDevAdminDashboard());
     document.getElementById('devFilterSearch')?.addEventListener('input', () => this.renderDevAdminDashboard());
+
+    // ----------------- DEVELOPER MODE: TAMBAH PERUSAHAAN -----------------
+    document.getElementById('btnDevOpenAddCompany')?.addEventListener('click', () => {
+      this.openDevAddCompanyModal();
+    });
+    const closeDevAddComp = () => {
+      document.getElementById('modalDevAddCompany')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevAddCompany')?.addEventListener('click', closeDevAddComp);
+    document.getElementById('btnCancelDevAddCompany')?.addEventListener('click', closeDevAddComp);
+
+    document.getElementById('formDevAddCompany')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = (document.getElementById('devAddCompName')?.value || '').trim();
+      const shortName = (document.getElementById('devAddCompShortName')?.value || name).trim();
+      let code = (document.getElementById('devAddCompCode')?.value || '').trim().toUpperCase();
+      if (!code) {
+        code = shortName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') || 'CO';
+      }
+      const category = document.getElementById('devAddCompCategory')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+      const email = (document.getElementById('devAddCompEmail')?.value || '').trim();
+      const password = document.getElementById('devAddCompPassword')?.value || '';
+      const phone = (document.getElementById('devAddCompPhone')?.value || '').trim();
+      const color = document.getElementById('devAddCompColor')?.value || '#0284c7';
+
+      if (!name || !email || !password) {
+        this.showToast('Data Tidak Lengkap', 'Nama perusahaan, email, dan password wajib diisi.', 'warning');
+        return;
+      }
+
+      // Check if email already registered
+      const existing = Store.getCompanies().find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+      if (existing) {
+        this.showToast('Email Sudah Terdaftar', `Perusahaan dengan email "${email}" sudah ada dalam sistem.`, 'warning');
+        return;
+      }
+
+      const newComp = {
+        id: `COMP-${Date.now().toString(36).toUpperCase()}`,
+        name,
+        shortName,
+        code,
+        category,
+        routes: [category],
+        email,
+        password,
+        phone,
+        brandColor: color,
+        logoIcon: 'ship',
+        verified: true,
+        approvalStatus: 'APPROVED',
+        frozen: false,
+        joinedDate: new Date().toISOString().split('T')[0],
+        bankAccount: { bank: '', number: '', holder: '' },
+        description: ''
+      };
+
+      Store.addCompany(newComp);
+      this.saveMitraCredential(email, password, newComp);
+
+      closeDevAddComp();
+      document.getElementById('formDevAddCompany')?.reset();
+      this.renderCompanyFilterChips();
+      this.renderDevAdminDashboard();
+      this.showToast('Perusahaan Terdaftar', `"${name}" berhasil didaftarkan dan langsung Aktif (Approved). Siap digunakan untuk login.`);
+    });
+
+    // ----------------- DEVELOPER MODE: TAMBAH ARMADA -----------------
+    document.getElementById('btnDevOpenAddVessel')?.addEventListener('click', () => {
+      this.openDevAddVesselModal();
+    });
+    const closeDevAddVes = () => {
+      document.getElementById('modalDevAddVessel')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevAddVessel')?.addEventListener('click', closeDevAddVes);
+    document.getElementById('btnCancelDevAddVessel')?.addEventListener('click', closeDevAddVes);
+
+    document.getElementById('formDevAddVessel')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const compId = document.getElementById('devAddVesselCompanySelect')?.value;
+      const vName = (document.getElementById('devAddVesselName')?.value || '').trim();
+      const reg = (document.getElementById('devAddVesselReg')?.value || '').trim();
+      const vType = document.getElementById('devAddVesselType')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+      const capacity = parseInt(document.getElementById('devAddVesselCapacity')?.value, 10) || 150;
+      const facStr = (document.getElementById('devAddVesselFacilities')?.value || '').trim();
+      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['AC', 'Toilet'];
+      const makeDefault = document.getElementById('devAddVesselMakeDefaultCheck')?.checked ?? true;
+
+      if (!compId || !vName || !reg) {
+        this.showToast('Data Tidak Lengkap', 'Pilih perusahaan, isi nama armada dan nomor registrasi kapal.', 'warning');
+        return;
+      }
+
+      const comp = Store.getCompanyById(compId);
+      const newVessel = {
+        id: `VESSEL-${Date.now().toString(36).toUpperCase()}`,
+        companyId: compId,
+        name: vName,
+        regNumber: reg,
+        type: vType,
+        capacity: capacity,
+        facilities: facilities,
+        status: 'ACTIVE',
+        isDefault: makeDefault
+      };
+      Store.addVessel(newVessel);
+
+      // Otomatis buat jadwal pelayaran awal agar armada dan seat langsung aktif saat perusahaan login
+      const isIntl = vType.toLowerCase().includes('tawau') || vType.toLowerCase().includes('internasional') || (comp && comp.category && comp.category.toLowerCase().includes('tawau'));
+      const origId = 'NNK';
+      const destId = isIntl ? 'TWU' : 'PRE';
+      const origCity = 'Nunukan';
+      const destCity = isIntl ? 'Tawau' : 'Parepare';
+      const ticketPrice = isIntl ? 430000 : 690000;
+      const portPassPrice = isIntl ? 25000 : 30000;
+
+      const defaultSched = {
+        id: `SCH-${Date.now().toString(36).toUpperCase()}`,
+        companyId: compId,
+        vesselId: newVessel.id,
+        vesselNameCustom: newVessel.name,
+        originId: origId,
+        destinationId: destId,
+        originCity: origCity,
+        destinationCity: destCity,
+        departTime: '09:00',
+        arrivalTime: isIntl ? '10:30' : '17:30',
+        date: new Date().toISOString().split('T')[0],
+        pier: 'Dermaga Utama KSOP',
+        priceEconomy: ticketPrice,
+        portPassFee: portPassPrice,
+        quotaTotal: capacity,
+        quotaBooked: 0,
+        classes: [
+          { id: 'cls-eko', name: 'Tiket Reguler', price: ticketPrice, quota: capacity, available: capacity, booked: 0 }
+        ],
+        status: 'ACTIVE',
+        isDefault: makeDefault
+      };
+      Store.addSchedule(defaultSched);
+
+      if (makeDefault) {
+        Store.updateCompany(compId, {
+          defaultVesselId: newVessel.id,
+          defaultScheduleId: defaultSched.id,
+          defaultCapacity: capacity
+        });
+      }
+
+      closeDevAddVes();
+      document.getElementById('formDevAddVessel')?.reset();
+      this.renderDevAdminDashboard();
+      this.showToast('Armada Berhasil Ditambahkan', `Kapal "${vName}" (${capacity} Kursi) terdaftar di ${comp ? comp.name : 'Perusahaan'}. Otomatis jadi default saat login.`);
+    });
+
+    // ----------------- DEVELOPER MODE: PENGATURAN SEAT -----------------
+    document.getElementById('btnDevOpenConfigSeats')?.addEventListener('click', () => {
+      this.openDevConfigSeatsModal();
+    });
+    const closeDevSeats = () => {
+      document.getElementById('modalDevConfigSeats')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevConfigSeats')?.addEventListener('click', closeDevSeats);
+    document.getElementById('btnCancelDevConfigSeats')?.addEventListener('click', closeDevSeats);
+
+    // Live preview listeners in seat modal
+    document.getElementById('devSeatCompanySelect')?.addEventListener('change', (e) => {
+      this.syncDevSeatModalVessels(e.target.value);
+    });
+    document.getElementById('devSeatVesselSelect')?.addEventListener('change', (e) => {
+      const vId = e.target.value;
+      const vessel = Store.getVessels().find(v => v.id === vId);
+      if (vessel) {
+        const capInput = document.getElementById('devSeatCapacityInput');
+        if (capInput) capInput.value = vessel.capacity || 150;
+        const deckInput = document.getElementById('devSeatDeckNameInput');
+        if (deckInput) deckInput.value = vessel.deckName || 'Main Deck';
+        const classInput = document.getElementById('devSeatClassNameInput');
+        if (classInput) classInput.value = vessel.className || 'Tiket Reguler';
+      }
+      this.updateDevSeatModalPreview();
+    });
+    document.getElementById('devSeatCapacityInput')?.addEventListener('input', () => {
+      this.updateDevSeatModalPreview();
+    });
+
+    document.getElementById('formDevConfigSeats')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const compId = document.getElementById('devSeatCompanySelect')?.value;
+      const vesselId = document.getElementById('devSeatVesselSelect')?.value;
+      const capacity = parseInt(document.getElementById('devSeatCapacityInput')?.value, 10) || 150;
+      const deckName = (document.getElementById('devSeatDeckNameInput')?.value || 'Main Deck').trim();
+      const className = (document.getElementById('devSeatClassNameInput')?.value || 'Tiket Reguler').trim();
+      const ticketPrice = parseInt(document.getElementById('devSeatTicketPriceInput')?.value, 10) || 690000;
+      const makeDefault = document.getElementById('devSeatMakeDefaultCheck')?.checked ?? true;
+
+      if (!compId || !vesselId) {
+        this.showToast('Data Belum Lengkap', 'Pilih perusahaan dan armada kapal yang ingin diatur denah kursinya.', 'warning');
+        return;
+      }
+
+      const comp = Store.getCompanyById(compId);
+      const vessel = Store.getVessels().find(v => v.id === vesselId);
+      if (!vessel) {
+        this.showToast('Armada Tidak Ditemukan', 'Kapal yang dipilih tidak valid.', 'warning');
+        return;
+      }
+
+      // 1. Update Vessel
+      Store.updateVessel(vesselId, {
+        capacity: capacity,
+        deckName: deckName,
+        className: className,
+        isDefault: makeDefault
+      });
+
+      // 2. Synchronize all schedules of this vessel to have this capacity & seat class
+      const allSchedules = Store.getSchedules();
+      let schedUpdatedCount = 0;
+      let targetSchedId = null;
+      allSchedules.forEach(s => {
+        if (s.vesselId === vesselId) {
+          s.quotaTotal = capacity;
+          s.capacity = capacity;
+          if (Array.isArray(s.classes) && s.classes.length > 0) {
+            s.classes[0].quota = capacity;
+            s.classes[0].name = className;
+            if (ticketPrice > 0) s.classes[0].price = ticketPrice;
+            const booked = s.classes[0].booked || 0;
+            s.classes[0].available = Math.max(0, capacity - booked);
+          }
+          if (ticketPrice > 0) s.priceEconomy = ticketPrice;
+          targetSchedId = s.id;
+          schedUpdatedCount++;
+        }
+      });
+
+      // If no schedule exists yet for this vessel, create one so seat map is immediately available!
+      if (schedUpdatedCount === 0) {
+        const isIntl = (vessel.type || '').toLowerCase().includes('tawau') || (vessel.type || '').toLowerCase().includes('internasional') || (comp && comp.category && comp.category.toLowerCase().includes('tawau'));
+        const origId = 'NNK';
+        const destId = isIntl ? 'TWU' : 'PRE';
+        const defaultSched = {
+          id: `SCH-${Date.now().toString(36).toUpperCase()}`,
+          companyId: compId,
+          vesselId: vessel.id,
+          vesselNameCustom: vessel.name,
+          originId: origId,
+          destinationId: destId,
+          originCity: 'Nunukan',
+          destinationCity: isIntl ? 'Tawau' : 'Parepare',
+          departTime: '09:00',
+          arrivalTime: isIntl ? '10:30' : '17:30',
+          date: new Date().toISOString().split('T')[0],
+          pier: 'Dermaga Utama KSOP',
+          priceEconomy: ticketPrice,
+          portPassFee: isIntl ? 25000 : 30000,
+          quotaTotal: capacity,
+          quotaBooked: 0,
+          classes: [
+            { id: 'cls-eko', name: className, price: ticketPrice, quota: capacity, available: capacity, booked: 0 }
+          ],
+          status: 'ACTIVE',
+          isDefault: makeDefault
+        };
+        Store.addSchedule(defaultSched);
+        targetSchedId = defaultSched.id;
+      } else {
+        Store.saveSchedules(allSchedules);
+      }
+
+      // 3. Set default on Company so it applies automatically when logging in
+      if (makeDefault) {
+        Store.updateCompany(compId, {
+          defaultVesselId: vesselId,
+          defaultScheduleId: targetSchedId,
+          defaultCapacity: capacity,
+          defaultDeckName: deckName,
+          defaultClassName: className
+        });
+      }
+
+      closeDevSeats();
+      this.renderDevAdminDashboard();
+      this.showToast('Pengaturan Kursi Disimpan', `Denah kursi "${vessel.name}" (${capacity} Kursi - ${deckName}) berhasil disimpan. Otomatis menjadi default saat ${comp ? comp.name : 'perusahaan'} login.`);
+    });
+
+    ['modalDevAddCompany', 'modalDevAddVessel', 'modalDevConfigSeats'].forEach(mId => {
+      const el = document.getElementById(mId);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          if (e.target === el) el.classList.remove('show');
+        });
+      }
+    });
   },
 
   renderDevAdminDashboard() {
@@ -1911,6 +2206,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                       ❄️ Bekukan Akun
                     </button>
                   `}
+                  <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(13, 148, 136, 0.2); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Tambah Armada untuk Perusahaan Ini">
+                    ⛴️ + Armada
+                  </button>
+                  <button type="button" class="btn-dev-row-config-seat" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Pengaturan Seat Armada Perusahaan Ini">
+                    💺 Seat
+                  </button>
                   <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
                     🔍 Transaksi
                   </button>
@@ -1941,6 +2242,20 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             this.renderCompanyFilterChips();
             this.renderDevAdminDashboard();
             this.showToast('Perusahaan Ditolak', `Status pendaftaran "${comp ? comp.name : compId}" diubah menjadi Ditolak.`, 'warning');
+          });
+        });
+
+        tbodyComp.querySelectorAll('.btn-dev-row-add-vessel').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const compId = btn.getAttribute('data-id');
+            this.openDevAddVesselModal(compId);
+          });
+        });
+
+        tbodyComp.querySelectorAll('.btn-dev-row-config-seat').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const compId = btn.getAttribute('data-id');
+            this.openDevConfigSeatsModal(compId);
           });
         });
 
@@ -2966,6 +3281,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Render Pilihan Filter Statistik Masing-Masing Armada Perusahaan
     this.renderOverviewVesselFilterUI(fleet, schedules, bookings);
+
+    // Set default vessel if configured by developer in Dev Mode
+    if (tenant.defaultVesselId && fleet.some(v => v.id === tenant.defaultVesselId)) {
+      if (!this.selectedOverviewVessel || this.selectedOverviewVessel === 'ALL') {
+        this.selectedOverviewVessel = tenant.defaultVesselId;
+      }
+    }
 
     const activeVesselId = this.selectedOverviewVessel || 'ALL';
     const selectedVesselObj = activeVesselId !== 'ALL' ? fleet.find(v => v.id === activeVesselId) : null;
@@ -6073,9 +6395,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         schedSelect.appendChild(opt);
       });
 
-      // Keep current selection if valid, else pick first
-      if (!uniqueSchedules.some(s => s.id === this.seatDashState.scheduleId)) {
-        this.seatDashState.scheduleId = uniqueSchedules[0].id;
+      // Keep current selection if valid, prioritize tenant default configured in Dev Mode, else pick first
+      const hasDefaultSched = tenant.defaultScheduleId && uniqueSchedules.some(s => s.id === tenant.defaultScheduleId);
+      const schedForDefaultVessel = tenant.defaultVesselId && uniqueSchedules.find(s => s.vesselId === tenant.defaultVesselId);
+
+      if (!this.seatDashState.scheduleId || !uniqueSchedules.some(s => s.id === this.seatDashState.scheduleId)) {
+        if (hasDefaultSched) {
+          this.seatDashState.scheduleId = tenant.defaultScheduleId;
+        } else if (schedForDefaultVessel) {
+          this.seatDashState.scheduleId = schedForDefaultVessel.id;
+        } else {
+          this.seatDashState.scheduleId = uniqueSchedules[0].id;
+        }
       }
       schedSelect.value = this.seatDashState.scheduleId;
     }
@@ -6095,8 +6426,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const schedules = Store.getSchedulesByCompany(tenant.id);
     const currentSched = schedules.find(s => s.id === this.seatDashState.scheduleId);
 
-    const currentDeckName = 'Main Deck';
-    if (deckLabel) deckLabel.innerText = 'MAIN DECK';
+    const currentDeckName = (currentVessel && currentVessel.deckName) ? currentVessel.deckName : 'Main Deck';
+    if (deckLabel) deckLabel.innerText = currentDeckName.toUpperCase();
 
     // Reset details panel
     this.updateSeatDetailDisplay(null, currentDeckName);
@@ -7273,6 +7604,194 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (destSel) destSel.onchange = syncPassByRoute;
     syncPassByRoute();
     document.getElementById('modalAddMasterRoute')?.classList.add('show');
+  },
+
+  // ================= DEVELOPER PORTAL: MODAL HELPERS =================
+  openDevAddCompanyModal() {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    document.getElementById('formDevAddCompany')?.reset();
+    const codeEl = document.getElementById('devAddCompCode');
+    if (codeEl) codeEl.value = '';
+    const colEl = document.getElementById('devAddCompColor');
+    if (colEl) colEl.value = '#0284c7';
+    document.getElementById('modalDevAddCompany')?.classList.add('show');
+    setTimeout(() => document.getElementById('devAddCompName')?.focus(), 80);
+  },
+
+  openDevAddVesselModal(preselectedCompanyId = null) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const companies = Store.getCompanies();
+    if (companies.length === 0) {
+      this.showToast('Perusahaan Kosong', 'Daftarkan perusahaan terlebih dahulu sebelum menambahkan armada.', 'warning');
+      this.openDevAddCompanyModal();
+      return;
+    }
+
+    const sel = document.getElementById('devAddVesselCompanySelect');
+    if (sel) {
+      sel.innerHTML = '';
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.code || c.id})`;
+        if (preselectedCompanyId && c.id === preselectedCompanyId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      if (preselectedCompanyId && [...sel.options].some(o => o.value === preselectedCompanyId)) {
+        sel.value = preselectedCompanyId;
+      }
+    }
+
+    document.getElementById('formDevAddVessel')?.reset();
+    const capEl = document.getElementById('devAddVesselCapacity');
+    if (capEl) capEl.value = '150';
+    const chkEl = document.getElementById('devAddVesselMakeDefaultCheck');
+    if (chkEl) chkEl.checked = true;
+
+    document.getElementById('modalDevAddVessel')?.classList.add('show');
+    setTimeout(() => document.getElementById('devAddVesselName')?.focus(), 80);
+  },
+
+  openDevConfigSeatsModal(preselectedCompanyId = null, preselectedVesselId = null) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const companies = Store.getCompanies();
+    if (companies.length === 0) {
+      this.showToast('Perusahaan Kosong', 'Daftarkan perusahaan dan armada terlebih dahulu.', 'warning');
+      this.openDevAddCompanyModal();
+      return;
+    }
+
+    const compSel = document.getElementById('devSeatCompanySelect');
+    if (compSel) {
+      compSel.innerHTML = '';
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.code || c.id})`;
+        if (preselectedCompanyId && c.id === preselectedCompanyId) opt.selected = true;
+        compSel.appendChild(opt);
+      });
+      if (preselectedCompanyId && [...compSel.options].some(o => o.value === preselectedCompanyId)) {
+        compSel.value = preselectedCompanyId;
+      }
+    }
+
+    const targetCompId = compSel ? compSel.value : companies[0].id;
+    this.syncDevSeatModalVessels(targetCompId, preselectedVesselId);
+    this.updateDevSeatModalPreview();
+
+    document.getElementById('modalDevConfigSeats')?.classList.add('show');
+  },
+
+  syncDevSeatModalVessels(companyId, preselectedVesselId = null) {
+    const vesselSel = document.getElementById('devSeatVesselSelect');
+    if (!vesselSel) return;
+    vesselSel.innerHTML = '';
+
+    const vessels = Store.getVesselsByCompany(companyId);
+    if (vessels.length === 0) {
+      vesselSel.innerHTML = '<option value="">-- Perusahaan ini belum memiliki armada --</option>';
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput) capInput.value = 150;
+      this.updateDevSeatModalPreview();
+      return;
+    }
+
+    vessels.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `🚢 ${v.name} (${v.capacity || 150} Kursi • ${v.type || 'Kapal'})`;
+      if (preselectedVesselId && v.id === preselectedVesselId) opt.selected = true;
+      vesselSel.appendChild(opt);
+    });
+
+    if (preselectedVesselId && [...vesselSel.options].some(o => o.value === preselectedVesselId)) {
+      vesselSel.value = preselectedVesselId;
+    }
+
+    const activeVessel = vessels.find(v => v.id === vesselSel.value) || vessels[0];
+    if (activeVessel) {
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput) capInput.value = activeVessel.capacity || 150;
+      const deckInput = document.getElementById('devSeatDeckNameInput');
+      if (deckInput) deckInput.value = activeVessel.deckName || 'Main Deck';
+      const classInput = document.getElementById('devSeatClassNameInput');
+      if (classInput) classInput.value = activeVessel.className || 'Tiket Reguler';
+
+      // Suggested price based on route type
+      const isIntl = (activeVessel.type || '').toLowerCase().includes('tawau') || (activeVessel.type || '').toLowerCase().includes('internasional');
+      const ticketPriceInput = document.getElementById('devSeatTicketPriceInput');
+      if (ticketPriceInput) {
+        ticketPriceInput.value = isIntl ? 430000 : 690000;
+      }
+    }
+    this.updateDevSeatModalPreview();
+  },
+
+  updateDevSeatModalPreview() {
+    const capInput = document.getElementById('devSeatCapacityInput');
+    const cap = Math.max(10, parseInt(capInput ? capInput.value : 150, 10) || 150);
+    const totalRows = Math.ceil(cap / 6);
+
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const getRowCode = (rIdx) => {
+      if (rIdx < letters.length) return letters[rIdx];
+      const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+      const p2 = letters[rIdx % letters.length];
+      return `${p1}${p2}`;
+    };
+
+    const firstRow = 'A';
+    const lastRow = getRowCode(Math.max(0, totalRows - 1));
+
+    const badge = document.getElementById('devSeatSummaryBadge');
+    if (badge) badge.textContent = `${cap} Kursi (${totalRows} Baris)`;
+
+    const details = document.getElementById('devSeatPreviewDetails');
+    if (details) {
+      details.innerHTML = `
+        Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8; font-weight: 700;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
+        Penomoran: Baris <strong>${firstRow}-01 s/d ${firstRow}-06</strong> hingga <strong>${lastRow}-01 s/d ${lastRow}-06</strong> (Total kapasitas: ${cap} kursi)
+      `;
+    }
+
+    const miniGrid = document.getElementById('devSeatMiniGridPreview');
+    if (miniGrid) {
+      miniGrid.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-family: monospace; font-size: 0.68rem; font-weight: 700; color: #38bdf8;">
+          <div style="display: flex; gap: 0.25rem; align-items: center;">
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-01</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-02</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-03</span>
+            <span style="color: #94a3b8; padding: 0 0.35rem; font-size: 0.6rem;">LORONG</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-04</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-05</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-06</span>
+          </div>
+          <div style="display: flex; gap: 0.25rem; align-items: center;">
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-01</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-02</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-03</span>
+            <span style="color: #94a3b8; padding: 0 0.35rem; font-size: 0.6rem;">LORONG</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-04</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-05</span>
+            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-06</span>
+          </div>
+          <div style="text-align: center; color: #94a3b8; font-size: 0.65rem; padding-top: 0.15rem;">
+            ... berlanjut hingga baris <strong>${lastRow}</strong> (${totalRows} baris kursi) ...
+          </div>
+        </div>
+      `;
+    }
   },
 
   openDeleteVesselModal(vesselId, scheduleId, vesselName) {

@@ -2841,8 +2841,17 @@
             <h3 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #f8fafc;">🏢 Daftar Perusahaan Terdaftar, Approval Mitra Baru & Pembekuan Akun</h3>
             <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Kelola persetujuan pendaftaran perusahaan baru serta bekukan (freeze) atau aktifkan kembali akses login akun perusahaan terdaftar.</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span id="devPendingAlertBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.76rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px;">0 Menunggu Approval</span>
+            <button type="button" id="btnDevOpenAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.5); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+              <span>➕ Tambah Perusahaan</span>
+            </button>
+            <button type="button" id="btnDevOpenAddVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.5); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);">
+              <span>⛴️ Tambah Armada</span>
+            </button>
+            <button type="button" id="btnDevOpenConfigSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: 1px solid rgba(167, 139, 250, 0.5); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
+              <span>💺 Pengaturan Seat</span>
+            </button>
           </div>
         </div>
 
@@ -5330,6 +5339,228 @@
           <button type="button" class="btn-cancel" id="btnCancelDevCredsModal" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
           <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <span>💾 Simpan Kredensial Developer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Perusahaan Baru (Developer Mode) -->
+  <div class="modal-layer" id="modalDevAddCompany">
+    <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">🏢</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Tambah Perusahaan Mitra Baru</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Daftarkan perusahaan langsung berstatus Disetujui (Approved) &amp; siap login portal.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevAddCompany" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevAddCompany" class="modal-content-form" style="padding-top: 1rem;">
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Resmi Perusahaan / Operator *</label>
+          <input type="text" id="devAddCompName" class="form-input" placeholder="Contoh: PT. Pelayaran Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Singkat / Brand *</label>
+            <input type="text" id="devAddCompShortName" class="form-input" placeholder="Contoh: Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kode Maskapai / Operator (2-4 Huruf)</label>
+            <input type="text" id="devAddCompCode" class="form-input" placeholder="Contoh: AB" maxlength="5" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-family: monospace; font-weight: 700;">
+          </div>
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Jalur Rute Pelayaran *</label>
+          <select id="devAddCompCategory" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">🌏 Internasional: Nunukan ➔ Tawau</option>
+            <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">🇮🇩 Domestik: Nunukan ➔ Parepare</option>
+            <option value="Keduanya (Internasional & Domestik)">🌐 Keduanya: Internasional &amp; Domestik</option>
+          </select>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Email Resmi (Username Login Portal) *</label>
+            <input type="email" id="devAddCompEmail" class="form-input" placeholder="operator@perusahaan.com" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Password Login Portal *</label>
+            <input type="password" id="devAddCompPassword" class="form-input" placeholder="Minimal 6 karakter" required minlength="4" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Telepon / WhatsApp Kantor *</label>
+            <input type="text" id="devAddCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Warna Brand Utama</label>
+            <select id="devAddCompColor" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <option value="#0284c7">Biru Samudera (#0284c7)</option>
+              <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
+              <option value="#0d9488">Teal Bahari (#0d9488)</option>
+              <option value="#10b981">Hijau Zamrud (#10b981)</option>
+              <option value="#e11d48">Merah Ruby (#e11d48)</option>
+              <option value="#f59e0b">Kuning Emas (#f59e0b)</option>
+            </select>
+          </div>
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.74rem; color: #6ee7b7; margin-top: 0.25rem;">
+          ⚡ Perusahaan yang dibuat di Developer Mode otomatis berstatus <strong>APPROVED (Disetujui)</strong> &amp; akun kredensial tersimpan langsung sehingga siap digunakan untuk login.
+        </div>
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevAddCompany" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <span>💾 Simpan &amp; Daftarkan Perusahaan</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Armada Kapal (Developer Mode) -->
+  <div class="modal-layer" id="modalDevAddVessel">
+    <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">⛴️</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Tambah Armada Kapal Baru</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Tambahkan kapal ke perusahaan pilihan &amp; jadikan armada default saat login.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevAddVessel" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevAddVessel" class="modal-content-form" style="padding-top: 1rem;">
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pilih Perusahaan Pemilik Armada *</label>
+          <select id="devAddVesselCompanySelect" class="form-input" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Kapal / Armada *</label>
+          <input type="text" id="devAddVesselName" class="form-input" placeholder="Contoh: KM Nusantara Sejahtera 01" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Registrasi / IMO *</label>
+            <input type="text" id="devAddVesselReg" class="form-input" placeholder="Contoh: IMO-9821940" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Layanan / Tipe Kapal</label>
+            <select id="devAddVesselType" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+              <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+              <option value="Kapal Feri Cepat">Kapal Feri Cepat</option>
+              <option value="Kapal Roro Penumpang">Kapal Roro Penumpang</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kapasitas Total Kursi *</label>
+            <input type="number" id="devAddVesselCapacity" class="form-input" value="150" min="10" max="3000" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Fasilitas Kapal (Pisahkan Koma)</label>
+            <input type="text" id="devAddVesselFacilities" class="form-input" placeholder="AC, Toilet, Kursi Reclining" value="AC, Toilet, Kursi Reclining" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+        </div>
+        <div style="background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.75rem; color: #5eead4; margin-top: 0.25rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; margin: 0;">
+            <input type="checkbox" id="devAddVesselMakeDefaultCheck" checked style="accent-color: #0d9488; margin-top: 0.15rem;">
+            <span><strong>Otomatis Jadikan Default:</strong> Armada ini dan jadwal operasionalnya akan otomatis menjadi pilihan utama saat perusahaan ini login.</span>
+          </label>
+        </div>
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevAddVessel" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevAddVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);">
+            <span>💾 Simpan &amp; Daftarkan Armada</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan Seat & Denah Kursi Armada (Developer Mode) -->
+  <div class="modal-layer" id="modalDevConfigSeats">
+    <div class="modal-window" style="max-width: 580px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">💺</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Pengaturan Seat &amp; Denah Kursi Armada</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Konfigurasi kapasitas kursi, denah dek, dan jadikan default saat perusahaan login.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevConfigSeats" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevConfigSeats" class="modal-content-form" style="padding-top: 1rem;">
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">1. Pilih Perusahaan *</label>
+            <select id="devSeatCompanySelect" class="form-input" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">2. Pilih Armada Kapal *</label>
+            <select id="devSeatVesselSelect" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+              <!-- Populated dynamically based on company -->
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kapasitas Total Kursi *</label>
+            <input type="number" id="devSeatCapacityInput" class="form-input" value="150" min="10" max="3000" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 1rem;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Dek Kapal</label>
+            <input type="text" id="devSeatDeckNameInput" class="form-input" value="Main Deck" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Kelas Kursi</label>
+            <input type="text" id="devSeatClassNameInput" class="form-input" value="Tiket Reguler" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Harga Tiket Resmi (Rp)</label>
+            <input type="number" id="devSeatTicketPriceInput" class="form-input" value="690000" step="5000" style="background: #1e293b !important; color: #34d399 !important; border-color: #334155 !important; font-weight: 700;">
+          </div>
+        </div>
+
+        <!-- Live Layout Preview Card -->
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 0.85rem 1rem; margin-top: 0.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.5px;">💺 Rincian Susunan Denah Kursi</span>
+            <span id="devSeatSummaryBadge" style="background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.4); font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px;">150 Kursi (25 Baris)</span>
+          </div>
+          <div id="devSeatPreviewDetails" style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.45;">
+            Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
+            Penomoran Baris: <strong>A-01 s/d A-06</strong> hingga <strong>Y-01 s/d Y-06</strong>
+          </div>
+          <div id="devSeatMiniGridPreview" style="display: flex; gap: 0.35rem; justify-content: center; align-items: center; margin-top: 0.75rem; padding: 0.5rem; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.75rem; color: #ddd6fe; margin-top: 0.75rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; margin: 0;">
+            <input type="checkbox" id="devSeatMakeDefaultCheck" checked style="accent-color: #7c3aed; margin-top: 0.15rem;">
+            <span><strong>Otomatis Jadi Default Saat Login:</strong> Konfigurasi kursi ini akan langsung tampil di menu <em>Denah Kursi &amp; Seat</em> dan rincian alokasi penumpang saat operator perusahaan login.</span>
+          </label>
+        </div>
+
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevConfigSeats" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevConfigSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+            <span>💾 Simpan Pengaturan Seat</span>
           </button>
         </div>
       </form>
