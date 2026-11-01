@@ -5573,7 +5573,8 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
 }
 
 @media (max-width: 768px) {
-  #paneCurrencyExchange div[style*="grid-template-columns: 1fr auto 1fr"] {
+  #paneCurrencyExchange div[style*="grid-template-columns: 1fr auto 1fr"],
+  #formCompanySettings > div {
     grid-template-columns: 1fr !important;
   }
 }
