@@ -2694,7 +2694,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           const btnExport = document.getElementById('btnExportManifestCsv');
           if (btnExport) {
             btnExport.scrollIntoView({ behavior: 'smooth' });
-            btnExport.style.outline = '2px solid #10b981';
+            btnExport.style.outline = 'none';
             setTimeout(() => { btnExport.style.outline = 'none'; }, 2000);
           }
         }
