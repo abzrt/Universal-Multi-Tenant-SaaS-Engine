@@ -740,7 +740,7 @@ const App = {
     // Configure Class Options - Membaca Tarif Tiket & Pas Pelabuhan Sesuai Jadwal Perusahaan Login
     const isNunukanTawau = !isDom && ((origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl);
     const ticketFare = isDom ? 690000 : ((sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 690000)));
-    const portPassFee = isDom ? 30000 : (this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 25000 : 30000)));
+    const portPassFee = isDom ? 30000 : (this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 50000 : 30000)));
     const basePrice = ticketFare + portPassFee;
     this.bookingClasses = [
       { 
@@ -943,7 +943,7 @@ const App = {
 
     // Rincian Resmi Biaya Tiket Sesuai Pengaturan Jadwal & Pas Pelabuhan Perusahaan Login:
     const defaultBase = isDom ? 690000 : (isNunukanTawau ? 430000 : 690000);
-    const defaultTax = isDom ? 30000 : (isNunukanTawau ? 25000 : 30000);
+    const defaultTax = isDom ? 30000 : (isNunukanTawau ? 50000 : 30000);
     let operatorBasePerPax = (currentClass && currentClass.price) ? Number(currentClass.price) : (currentClass && currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (sch && sch.priceEconomy ? Number(sch.priceEconomy) : defaultBase));
     let taxPerPax = (sch && sch.portPassFee !== undefined) ? Number(sch.portPassFee) : (currentClass && currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : defaultTax);
     let totalPerPax = operatorBasePerPax + taxPerPax;
@@ -1941,7 +1941,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const origCity = 'Nunukan';
       const destCity = isDom ? 'Parepare' : 'Tawau';
       const ticketPrice = isDom ? 690000 : 430000;
-      const portPassPrice = isDom ? 30000 : 25000;
+      const portPassPrice = isDom ? 30000 : 50000;
 
       const defaultSched = {
         id: `SCH-${Date.now().toString(36).toUpperCase()}`,
@@ -2035,7 +2035,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const targetDestId = isDom ? 'PRE' : 'TWU';
       const targetDestCity = isDom ? 'Parepare' : 'Tawau';
       const targetTicketPrice = isDom ? 690000 : 430000;
-      const targetPortPass = isDom ? 30000 : 25000;
+      const targetPortPass = isDom ? 30000 : 50000;
 
       // Sinkronisasi data di jadwal terkait
       const schedules = Store.getSchedules();
@@ -2178,7 +2178,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           s.destinationCity = isDom ? 'Parepare' : 'Tawau';
           s.categoryType = isDom ? 'DOMESTIC' : 'INTERNATIONAL';
           s.priceEconomy = isDom ? 690000 : 430000;
-          s.portPassFee = isDom ? 30000 : 25000;
+          s.portPassFee = isDom ? 30000 : 50000;
           s.pier = isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP';
           if (Array.isArray(s.classes) && s.classes.length > 0) {
             s.classes[0].quota = capacity;
@@ -2213,7 +2213,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           date: new Date().toISOString().split('T')[0],
           pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
           priceEconomy: isDom ? 690000 : 430000,
-          portPassFee: isDom ? 30000 : 25000,
+          portPassFee: isDom ? 30000 : 50000,
           quotaTotal: capacity,
           quotaBooked: 0,
           classes: [
@@ -3387,7 +3387,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const arrivalTime = document.getElementById('schedArrivalTime').value;
       const pier = document.getElementById('schedPierInput').value.trim();
       const priceEko = parseInt(document.getElementById('schedPriceEko')?.value || '350000', 10);
-      const portPassFee = parseInt(document.getElementById('schedPortPassPrice')?.value || '25000', 10);
+      const portPassFee = parseInt(document.getElementById('schedPortPassPrice')?.value || '50000', 10);
 
       const fleet = Store.getVesselsByCompany(tenant.id);
       const vessel = fleet.find(v => v.id === vesselId);
@@ -7726,7 +7726,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const portPassInput = document.getElementById('editSchedPortPassPrice');
     if (portPassInput) {
       const isTwu = s.originId === 'TWU' || s.destinationId === 'TWU';
-      portPassInput.value = s.portPassFee !== undefined ? s.portPassFee : (isTwu ? 25000 : 30000);
+      portPassInput.value = s.portPassFee !== undefined ? s.portPassFee : (isTwu ? 50000 : 30000);
     }
 
     const passInput = document.getElementById('editSchedAuthPassword');
@@ -8438,7 +8438,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     setVal('portPassPortSelect', item ? (item.portId || 'NNK') : 'NNK');
     setVal('portPassRouteType', item ? (item.routeType || (isIntl ? 'Internasional' : 'Domestik')) : (isIntl ? 'Internasional' : 'Domestik'));
     setVal('portPassOperatorInput', item ? (item.operator || 'KSOP / Pelindo Tunon Taka Nunukan') : 'KSOP / Pelindo Tunon Taka Nunukan');
-    setVal('portPassAdultInput', item ? (item.priceAdult ?? (isIntl ? 25000 : 10000)) : (isIntl ? 25000 : 10000));
+    setVal('portPassAdultInput', item ? (item.priceAdult ?? (isIntl ? 50000 : 10000)) : (isIntl ? 50000 : 10000));
     setVal('portPassChildInput', item ? (item.priceChild ?? (isIntl ? 15000 : 5000)) : (isIntl ? 15000 : 5000));
     setVal('portPassBillingMode', item ? (item.billingMode || 'INCLUDED') : 'INCLUDED');
     setVal('portPassStatusSelect', item ? (item.status || 'Aktif') : 'Aktif');

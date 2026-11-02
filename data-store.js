@@ -462,7 +462,7 @@ const Store = {
         s.destinationCity = 'Tawau';
         s.categoryType = 'INTERNATIONAL';
         s.priceEconomy = 430000;
-        s.portPassFee = 25000;
+        s.portPassFee = 50000;
       }
       const targetPrice = isDom ? 690000 : 430000;
       if (!Array.isArray(s.classes) || s.classes.length === 0) {
@@ -971,7 +971,7 @@ const Store = {
         destinationName: 'Tawau',
         category: 'Internasional',
         ticketPrice: 430000,
-        portPassFee: 25000,
+        portPassFee: 50000,
         notes: 'Rute Lintas Batas RI - Malaysia'
       },
       {
@@ -1012,9 +1012,9 @@ const Store = {
             }
           }
           if (r.id === 'ROUTE-NNK-TWU' || (r.originId === 'NNK' && r.destinationId === 'TWU')) {
-            if (r.ticketPrice !== 430000 || r.portPassFee !== 25000) {
+            if (r.ticketPrice !== 430000 || r.portPassFee !== 50000) {
               r.ticketPrice = 430000;
-              r.portPassFee = 25000;
+              r.portPassFee = 50000;
               updatedStorage = true;
             }
           }
