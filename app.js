@@ -6821,22 +6821,26 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
     // ========================================================
-  // ALL-IN-ONE ONE-PAGE TICKETING CONSOLE ENGINE
+  // ALL-IN-ONE ONE-PAGE TICKETING CONSOLE ENGINE (PARALLEL 3-COL POS)
   // ========================================================
   tixConsoleState: {
     initialized: false,
     selectedVesselId: null,
     selectedScheduleId: null,
+    selectedDestinationId: null, // 'TWU' or 'PRE'
     selectedDate: null,
     selectedDeckCode: null,
     calYear: new Date().getFullYear(),
-    calMonth: new Date().getMonth()
+    calMonth: new Date().getMonth(),
+    selectedSeats: [], // ['A-01', 'A-02']
+    passengerEntries: [] // [{ seat, name, docNum, gender, paxType, nationality, phone }]
   },
 
   initTicketingConsoleEvents() {
     if (this.tixConsoleState.initialized) return;
     this.tixConsoleState.initialized = true;
 
+    // Month Navigation
     document.getElementById('btnTixCalPrevMonth')?.addEventListener('click', () => {
       this.tixConsoleState.calMonth--;
       if (this.tixConsoleState.calMonth < 0) {
@@ -6855,16 +6859,31 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.renderTicketingConsole();
     });
 
-    document.getElementById('btnTixSubmitDirect')?.addEventListener('click', () => {
-      this.processInPageDirectTicket();
+    // Today Button
+    document.getElementById('btnTixCalToday')?.addEventListener('click', () => {
+      const now = new Date();
+      this.tixConsoleState.calYear = now.getFullYear();
+      this.tixConsoleState.calMonth = now.getMonth();
+      this.tixConsoleState.selectedDate = now.toISOString().split('T')[0];
+      this.renderTicketingConsole();
     });
 
-    document.getElementById('btnTixModeSingle')?.addEventListener('click', () => {
-      this.setTicketingEntryMode('SINGLE');
+    // Clear Selected Seats Button
+    document.getElementById('btnTixClearSelectedSeats')?.addEventListener('click', () => {
+      this.tixConsoleState.selectedSeats = [];
+      this.tixConsoleState.passengerEntries = [];
+      this.renderTicketingConsole();
+      this.showToast('Pilihan Dikosongkan', 'Seluruh pilihan kursi telah dibersihkan.', 'warning');
     });
 
-    document.getElementById('btnTixModeBulk')?.addEventListener('click', () => {
-      this.setTicketingEntryMode('BULK');
+    // Final Booking Submit Button
+    document.getElementById('btnTixSubmitBookingFinal')?.addEventListener('click', () => {
+      this.processFinalPosBookings();
+    });
+
+    // Bulk / Single fallback button
+    document.getElementById('btnOpenBulkPassengerFromTicketing')?.addEventListener('click', () => {
+      this.openBulkPassengerModal();
     });
   },
 
@@ -6876,23 +6895,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const schedules = Store.getSchedulesByCompany(tenant.id);
     if (!fleet || fleet.length === 0) return;
 
-    // Tentukan armada kapal terpilih
-    if (!this.tixConsoleState.selectedVesselId || this.tixConsoleState.selectedVesselId === 'ALL') {
-      if (this.selectedTicketingVessel && this.selectedTicketingVessel !== 'ALL' && fleet.some(v => v.id === this.selectedTicketingVessel)) {
-        this.tixConsoleState.selectedVesselId = this.selectedTicketingVessel;
-      } else {
-        this.tixConsoleState.selectedVesselId = fleet[0].id;
-      }
-    }
-    const vessel = fleet.find(v => v.id === this.tixConsoleState.selectedVesselId) || fleet[0];
-
-    // Filter jadwal untuk armada terpilih
-    let vesselSchedules = schedules.filter(s => s.vesselId === vessel.id || s.vesselNameCustom === vessel.name);
-    if (vesselSchedules.length === 0) {
-      vesselSchedules = schedules;
-    }
-
-    // Nama bulan & tahun
+    // 1. TANGGAL KEBERANGKATAN (DEPARTURE DATE)
     const monthNames = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -6901,12 +6904,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elMonthLabel = document.getElementById('tixCalMonthLabel');
     if (elMonthLabel) elMonthLabel.innerText = `${monthNames[calMonth]} ${calYear}`;
 
-    // Hari dalam bulan
     const totalDays = new Date(calYear, calMonth + 1, 0).getDate();
-    const firstDayIndex = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // Monday = 0
+    const firstDayIndex = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // Sen = 0
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Default selectedDate jika belum ada
     if (!this.tixConsoleState.selectedDate) {
       const now = new Date();
       if (now.getFullYear() === calYear && now.getMonth() === calMonth) {
@@ -6916,12 +6917,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     }
 
-    // Render Grid Kalender (#tixCalDaysContainer)
     const calDaysContainer = document.getElementById('tixCalDaysContainer');
     if (calDaysContainer) {
       calDaysContainer.innerHTML = '';
 
-      // Padding sebelum tanggal 1
       for (let p = 0; p < firstDayIndex; p++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'tix-cal-day-cell other-month';
@@ -6929,18 +6928,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         calDaysContainer.appendChild(emptyCell);
       }
 
-      // Sel tanggal 1 sampai akhir bulan
       for (let d = 1; d <= totalDays; d++) {
         const dStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const hasSailings = vesselSchedules.some(s => !s.departDate || s.departDate === dStr);
+        const hasSailings = schedules.some(s => !s.departDate || s.departDate === dStr);
         const isSelected = this.tixConsoleState.selectedDate === dStr;
         const isToday = todayStr === dStr;
 
         const cell = document.createElement('div');
         cell.className = `tix-cal-day-cell ${isSelected ? 'active' : ''} ${isToday ? 'is-today' : ''}`;
+        cell.style.cssText = `min-height: 38px; padding: 2px; ${isSelected ? 'background: #0284c7 !important; color: #fff !important;' : ''}`;
         cell.innerHTML = `
-          <div class="tix-cal-day-num" style="${isSelected ? 'color: #ffffff;' : (isToday ? 'color: #0284c7;' : '')}">${d}</div>
-          ${hasSailings ? `<div class="tix-cal-day-dot" style="${isSelected ? 'background: #ffffff;' : ''}" title="Ada keberangkatan kapal"></div>` : '<div style="height: 6px;"></div>'}
+          <div class="tix-cal-day-num" style="font-size: 0.76rem; ${isSelected ? 'color: #ffffff;' : (isToday ? 'color: #0284c7;' : '')}">${d}</div>
+          ${hasSailings ? `<div class="tix-cal-day-dot" style="${isSelected ? 'background: #ffffff;' : ''}" title="Ada pelayaran armada"></div>` : '<div style="height: 4px;"></div>'}
         `;
 
         cell.addEventListener('click', () => {
@@ -6952,72 +6951,152 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     }
 
-    // Label tanggal terpilih
     const elDateBadge = document.getElementById('tixSelectedDateBadge');
-    if (elDateBadge) {
-      elDateBadge.innerText = this.tixConsoleState.selectedDate;
+    if (elDateBadge) elDateBadge.innerText = this.tixConsoleState.selectedDate;
+
+    // 2. TUJUAN RUTE (DESTINATIONS)
+    const destPillsWrap = document.getElementById('tixDestinationPillsContainer');
+    const availableDests = [];
+    const destSet = new Set();
+    schedules.forEach(s => {
+      const dCode = s.destinationId || 'TWU';
+      if (!destSet.has(dCode)) {
+        destSet.add(dCode);
+        const port = MASTER_PORTS.find(p => p.id === dCode) || { city: dCode === 'PRE' ? 'Parepare' : 'Tawau' };
+        const label = dCode === 'TWU' ? '🏝️ Nunukan ➔ Tawau (Internasional)' : (dCode === 'PRE' ? '🚢 Nunukan ➔ Parepare (Sulawesi)' : `🚢 Nunukan ➔ ${port.city}`);
+        availableDests.push({ id: dCode, label });
+      }
+    });
+
+    if (availableDests.length === 0) {
+      availableDests.push({ id: 'TWU', label: '🏝️ Nunukan ➔ Tawau (Internasional)' });
     }
 
-    // Render Jadwal di Tanggal Terpilih (#tixDaySchedulesList)
-    const daySchedules = vesselSchedules.filter(s => !s.departDate || s.departDate === this.tixConsoleState.selectedDate);
-    const daySchedsList = document.getElementById('tixDaySchedulesList');
-    if (daySchedsList) {
-      daySchedsList.innerHTML = '';
-      if (daySchedules.length === 0) {
-        daySchedsList.innerHTML = `
-          <div style="text-align: center; padding: 0.75rem 0.5rem; font-size: 0.74rem; color: #94a3b8; background: #f8fafc; border-radius: 6px;">
-            Tidak ada pelayaran armada pada tanggal ini.
+    if (!this.tixConsoleState.selectedDestinationId || !availableDests.some(d => d.id === this.tixConsoleState.selectedDestinationId)) {
+      this.tixConsoleState.selectedDestinationId = availableDests[0].id;
+    }
+
+    if (destPillsWrap) {
+      destPillsWrap.innerHTML = availableDests.map(d => {
+        const isAct = d.id === this.tixConsoleState.selectedDestinationId;
+        return `
+          <button type="button" class="btn-dest-pill" data-dest="${d.id}" style="padding: 0.35rem 0.75rem; font-size: 0.74rem; font-weight: 800; border-radius: 6px; cursor: pointer; border: 1.5px solid ${isAct ? '#0284c7' : '#cbd5e1'}; background: ${isAct ? '#0284c7' : '#ffffff'}; color: ${isAct ? '#ffffff' : '#334155'}; transition: all 0.15s ease;">
+            ${d.label}
+          </button>
+        `;
+      }).join('');
+
+      destPillsWrap.querySelectorAll('.btn-dest-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.tixConsoleState.selectedDestinationId = btn.getAttribute('data-dest');
+          this.tixConsoleState.selectedScheduleId = null;
+          this.tixConsoleState.selectedSeats = [];
+          this.tixConsoleState.passengerEntries = [];
+          this.renderTicketingConsole();
+        });
+      });
+    }
+
+    // Filter Jadwal berdasarkan Destinasi & Tanggal
+    let destSchedules = schedules.filter(s => (s.destinationId || 'TWU') === this.tixConsoleState.selectedDestinationId);
+    if (destSchedules.length === 0) destSchedules = schedules;
+
+    const daySchedules = destSchedules.filter(s => !s.departDate || s.departDate === this.tixConsoleState.selectedDate);
+    const activeScheduleList = daySchedules.length > 0 ? daySchedules : destSchedules;
+
+    const elSchedCount = document.getElementById('tixDepartSummaryCount');
+    if (elSchedCount) elSchedCount.innerText = `${activeScheduleList.length} Jadwal`;
+
+    if (!this.tixConsoleState.selectedScheduleId || !activeScheduleList.some(s => s.id === this.tixConsoleState.selectedScheduleId)) {
+      this.tixConsoleState.selectedScheduleId = activeScheduleList[0].id;
+    }
+
+    // Render Kartu Jam & Kapal (#tixDepartureTimeCardsList)
+    const timeCardsList = document.getElementById('tixDepartureTimeCardsList');
+    if (timeCardsList) {
+      timeCardsList.innerHTML = '';
+      activeScheduleList.forEach(sch => {
+        const isAct = sch.id === this.tixConsoleState.selectedScheduleId;
+        const v = fleet.find(f => f.id === sch.vesselId);
+        const vName = v ? v.name : (sch.vesselNameCustom || 'Armada');
+        const isSulawesi = (sch.destinationId === 'PRE') || (v && ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator')));
+        const minPrice = (sch.classes && sch.classes.length > 0)
+          ? Math.min(...sch.classes.map(c => Number(c.price)))
+          : Number(sch.priceEconomy || (isSulawesi ? 690000 : 430000));
+        const passFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, tenant) : Number(sch.portPassFee || (isSulawesi ? 30000 : 50000));
+        const totalFare = minPrice + passFee;
+
+        const allBookings = Store.getBookingsByCompany(tenant.id);
+        const schedBookings = allBookings.filter(b => b.scheduleId === sch.id && (!b.departDate || b.departDate === this.tixConsoleState.selectedDate));
+        let occupiedCount = 0;
+        schedBookings.forEach(b => {
+          occupiedCount += (b.passengers && b.passengers.length > 0) ? b.passengers.length : 1;
+        });
+        const totalCap = sch.quotaTotal || (v ? v.capacity : 150);
+        const availCount = Math.max(0, totalCap - occupiedCount);
+
+        const card = document.createElement('div');
+        card.className = `tix-time-card ${isAct ? 'active' : ''}`;
+        card.style.cssText = `padding: 0.45rem 0.7rem; border-radius: 8px; border: 1.5px solid ${isAct ? '#0284c7' : '#e2e8f0'}; background: ${isAct ? '#f0f9ff' : '#ffffff'}; cursor: pointer; display: flex; justify-content: space-between; align-items: center;`;
+        card.innerHTML = `
+          <div>
+            <div style="font-size: 0.78rem; font-weight: 800; color: ${isAct ? '#0284c7' : '#0f172a'};">
+              🕒 ${sch.departTime} WITA • ${vName}
+            </div>
+            <div style="font-size: 0.68rem; color: #64748b; margin-top: 1px;">
+              ${formatRupiah(totalFare)} / Pax • <strong style="color: ${availCount > 0 ? '#16a34a' : '#dc2626'};">Sisa ${availCount} Seat</strong>
+            </div>
+          </div>
+          <div>
+            <span class="tag-badge" style="font-size: 0.65rem; padding: 2px 6px; ${isAct ? 'background: #0284c7; color: #fff; border-color: #0284c7;' : ''}">
+              ${isAct ? '✓ Dipilih' : 'Pilih'}
+            </span>
           </div>
         `;
-      } else {
-        if (!this.tixConsoleState.selectedScheduleId || !daySchedules.some(s => s.id === this.tixConsoleState.selectedScheduleId)) {
-          this.tixConsoleState.selectedScheduleId = daySchedules[0].id;
-        }
 
-        daySchedules.forEach(sch => {
-          const isAct = sch.id === this.tixConsoleState.selectedScheduleId;
-          const orig = MASTER_PORTS.find(p => p.id === sch.originId) || { city: sch.originId || 'NNK' };
-          const dest = MASTER_PORTS.find(p => p.id === sch.destinationId) || { city: sch.destinationId || 'TWU' };
-          const origCity = (orig.city || sch.originId).split(' ')[0];
-          const destCity = (dest.city || sch.destinationId).split(' ')[0];
-
-          const card = document.createElement('div');
-          card.className = `tix-day-sched-card ${isAct ? 'active' : ''}`;
-          card.innerHTML = `
-            <div>
-              <div style="font-size: 0.78rem; font-weight: 800; color: ${isAct ? '#0284c7' : '#0f172a'};">
-                🕒 ${sch.departTime} WITA
-              </div>
-              <div style="font-size: 0.7rem; color: #64748b; margin-top: 1px;">
-                ${origCity} ➔ ${destCity}
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <span class="tag-badge" style="font-size: 0.65rem; padding: 1px 5px; ${isAct ? 'background: #0284c7; color: #fff; border-color: #0284c7;' : ''}">
-                ${isAct ? 'Dipilih' : 'Pilih'}
-              </span>
-            </div>
-          `;
-
-          card.addEventListener('click', () => {
+        card.addEventListener('click', () => {
+          if (this.tixConsoleState.selectedScheduleId !== sch.id) {
             this.tixConsoleState.selectedScheduleId = sch.id;
+            this.tixConsoleState.selectedVesselId = sch.vesselId;
+            this.tixConsoleState.selectedSeats = [];
+            this.tixConsoleState.passengerEntries = [];
             this.renderTicketingConsole();
-          });
-
-          daySchedsList.appendChild(card);
+          }
         });
-      }
+
+        timeCardsList.appendChild(card);
+      });
     }
 
-    // Ambil Schedule Aktif
-    const activeSched = daySchedules.find(s => s.id === this.tixConsoleState.selectedScheduleId) || daySchedules[0] || vesselSchedules[0];
+    // 3. TRIP INFO
+    const activeSched = activeScheduleList.find(s => s.id === this.tixConsoleState.selectedScheduleId) || activeScheduleList[0];
     if (!activeSched) return;
 
-    // Deteksi Rute & Dek Kapal
-    const isSulawesi = (activeSched && (activeSched.destinationId === 'PRE' || activeSched.destinationCity === 'Parepare')) ||
-                       (vessel && (((vessel.type || '').toLowerCase().includes('parepare')) || 
-                                   ((vessel.type || '').toLowerCase().includes('domestik')) || 
-                                   ((vessel.name || '').toLowerCase().includes('pantokrator'))));
+    const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
+    const isSulawesi = (activeSched.destinationId === 'PRE') || (vessel && ((vessel.type || '').toLowerCase().includes('parepare') || (vessel.name || '').toLowerCase().includes('pantokrator')));
+    const minPrice = (activeSched.classes && activeSched.classes.length > 0)
+      ? Math.min(...activeSched.classes.map(c => Number(c.price)))
+      : Number(activeSched.priceEconomy || (isSulawesi ? 690000 : 430000));
+    const passFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(activeSched, tenant) : Number(activeSched.portPassFee || (isSulawesi ? 30000 : 50000));
+    const totalFare = minPrice + passFee;
+
+    const origPort = MASTER_PORTS.find(p => p.id === activeSched.originId) || { city: 'Nunukan' };
+    const destPort = MASTER_PORTS.find(p => p.id === activeSched.destinationId) || { city: isSulawesi ? 'Parepare' : 'Tawau' };
+
+    const elTripCode = document.getElementById('tixTripScheduleCode');
+    const elTripVessel = document.getElementById('tixTripVesselName');
+    const elTripPier = document.getElementById('tixTripPierName');
+    const elTripRoute = document.getElementById('tixTripRouteLabel');
+    const elTripFare = document.getElementById('tixTripFareLabel');
+
+    if (elTripCode) elTripCode.innerText = activeSched.id || 'SCH-REG';
+    if (elTripVessel) elTripVessel.innerText = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
+    const subPlaceSel = document.getElementById('tixFromSubPlaceSelect');
+    if (elTripPier) elTripPier.innerText = subPlaceSel ? subPlaceSel.value : (activeSched.pier || 'Tunon Taka');
+    if (elTripRoute) elTripRoute.innerText = `${origPort.city} ➔ ${destPort.city}`;
+    if (elTripFare) elTripFare.innerText = `${formatRupiah(totalFare)} (${formatRupiah(minPrice)} + Pas ${formatRupiah(passFee)})`;
+
+    // 4. PILIH SEAT PENUMPANG (CHOOSE SEATS)
     const vesselDecks = (isSulawesi && Store.getSulawesiDecks)
       ? Store.getSulawesiDecks()
       : (vessel && vessel.decks && vessel.decks.length > 0 ? vessel.decks : null);
@@ -7025,11 +7104,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     let deckName = 'Main Deck';
     let capacity = 150;
 
-    const deckPillsWrap = document.getElementById('tixConsoleDeckPillsWrap');
-    const deckPillsContainer = document.getElementById('tixConsoleDeckPills');
-
+    const deckPillsWrap = document.getElementById('tixDeckSelectorPillsWrap');
     if (vesselDecks && vesselDecks.length > 0) {
-      if (deckPillsWrap) deckPillsWrap.style.display = 'flex';
       if (!this.tixConsoleState.selectedDeckCode || !vesselDecks.some(d => d.code === this.tixConsoleState.selectedDeckCode)) {
         this.tixConsoleState.selectedDeckCode = vesselDecks[0].code;
       }
@@ -7037,17 +7113,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       deckName = activeDeckObj.name;
       capacity = activeDeckObj.capacity || 100;
 
-      if (deckPillsContainer) {
-        deckPillsContainer.innerHTML = vesselDecks.map(d => {
+      if (deckPillsWrap) {
+        deckPillsWrap.innerHTML = vesselDecks.map(d => {
           const isAct = d.code === this.tixConsoleState.selectedDeckCode;
           return `
-            <button type="button" class="btn-deck-pill" data-deck="${d.code}" style="background: ${isAct ? '#0284c7' : '#ffffff'}; color: ${isAct ? '#ffffff' : '#334155'}; border: 1px solid ${isAct ? '#0284c7' : '#cbd5e1'}; border-radius: 6px; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
-              🚢 ${d.name} (${d.capacity} Kursi)
+            <button type="button" class="btn-deck-pill" data-deck="${d.code}" style="background: ${isAct ? '#0284c7' : '#ffffff'}; color: ${isAct ? '#ffffff' : '#334155'}; border: 1.5px solid ${isAct ? '#0284c7' : '#cbd5e1'}; border-radius: 6px; padding: 0.2rem 0.55rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
+              🚢 ${d.name} (${d.capacity})
             </button>
           `;
         }).join('');
 
-        deckPillsContainer.querySelectorAll('.btn-deck-pill').forEach(btn => {
+        deckPillsWrap.querySelectorAll('.btn-deck-pill').forEach(btn => {
           btn.addEventListener('click', () => {
             this.tixConsoleState.selectedDeckCode = btn.getAttribute('data-deck');
             this.renderTicketingConsole();
@@ -7055,74 +7131,39 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         });
       }
     } else {
-      if (deckPillsWrap) deckPillsWrap.style.display = 'none';
       capacity = parseInt((vessel && vessel.capacity) || (activeSched && (activeSched.capacity || activeSched.quotaTotal)) || 150, 10);
       deckName = (vessel && vessel.deckName) || 'Main Deck';
+      if (deckPillsWrap) {
+        deckPillsWrap.innerHTML = `
+          <button type="button" class="btn-deck-pill" style="background: #0284c7; color: #ffffff; border: 1.5px solid #0284c7; border-radius: 6px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 700; cursor: default;">
+            🚢 ${deckName} (${capacity} Kursi)
+          </button>
+        `;
+      }
     }
     if (!capacity || capacity <= 0) capacity = 150;
 
-    // Hitung Kursi Terisi & Tersedia
+    // Hitung Kursi Terisi
     const allBookings = Store.getBookingsByCompany(tenant.id);
     const schedBookings = allBookings.filter(b => b.scheduleId === activeSched.id && (!b.departDate || b.departDate === this.tixConsoleState.selectedDate));
     const occupiedSeats = new Set();
-    let occupiedCount = 0;
     schedBookings.forEach(b => {
       const pArr = (b.passengers && b.passengers.length > 0) ? b.passengers : [{ seat: b.seatNumber }];
       pArr.forEach(p => {
-        if (p.seat) {
-          occupiedSeats.add(p.seat.toUpperCase().trim());
-          occupiedCount++;
-        }
+        if (p.seat) occupiedSeats.add(p.seat.toUpperCase().trim());
       });
     });
-    const availCount = Math.max(0, capacity - occupiedCount);
-    const occRate = capacity > 0 ? ((occupiedCount / capacity) * 100).toFixed(1) : '0';
 
-    // Update KPI UI
-    const elCapTotal = document.getElementById('tixStatCapTotal');
-    const elCapAvail = document.getElementById('tixStatCapAvail');
-    const elCapBooked = document.getElementById('tixStatCapBooked');
-    const elCapRate = document.getElementById('tixStatCapRate');
-    const elCapDeck = document.getElementById('tixStatCapDeckName');
+    const availSeatsCount = Math.max(0, capacity - occupiedSeats.size);
+    const elSeatAvailBadge = document.getElementById('tixSeatAvailBadge');
+    if (elSeatAvailBadge) {
+      elSeatAvailBadge.innerText = `Tersedia: ${availSeatsCount} Kursi (${occupiedSeats.size} Terisi)`;
+    }
 
-    if (elCapTotal) elCapTotal.innerText = capacity;
-    if (elCapAvail) elCapAvail.innerText = availCount;
-    if (elCapBooked) elCapBooked.innerText = occupiedCount;
-    if (elCapRate) elCapRate.innerText = `${occRate}%`;
-    if (elCapDeck) elCapDeck.innerText = deckName;
-
-    // Update Header Info
-    const elVesselTitle = document.getElementById('tixConsoleVesselName');
-    const elRouteBadge = document.getElementById('tixConsoleRouteBadge');
-    const elTimeBadge = document.getElementById('tixConsoleTimeBadge');
-    const elPierInfo = document.getElementById('tixConsolePierInfo');
-
-    const origPort = MASTER_PORTS.find(p => p.id === activeSched.originId) || { city: activeSched.originId || 'Nunukan' };
-    const destPort = MASTER_PORTS.find(p => p.id === activeSched.destinationId) || { city: activeSched.destinationId || 'Tawau' };
-
-    if (elVesselTitle) elVesselTitle.innerText = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
-    if (elRouteBadge) elRouteBadge.innerText = `${origPort.city} ➔ ${destPort.city}`;
-    if (elTimeBadge) elTimeBadge.innerText = `🕒 ${activeSched.departTime} WITA`;
-    if (elPierInfo) elPierInfo.innerText = `Dermaga: ${activeSched.pier || 'Dermaga Utama'} • Pelayaran ${this.tixConsoleState.selectedDate}`;
-
-    // Tarif Resmi Rute Ini
-    const minPrice = (activeSched.classes && activeSched.classes.length > 0)
-      ? Math.min(...activeSched.classes.map(c => Number(c.price)))
-      : Number(activeSched.priceEconomy || (isSulawesi ? 690000 : 430000));
-    const passFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(activeSched, tenant) : Number(activeSched.portPassFee || (isSulawesi ? 30000 : 50000));
-    const totalFare = minPrice + passFee;
-
-    const elFareTotal = document.getElementById('tixConsoleFareTotal');
-    const elFareSub = document.getElementById('tixConsoleFareSub');
-    if (elFareTotal) elFareTotal.innerText = formatRupiah(totalFare);
-    if (elFareSub) elFareSub.innerText = `Tiket ${formatRupiah(minPrice)} + Pas Pelabuhan ${formatRupiah(passFee)}`;
-
-    // Populate Dropdown Kursi (#tixInputSeat)
-    const seatSelect = document.getElementById('tixInputSeat');
-    if (seatSelect) {
-      const currentSelectedVal = seatSelect.value;
-      seatSelect.innerHTML = '<option value="">Otomatis (Acak)</option>';
-
+    // Render Visual Seat Map Grid
+    const seatGrid = document.getElementById('tixVisualSeatMapGrid');
+    if (seatGrid) {
+      seatGrid.innerHTML = '';
       const getRowCode = (rIdx) => {
         const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
         if (rIdx < letters.length) return letters[rIdx];
@@ -7142,40 +7183,188 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           const prefix = vesselDecks ? `${this.tixConsoleState.selectedDeckCode}-` : '';
           const sCode = `${prefix}${rCode}-${String(col).padStart(2, '0')}`;
           const isOcc = occupiedSeats.has(sCode);
+          const isSel = this.tixConsoleState.selectedSeats.includes(sCode);
 
-          const opt = document.createElement('option');
-          opt.value = sCode;
-          opt.innerText = isOcc ? `${sCode} (Terisi)` : `Kursi ${sCode}`;
-          if (isOcc) {
-            opt.disabled = true;
-            opt.style.color = '#94a3b8';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `tix-visual-seat-btn ${isOcc ? 'occupied' : (isSel ? 'selected' : 'available')}`;
+          btn.setAttribute('data-seat', sCode);
+          btn.title = isOcc ? `Kursi ${sCode} (Terisi/Booked)` : (isSel ? `Kursi ${sCode} (Dipilih)` : `Kursi ${sCode} (Klik untuk pilih)`);
+          if (isOcc) btn.disabled = true;
+
+          btn.innerText = sCode;
+
+          if (!isOcc) {
+            btn.addEventListener('click', () => {
+              this.toggleSeatSelection(sCode);
+            });
           }
-          if (currentSelectedVal === sCode) opt.selected = true;
-          seatSelect.appendChild(opt);
+
+          seatGrid.appendChild(btn);
         }
       }
     }
+
+    // 5. RENDER ENTRI DATA PENUMPANG (DI BAWAHNYA)
+    this.renderPassengerEntriesTable(activeSched, tenant, vessel, minPrice, passFee);
   },
 
-  processInPageDirectTicket() {
+  toggleSeatSelection(seatCode) {
+    const idx = this.tixConsoleState.selectedSeats.indexOf(seatCode);
+    if (idx !== -1) {
+      // Hapus
+      this.tixConsoleState.selectedSeats.splice(idx, 1);
+      this.tixConsoleState.passengerEntries = this.tixConsoleState.passengerEntries.filter(p => p.seat !== seatCode);
+    } else {
+      // Tambah kursi terpilih & buat entri penumpang otomatis
+      this.tixConsoleState.selectedSeats.push(seatCode);
+      this.tixConsoleState.passengerEntries.push({
+        seat: seatCode,
+        name: '',
+        docNum: '',
+        gender: 'L',
+        paxType: 'Dewasa',
+        nationality: 'ID',
+        phone: ''
+      });
+    }
+
+    this.renderTicketingConsole();
+
+    // Scroll ke tabel jika baru menambah kursi pertama
+    if (this.tixConsoleState.selectedSeats.length === 1) {
+      document.getElementById('tixPassengerRowsTbody')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  },
+
+  renderPassengerEntriesTable(activeSched, tenant, vessel, minPrice, passFee) {
+    const tbody = document.getElementById('tixPassengerRowsTbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const entries = this.tixConsoleState.passengerEntries;
+
+    if (entries.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; color: #94a3b8; padding: 2rem 1rem;">
+            👆 Silakan klik nomor kursi yang diinginkan pada <strong>Denah Kursi (Step 5)</strong> di atas untuk otomatis membuat entri penumpang.
+          </td>
+        </tr>
+      `;
+    } else {
+      entries.forEach((p, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="text-align: center; font-weight: 700; color: #64748b;">${index + 1}</td>
+          <td>
+            <span class="tag-badge" style="background: #dcfce7; color: #166534; font-weight: 800; border: 1px solid #bbf7d0; font-size: 0.78rem;">
+              💺 ${p.seat}
+            </span>
+          </td>
+          <td>
+            <input type="text" class="form-input pax-in-name" placeholder="Nama Lengkap Penumpang..." value="${p.name || ''}" style="padding: 0.35rem 0.55rem; font-size: 0.8rem; font-weight: 600;">
+          </td>
+          <td>
+            <input type="text" class="form-input pax-in-doc" placeholder="Nomor NIK / Paspor..." value="${p.docNum || ''}" style="padding: 0.35rem 0.55rem; font-size: 0.8rem; font-weight: 600;">
+          </td>
+          <td>
+            <select class="form-input pax-in-gender" style="padding: 0.35rem 0.45rem; font-size: 0.8rem; font-weight: 600;">
+              <option value="L" ${p.gender === 'L' ? 'selected' : ''}>L</option>
+              <option value="P" ${p.gender === 'P' ? 'selected' : ''}>P</option>
+            </select>
+          </td>
+          <td>
+            <select class="form-input pax-in-type" style="padding: 0.35rem 0.45rem; font-size: 0.8rem; font-weight: 600;">
+              <option value="Dewasa" ${p.paxType === 'Dewasa' ? 'selected' : ''}>Dewasa</option>
+              <option value="Anak" ${p.paxType === 'Anak' ? 'selected' : ''}>Anak</option>
+              <option value="Bayi" ${p.paxType === 'Bayi' ? 'selected' : ''}>Bayi</option>
+            </select>
+          </td>
+          <td>
+            <select class="form-input pax-in-nat" style="padding: 0.35rem 0.45rem; font-size: 0.8rem; font-weight: 600;">
+              <option value="ID" ${p.nationality === 'ID' ? 'selected' : ''}>Indonesia</option>
+              <option value="MY" ${p.nationality === 'MY' ? 'selected' : ''}>Malaysia</option>
+              <option value="OTHER" ${p.nationality === 'OTHER' ? 'selected' : ''}>Lainnya</option>
+            </select>
+          </td>
+          <td>
+            <input type="tel" class="form-input pax-in-phone" placeholder="08xxxxxxxxxx" value="${p.phone || ''}" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
+          </td>
+          <td style="text-align: center;">
+            <button type="button" class="btn-del-seat-row" style="color: #ef4444; border: none; background: transparent; cursor: pointer; font-size: 1.2rem; font-weight: 800; line-height: 1;" title="Batalkan Kursi ${p.seat}">
+              &times;
+            </button>
+          </td>
+        `;
+
+        // Input Bindings
+        tr.querySelector('.pax-in-name')?.addEventListener('input', (e) => { p.name = e.target.value; });
+        tr.querySelector('.pax-in-doc')?.addEventListener('input', (e) => { p.docNum = e.target.value; });
+        tr.querySelector('.pax-in-gender')?.addEventListener('change', (e) => { p.gender = e.target.value; });
+        tr.querySelector('.pax-in-type')?.addEventListener('change', (e) => { p.paxType = e.target.value; });
+        tr.querySelector('.pax-in-nat')?.addEventListener('change', (e) => { p.nationality = e.target.value; });
+        tr.querySelector('.pax-in-phone')?.addEventListener('input', (e) => { p.phone = e.target.value; });
+
+        tr.querySelector('.btn-del-seat-row')?.addEventListener('click', () => {
+          this.toggleSeatSelection(p.seat);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Update Pax Count Badge & Total Biaya
+    const elPaxBadge = document.getElementById('tixPaxCountBadge');
+    if (elPaxBadge) elPaxBadge.innerText = `${entries.length} Penumpang Terpilih`;
+
+    const count = entries.length;
+    const totalTiket = minPrice * count;
+    const totalPas = passFee * count;
+    const totalFinal = totalTiket + totalPas;
+
+    const elBreakdown = document.getElementById('tixFinalFareBreakdown');
+    if (elBreakdown) {
+      elBreakdown.innerText = count > 0
+        ? `Tiket ${formatRupiah(minPrice)} × ${count} Pax + Pas Pelabuhan ${formatRupiah(passFee)} × ${count} Pax`
+        : `Tiket Rp 0 + Pas Pelabuhan Rp 0`;
+    }
+
+    const elTotal = document.getElementById('tixFinalFareTotal');
+    if (elTotal) elTotal.innerText = formatRupiah(totalFinal);
+
+    const elBtnText = document.getElementById('btnTixSubmitBookingFinalText');
+    if (elBtnText) {
+      elBtnText.innerText = count > 0
+        ? `Konfirmasi & Terbitkan Tiket Resmi (${count} Penumpang)`
+        : `Konfirmasi & Terbitkan Tiket Resmi (Pilih Kursi Terlebih Dahulu)`;
+    }
+  },
+
+  processFinalPosBookings() {
     const tenant = Store.getCurrentTenant();
     if (!tenant) {
       this.showToast('Gagal', 'Sesi perusahaan tidak aktif.', 'error');
       return;
     }
 
-    const paxName = document.getElementById('tixInputPaxName')?.value?.trim();
-    const docNum = document.getElementById('tixInputDocNum')?.value?.trim();
-    const gender = document.getElementById('tixInputGender')?.value || 'L';
-    const paxType = document.getElementById('tixInputPaxType')?.value || 'Dewasa';
-    const phone = document.getElementById('tixInputPhone')?.value?.trim() || '';
-    let seat = document.getElementById('tixInputSeat')?.value?.trim() || '';
-    const nationality = document.getElementById('tixInputNationality')?.value || 'ID';
-    const payMethod = document.getElementById('tixInputPaymentMethod')?.value || 'Loket Resmi Perusahaan';
-
-    if (!paxName || !docNum) {
-      this.showToast('Lengkapi Data', 'Nama lengkap dan nomor NIK/Paspor wajib diisi.', 'warning');
+    const entries = this.tixConsoleState.passengerEntries;
+    if (!entries || entries.length === 0) {
+      this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu nomor kursi pada denah visual untuk membuat entri penumpang.', 'warning');
       return;
+    }
+
+    // Validasi Kelengkapan Nama & NIK/Paspor
+    for (let i = 0; i < entries.length; i++) {
+      const p = entries[i];
+      if (!p.name || !p.name.trim()) {
+        this.showToast('Data Belum Lengkap', `Nama lengkap penumpang pada kursi ${p.seat} wajib diisi!`, 'warning');
+        return;
+      }
+      if (!p.docNum || !p.docNum.trim()) {
+        this.showToast('Data Belum Lengkap', `Nomor NIK / Paspor penumpang pada kursi ${p.seat} wajib diisi!`, 'warning');
+        return;
+      }
     }
 
     const schedules = Store.getSchedulesByCompany(tenant.id);
@@ -7189,37 +7378,50 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
     const vesselName = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
 
-    // Cek Data Penumpang Ganda
-    const dupCheck = Store.checkDuplicatePassenger(paxName, activeSched.id);
-    if (dupCheck) {
-      const ok = confirm(`⚠️ PERINGATAN DATA PENUMPANG GANDA!\n\nNama "${paxName}" sudah terdaftar pada jadwal kapal ${dupCheck.vesselName} (PNR: ${dupCheck.pnr}).\n\nApakah Anda yakin ingin tetap menerbitkan tiket untuk penumpang ini?`);
-      if (!ok) return;
-    }
-
-    // Jika kursi Otomatis, alokasikan nomor kursi pertama yang masih kosong
-    if (!seat) {
-      const seatOpts = Array.from(document.getElementById('tixInputSeat')?.options || []).filter(o => o.value && !o.disabled);
-      if (seatOpts.length > 0) {
-        seat = seatOpts[0].value;
-      } else {
-        seat = 'A-01';
+    // Cek duplikasi penumpang
+    for (let i = 0; i < entries.length; i++) {
+      const dup = Store.checkDuplicatePassenger(entries[i].name.trim(), activeSched.id);
+      if (dup) {
+        const ok = confirm(`⚠️ PERINGATAN DATA PENUMPANG GANDA!\n\nNama "${entries[i].name}" sudah terdaftar pada jadwal kapal ${dup.vesselName} (PNR: ${dup.pnr}).\n\nApakah Anda yakin ingin tetap menerbitkan tiket untuk penumpang ini?`);
+        if (!ok) return;
       }
     }
 
-    const origPort = MASTER_PORTS.find(p => p.id === activeSched.originId) || { city: activeSched.originId || 'Nunukan' };
-    const destPort = MASTER_PORTS.find(p => p.id === activeSched.destinationId) || { city: activeSched.destinationId || 'Tawau' };
-    const isSulawesi = (activeSched.destinationId === 'PRE' || activeSched.destinationCity === 'Parepare') ||
-                       (vessel && (((vessel.type || '').toLowerCase().includes('parepare')) || ((vessel.name || '').toLowerCase().includes('pantokrator'))));
-
+    const isSulawesi = (activeSched.destinationId === 'PRE') || (vessel && ((vessel.type || '').toLowerCase().includes('parepare') || (vessel.name || '').toLowerCase().includes('pantokrator')));
     const minPrice = (activeSched.classes && activeSched.classes.length > 0)
       ? Math.min(...activeSched.classes.map(c => Number(c.price)))
       : Number(activeSched.priceEconomy || (isSulawesi ? 690000 : 430000));
     const passFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(activeSched, tenant) : Number(activeSched.portPassFee || (isSulawesi ? 30000 : 50000));
-    const totalAmount = minPrice + passFee;
+    const totalPerPax = minPrice + passFee;
+    const totalAmount = totalPerPax * entries.length;
+
+    const payMethod = document.getElementById('tixFinalPaymentMethod')?.value || 'Loket Resmi Perusahaan';
+    const subPlaceSel = document.getElementById('tixFromSubPlaceSelect');
+    const pier = subPlaceSel ? subPlaceSel.value : (activeSched.pier || 'Tunon Taka');
+
+    const origPort = MASTER_PORTS.find(p => p.id === activeSched.originId) || { city: 'Nunukan' };
+    const destPort = MASTER_PORTS.find(p => p.id === activeSched.destinationId) || { city: isSulawesi ? 'Parepare' : 'Tawau' };
 
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const pnr = `OMNI-${tenant.shortName || 'TKT'}-${randomSuffix}`;
     const barcode = `8910${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    const passengerList = entries.map(p => ({
+      paxType: p.paxType || 'Dewasa',
+      name: p.name.trim(),
+      gender: p.gender || 'L',
+      docType: p.nationality === 'ID' ? 'KTP' : 'PASSPORT',
+      passportNo: p.docNum.trim(),
+      docNumber: p.docNum.trim(),
+      nik: p.docNum.trim(),
+      dob: '',
+      age: p.paxType === 'Anak' ? 8 : (p.paxType === 'Bayi' ? 1 : 30),
+      nationality: p.nationality || 'ID',
+      remark: 'POS Loket Resmi Interaktif',
+      passportExp: '',
+      seat: p.seat,
+      className: 'Tiket Reguler'
+    }));
 
     const newBooking = {
       pnr,
@@ -7230,29 +7432,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       originCity: origPort.city,
       originCode: activeSched.originId || 'NNK',
       destinationCity: destPort.city,
-      destCode: activeSched.destinationId || 'TWU',
+      destCode: activeSched.destinationId || (isSulawesi ? 'PRE' : 'TWU'),
       departDate: this.tixConsoleState.selectedDate || new Date().toISOString().split('T')[0],
       departTime: `${activeSched.departTime} WITA`,
       className: 'Tiket Reguler',
-      pier: activeSched.pier || 'Dermaga Utama',
-      isIntl: (activeSched.destinationId === 'TWU' || origPort.id === 'TWU'),
-      contact: { name: paxName, phone, email: '' },
-      passengers: [{
-        paxType,
-        name: paxName,
-        gender,
-        docType: nationality === 'ID' ? 'KTP' : 'PASSPORT',
-        passportNo: docNum,
-        docNumber: docNum,
-        nik: docNum,
-        dob: '',
-        age: paxType === 'Anak' ? 8 : (paxType === 'Bayi' ? 1 : 30),
-        nationality,
-        remark: 'Penerbitan Loket Cepat Satu Halaman',
-        passportExp: '',
-        seat,
-        className: 'Tiket Reguler'
-      }],
+      pier,
+      isIntl: (destPort.city === 'Tawau' || activeSched.destinationId === 'TWU'),
+      contact: { name: passengerList[0].name, phone: entries[0].phone || '', email: '' },
+      passengers: passengerList,
       totalAmount,
       paymentMethod: payMethod,
       paymentStatus: payMethod === 'Sistem Booked' ? 'BOOKED' : 'PAID',
@@ -7262,15 +7449,20 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     Store.addBooking(newBooking);
 
-    // Kosongkan form input
-    const paxIn = document.getElementById('tixInputPaxName');
-    const docIn = document.getElementById('tixInputDocNum');
-    const phoneIn = document.getElementById('tixInputPhone');
-    const seatIn = document.getElementById('tixInputSeat');
-    if (paxIn) paxIn.value = '';
-    if (docIn) docIn.value = '';
-    if (phoneIn) phoneIn.value = '';
-    if (seatIn) seatIn.value = '';
+    // Update Quota Jadwal
+    activeSched.quotaBooked = (activeSched.quotaBooked || 0) + entries.length;
+    const allScheds = Store.getSchedules();
+    const sIdx = allScheds.findIndex(s => s.id === activeSched.id);
+    if (sIdx !== -1) {
+      allScheds[sIdx].quotaBooked = activeSched.quotaBooked;
+      Store.saveSchedules(allScheds);
+    }
+
+    // Reset Pilihan Kursi & Entri Penumpang
+    const totalPaxSuccess = entries.length;
+    const seatListSuccess = entries.map(e => e.seat).join(', ');
+    this.tixConsoleState.selectedSeats = [];
+    this.tixConsoleState.passengerEntries = [];
 
     // Refresh dashboard & console
     this.refreshCompanyDashboard();
@@ -7278,120 +7470,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Buka Boarding Pass
     this.openBoardingPassModal(newBooking);
-    this.showToast('Tiket Berhasil Diterbitkan!', `Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seat}).`);
-  },
-
-  setTicketingEntryMode(mode) {
-    const ws = document.getElementById('ticketingConsoleWorkspace');
-    const singleForm = document.getElementById('formInPageDirectTicket');
-    const bulkContainer = document.getElementById('tixBulkEntryContainer');
-    const btnSingle = document.getElementById('btnTixModeSingle');
-    const btnBulk = document.getElementById('btnTixModeBulk');
-
-    if (mode === 'BULK') {
-      if (ws) ws.classList.add('mode-bulk');
-      if (singleForm) singleForm.style.display = 'none';
-      if (bulkContainer) bulkContainer.style.display = 'block';
-      if (btnSingle) {
-        btnSingle.classList.remove('active');
-        btnSingle.style.background = 'transparent';
-        btnSingle.style.color = '#64748b';
-      }
-      if (btnBulk) {
-        btnBulk.classList.add('active');
-        btnBulk.style.background = '#0284c7';
-        btnBulk.style.color = '#ffffff';
-      }
-
-      // Pastikan data bulk diinisialisasi
-      const tenant = Store.getCurrentTenant();
-      if (tenant) {
-        const fleet = Store.getVesselsByCompany(tenant.id);
-        const companySchedules = Store.getSchedulesByCompany(tenant.id);
-        const vesselSelect = document.getElementById('bulkTargetVesselSelect');
-        const select = document.getElementById('bulkTargetScheduleSelect');
-
-        if (vesselSelect) {
-          vesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada (${fleet.length} Kapal)</option>`;
-          fleet.forEach(fv => {
-            const opt = new Option(`⚓ ${fv.name} (${fv.capacity || 150} Kursi)`, fv.id);
-            vesselSelect.add(opt);
-          });
-          if (this.tixConsoleState && this.tixConsoleState.selectedVesselId) {
-            vesselSelect.value = this.tixConsoleState.selectedVesselId;
-          }
-        }
-
-        if (select) {
-          select.innerHTML = '';
-          const vid = vesselSelect ? vesselSelect.value : 'ALL';
-          const filtered = vid === 'ALL' ? companySchedules : companySchedules.filter(s => s.vesselId === vid);
-          const listToUse = filtered.length > 0 ? filtered : companySchedules;
-          listToUse.forEach((s, idx) => {
-            const v = fleet.find(f => f.id === s.vesselId);
-            const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
-            const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
-            const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
-            const booked = s.quotaBooked || 0;
-            const total = s.quotaTotal || (v ? v.capacity : 250);
-            const sisa = Math.max(0, total - booked);
-            const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [Sisa: ${sisa} Seat]`;
-            const opt = new Option(label, s.id);
-            if (this.tixConsoleState && this.tixConsoleState.selectedScheduleId && s.id === this.tixConsoleState.selectedScheduleId) {
-              opt.selected = true;
-            } else if (idx === 0) {
-              opt.selected = true;
-            }
-            select.add(opt);
-          });
-          this.bulkState.targetScheduleId = select.value;
-        }
-
-        this.updateBulkScheduleInfo();
-
-        const routeLabel = this.getTenantRouteScope(tenant) === 'INTL' ? 'Nunukan - Tawau' : 'Nunukan - Parepare';
-        const groupInput = document.getElementById('bulkGroupNameInput');
-        if (groupInput && !groupInput.value) {
-          groupInput.value = `Rombongan ${tenant.shortName || tenant.name} (${routeLabel})`;
-        }
-
-        if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
-          try {
-            const savedDraft = localStorage.getItem('tech_bulk_draft_passengers_v1');
-            if (savedDraft) {
-              const parsed = JSON.parse(savedDraft);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                this.bulkState.manualGridRows = parsed;
-              }
-            }
-          } catch (e) {}
-        }
-        if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
-          this.initManualGridRows(3);
-        } else {
-          this.renderManualGridTable();
-          this.syncGridToPaxList();
-        }
-
-        this.renderBulkPassengerPreview();
-      }
-
-      bulkContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else {
-      if (ws) ws.classList.remove('mode-bulk');
-      if (singleForm) singleForm.style.display = 'block';
-      if (bulkContainer) bulkContainer.style.display = 'none';
-      if (btnSingle) {
-        btnSingle.classList.add('active');
-        btnSingle.style.background = '#0284c7';
-        btnSingle.style.color = '#ffffff';
-      }
-      if (btnBulk) {
-        btnBulk.classList.remove('active');
-        btnBulk.style.background = 'transparent';
-        btnBulk.style.color = '#64748b';
-      }
-    }
+    this.showToast('Tiket Berhasil Diterbitkan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seatListSuccess}).`);
   },
 
   // ================= LIVE SEAT MAP DASHBOARD =================
