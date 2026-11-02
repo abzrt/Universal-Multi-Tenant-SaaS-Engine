@@ -743,7 +743,190 @@
             </div>
           </div>
 
-          <div class="schedules-deck" id="companyTicketingSchedulesList">
+          <!-- ALL-IN-ONE ONE-PAGE TICKETING CONSOLE (KALENDER + SEAT + TIKET SATU HALAMAN) -->
+          <div id="ticketingConsoleWorkspace" style="margin-bottom: 1.5rem;">
+            <div class="tix-console-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.25rem; align-items: start;">
+              
+              <!-- KOLOM KIRI: KALENDER PELAYARAN ARMADA TERPILIH -->
+              <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                  <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="font-size: 1.1rem;">📅</span>
+                    <strong style="font-size: 0.88rem; color: #0f172a;">Kalender Keberangkatan</strong>
+                  </div>
+                  <!-- Month Nav Buttons -->
+                  <div style="display: flex; align-items: center; gap: 0.35rem;">
+                    <button type="button" id="btnTixCalPrevMonth" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: #334155;">◀</button>
+                    <span id="tixCalMonthLabel" style="font-size: 0.82rem; font-weight: 800; color: #0284c7; min-width: 105px; text-align: center;">November 2026</span>
+                    <button type="button" id="btnTixCalNextMonth" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: #334155;">▶</button>
+                  </div>
+                </div>
+
+                <!-- Day Names Header (Sen - Min) -->
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.68rem; font-weight: 800; color: #64748b; margin-bottom: 6px;">
+                  <div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div style="color: #ef4444;">Sab</div><div style="color: #ef4444;">Min</div>
+                </div>
+
+                <!-- Calendar Days Grid -->
+                <div id="tixCalDaysContainer" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 0.85rem;">
+                  <!-- Rendered by JS -->
+                </div>
+
+                <!-- Sailings List on Clicked Day -->
+                <div style="border-top: 1px dashed #e2e8f0; padding-top: 0.75rem;">
+                  <div style="font-size: 0.76rem; font-weight: 800; color: #475569; margin-bottom: 0.45rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>🕒 Jadwal Berlayar:</span>
+                    <span id="tixSelectedDateBadge" style="color: #0284c7; font-weight: 800; font-size: 0.75rem;">-</span>
+                  </div>
+                  <div id="tixDaySchedulesList" style="display: flex; flex-direction: column; gap: 0.45rem; max-height: 180px; overflow-y: auto;">
+                    <!-- Rendered by JS -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- KOLOM KANAN: STATUS SEAT ARMADA & FORMULIR TIKET LANGSUNG -->
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <!-- Card 1: Informasi Pelayaran & Status Kuota Seat Armada -->
+                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.02);">
+                  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.85rem;">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.1rem;">🚢</span>
+                        <strong style="font-size: 1.05rem; color: #0f172a;" id="tixConsoleVesselName">Armada Kapal</strong>
+                        <span class="tag-badge" id="tixConsoleRouteBadge" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 800;">RUTE</span>
+                        <span class="tag-badge" id="tixConsoleTimeBadge" style="background: #f1f5f9; color: #334155; border-color: #cbd5e1; font-weight: 700;">🕒 09:00 WITA</span>
+                      </div>
+                      <div style="font-size: 0.76rem; color: #64748b; margin-top: 0.25rem;" id="tixConsolePierInfo">
+                        Dermaga Keberangkatan: Pelabuhan Tunon Taka Nunukan
+                      </div>
+                    </div>
+                    <div style="text-align: right;">
+                      <span style="font-size: 0.7rem; color: #64748b; font-weight: 600;">Total Tarif Resmi</span>
+                      <div style="font-size: 1.3rem; font-weight: 900; color: #ea580c; line-height: 1.2;" id="tixConsoleFareTotal">Rp 480.000</div>
+                      <div style="font-size: 0.7rem; color: #475569;" id="tixConsoleFareSub">Tiket Rp 430.000 + Pas Pelabuhan Rp 50.000</div>
+                    </div>
+                  </div>
+
+                  <!-- 4 KPI Box Kuota Kursi -->
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem;">
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.55rem 0.7rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Kapasitas</div>
+                      <div style="font-size: 1.2rem; font-weight: 900; color: #0f172a;" id="tixStatCapTotal">150</div>
+                      <div style="font-size: 0.65rem; color: #94a3b8;" id="tixStatCapDeckName">Main Deck</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.55rem 0.7rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: #166534; font-weight: 700; text-transform: uppercase;">Kursi Tersedia</div>
+                      <div style="font-size: 1.2rem; font-weight: 900; color: #16a34a;" id="tixStatCapAvail">150</div>
+                      <div style="font-size: 0.65rem; color: #16a34a;">Siap Diterbitkan</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #fecaca; border-radius: 8px; padding: 0.55rem 0.7rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: #991b1b; font-weight: 700; text-transform: uppercase;">Kursi Terisi</div>
+                      <div style="font-size: 1.2rem; font-weight: 900; color: #dc2626;" id="tixStatCapBooked">0</div>
+                      <div style="font-size: 0.65rem; color: #dc2626;">Penumpang</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.55rem 0.7rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: #075985; font-weight: 700; text-transform: uppercase;">Okupansi</div>
+                      <div style="font-size: 1.2rem; font-weight: 900; color: #0284c7;" id="tixStatCapRate">0%</div>
+                      <div style="font-size: 0.65rem; color: #0284c7;">Terisi</div>
+                    </div>
+                  </div>
+
+                  <!-- Deck Selector Pills (Khusus Kapal Multi-Deck Rute Sulawesi / Pantokrator) -->
+                  <div id="tixConsoleDeckPillsWrap" style="display: none; align-items: center; gap: 0.4rem; margin-top: 0.75rem; flex-wrap: wrap; padding-top: 0.65rem; border-top: 1px dashed #e2e8f0;">
+                    <span style="font-size: 0.74rem; font-weight: 800; color: #475569;">Pilih Dek Kapal:</span>
+                    <div id="tixConsoleDeckPills" style="display: flex; gap: 0.35rem; flex-wrap: wrap;"></div>
+                  </div>
+                </div>
+
+                <!-- Card 2: Formulir Data Penumpang & Penerbitan Langsung (In-Page) -->
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.65rem;">
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.4rem;">
+                      <span>📝</span> Data Penumpang & Cetak Tiket Loket
+                    </div>
+                    <span style="font-size: 0.74rem; color: #10b981; font-weight: 700;">✓ KSOP & Ditjen Hubla Validated</span>
+                  </div>
+
+                  <form id="formInPageDirectTicket" onsubmit="return false;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; margin-bottom: 0.85rem;">
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Nama Lengkap Penumpang *</label>
+                        <input type="text" id="tixInputPaxName" class="form-input" placeholder="contoh: Ahmad Dahlan" required style="font-weight: 600;">
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Nomor NIK / Paspor *</label>
+                        <input type="text" id="tixInputDocNum" class="form-input" placeholder="contoh: 640102... atau A9182374" required style="font-weight: 600;">
+                      </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 110px 130px 1fr 180px; gap: 0.85rem; margin-bottom: 0.85rem;">
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">L / P</label>
+                        <select id="tixInputGender" class="form-input" style="font-weight: 600;">
+                          <option value="L">L (Pria)</option>
+                          <option value="P">P (Wanita)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Kategori Pax</label>
+                        <select id="tixInputPaxType" class="form-input" style="font-weight: 600;">
+                          <option value="Dewasa">Dewasa</option>
+                          <option value="Anak">Anak-anak</option>
+                          <option value="Bayi">Bayi</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">No. WhatsApp / HP</label>
+                        <input type="tel" id="tixInputPhone" class="form-input" placeholder="08xxxxxxxxxx">
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Nomor Kursi (Seat) *</label>
+                        <select id="tixInputSeat" class="form-input" style="font-weight: 700; color: #0284c7;">
+                          <option value="">Otomatis (Acak)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Kewarganegaraan</label>
+                        <select id="tixInputNationality" class="form-input" style="font-weight: 600;">
+                          <option value="ID">Indonesia (WNI)</option>
+                          <option value="MY">Malaysia (WNA)</option>
+                          <option value="OTHER">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">Metode Pembayaran</label>
+                        <select id="tixInputPaymentMethod" class="form-input" style="font-weight: 700;">
+                          <option value="Loket Resmi Perusahaan">💵 Pembayaran Tunai di Loket</option>
+                          <option value="QRIS / E-Wallet">📱 QRIS / E-Wallet Pelabuhan</option>
+                          <option value="Transfer Bank">🏦 Transfer Bank Perusahaan</option>
+                          <option value="Sistem Booked">⏳ Sistem Booked (Bayar Saat Check-In)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Action Submit Button -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 0.75rem;">
+                      <div style="font-size: 0.78rem; color: #64748b;">
+                        💡 Tiket resmi langsung masuk manifest kapal & siap dicetak.
+                      </div>
+                      <button type="button" id="btnTixSubmitDirect" class="btn-submit-action btn-green" style="font-size: 0.92rem; padding: 0.65rem 1.6rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span>Konfirmasi & Terbitkan Tiket Resmi</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <div class="schedules-deck" id="companyTicketingSchedulesList" style="display: none;">
             <!-- Rendered by JS -->
           </div>
         </div>
