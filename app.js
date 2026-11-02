@@ -6818,6 +6818,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (schedSelect) {
       schedSelect.addEventListener('change', (e) => {
         this.seatDashState.scheduleId = e.target.value;
+        this.seatDashState.classIdx = 0;
         this.seatDashState.selectedSeat = null;
         this.renderSeatDeckGrid();
       });
@@ -6943,13 +6944,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const schedules = Store.getSchedulesByCompany(tenant.id);
     const currentSched = schedules.find(s => s.id === this.seatDashState.scheduleId);
 
-    const currentDeckName = (currentVessel && currentVessel.deckName) ? currentVessel.deckName : 'Main Deck';
-    if (deckLabel) deckLabel.innerText = currentDeckName.toUpperCase();
-
-    // Reset details panel
-    this.updateSeatDetailDisplay(null, currentDeckName);
+    // Ambil kapasitas kapal armada sesuai jadwal
+    const fleet = Store.getVesselsByCompany(tenant.id);
+    const currentVessel = currentSched ? (
+      fleet.find(f => f.id === currentSched.vesselId) ||
+      fleet.find(f => f.name === currentSched.vesselName) ||
+      Store.getVessels().find(v => v.id === currentSched.vesselId)
+    ) : null;
 
     if (!currentSched) {
+      const fallbackDeckName = (currentVessel && currentVessel.deckName) ? currentVessel.deckName : 'Main Deck';
+      if (deckLabel) deckLabel.innerText = fallbackDeckName.toUpperCase();
+      this.updateSeatDetailDisplay(null, fallbackDeckName);
       container.innerHTML = `
         <div style="text-align: center; padding: 3rem 1rem; color: var(--text-dim);">
           <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚢</div>
@@ -6957,22 +6963,53 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <span style="font-size: 0.78rem;">Silakan tambahkan jadwal pelayaran terlebih dahulu di menu Jadwal Pelayaran.</span>
         </div>
       `;
-      this.updateSeatDeckStats(0, 0, 0, currentDeckName, currentSched ? currentSched.vesselName : '-');
+      this.updateSeatDeckStats(0, 0, 0, fallbackDeckName, '-');
       return;
     }
 
-    // Ambil kapasitas kapal armada sesuai jadwal
-    const fleet = Store.getVesselsByCompany(tenant.id);
-    const currentVessel = fleet.find(f => f.id === currentSched.vesselId) ||
-                          fleet.find(f => f.name === currentSched.vesselName) ||
-                          Store.getVessels().find(v => v.id === currentSched.vesselId);
-    let vesselCapacity = 150;
-    if (currentVessel && currentVessel.capacity) {
-      vesselCapacity = parseInt(currentVessel.capacity, 10);
-    } else if (currentSched && (currentSched.capacity || currentSched.quotaTotal)) {
-      vesselCapacity = parseInt(currentSched.capacity || currentSched.quotaTotal, 10);
+    // Dek Kapal (Mendukung Multi-Deck Rute Sulawesi / Kapal Tertentu)
+    const isSulawesi = (currentSched && (currentSched.destinationId === 'PRE' || currentSched.destinationCity === 'Parepare')) ||
+                       (currentVessel && (((currentVessel.type || '').toLowerCase().includes('parepare')) || 
+                                         ((currentVessel.type || '').toLowerCase().includes('domestik')) || 
+                                         ((currentVessel.name || '').toLowerCase().includes('pantokrator'))));
+    const vesselDecks = (isSulawesi && Store.getSulawesiDecks)
+      ? Store.getSulawesiDecks()
+      : (currentVessel && currentVessel.decks && currentVessel.decks.length > 0
+          ? currentVessel.decks
+          : [{ code: 'MAIN', name: (currentVessel && currentVessel.deckName) || 'Main Deck', capacity: (currentVessel && currentVessel.capacity) || (currentSched && (currentSched.capacity || currentSched.quotaTotal)) || 150 }]);
+
+    if (this.seatDashState.classIdx >= vesselDecks.length) {
+      this.seatDashState.classIdx = 0;
     }
+    const activeDeckObj = vesselDecks[this.seatDashState.classIdx] || vesselDecks[0];
+    const currentDeckName = activeDeckObj ? activeDeckObj.name : ((currentVessel && currentVessel.deckName) ? currentVessel.deckName : 'Main Deck');
+    let vesselCapacity = activeDeckObj ? parseInt(activeDeckObj.capacity, 10) : 150;
     if (!vesselCapacity || vesselCapacity <= 0) vesselCapacity = 150;
+
+    // Sinkronkan tab dek kapal di UI (#seatDashClassTabs)
+    const deckTabsContainer = document.getElementById('seatDashClassTabs');
+    if (deckTabsContainer) {
+      deckTabsContainer.innerHTML = vesselDecks.map((d, idx) => `
+        <button type="button" class="btn-action-sm ${idx === this.seatDashState.classIdx ? 'active' : ''} seat-class-filter-btn" data-class-idx="${idx}" style="padding: 0.45rem 0.9rem; font-weight: 700; border-radius: 6px; cursor: pointer;">
+          🚢 ${d.name || d.code} (${d.capacity || 150} Kursi)
+        </button>
+      `).join('');
+
+      deckTabsContainer.querySelectorAll('.seat-class-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deckTabsContainer.querySelectorAll('.seat-class-filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.seatDashState.classIdx = parseInt(btn.getAttribute('data-class-idx'), 10) || 0;
+          this.seatDashState.selectedSeat = null;
+          this.renderSeatDeckGrid();
+        });
+      });
+    }
+
+    if (deckLabel) deckLabel.innerText = currentDeckName.toUpperCase();
+
+    // Reset details panel
+    this.updateSeatDetailDisplay(null, currentDeckName);
 
     // Map booked passengers for this schedule
     const allBookings = Store.getBookingsByCompany(tenant.id);
@@ -7097,7 +7134,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       s.classList.remove('seat-box-selected');
     });
 
-    const clickedEl = Array.from(document.querySelectorAll('#seatDashGridContainer .seat-box')).find(el => el.innerText.includes(seatCode));
+    const clickedEl = Array.from(document.querySelectorAll('#seatDashGridContainer .seat-box')).find(el => el.innerText.trim() === seatCode);
     if (clickedEl) clickedEl.classList.add('seat-box-selected');
 
     this.updateSeatDetailDisplay(seatCode, deckName, paxInfo);
