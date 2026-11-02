@@ -611,9 +611,12 @@ const App = {
     this.selectedSeats = [];
     this.selectedClassIndex = 0;
 
-    const isIntl = Boolean(
+    const isDom = origPort?.id === 'PRE' || destPort?.id === 'PRE' || (sch.destinationId === 'PRE' || sch.originId === 'PRE');
+    const isIntl = !isDom && Boolean(
       origPort?.id === 'TWU' ||
       destPort?.id === 'TWU' ||
+      sch.originId === 'TWU' ||
+      sch.destinationId === 'TWU' ||
       (comp?.category && (comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional')))
     );
 
@@ -735,9 +738,9 @@ const App = {
     }
 
     // Configure Class Options - Membaca Tarif Tiket & Pas Pelabuhan Sesuai Jadwal Perusahaan Login
-    const isNunukanTawau = (origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl;
-    const ticketFare = (sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 690000));
-    const portPassFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 25000 : 30000));
+    const isNunukanTawau = !isDom && ((origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl);
+    const ticketFare = isDom ? 690000 : ((sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 690000)));
+    const portPassFee = isDom ? 30000 : (this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 25000 : 30000)));
     const basePrice = ticketFare + portPassFee;
     this.bookingClasses = [
       { 
@@ -934,12 +937,15 @@ const App = {
     const calcCount = Math.max(1, seatCount);
 
     const { sch, origPort, destPort } = this.currentBookingSchedule || {};
-    const isIntl = (origPort?.id === 'TWU' || destPort?.id === 'TWU');
-    const isNunukanTawau = (origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl;
+    const isDom = origPort?.id === 'PRE' || destPort?.id === 'PRE' || (sch?.destinationId === 'PRE');
+    const isIntl = !isDom && (origPort?.id === 'TWU' || destPort?.id === 'TWU');
+    const isNunukanTawau = !isDom && ((origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl);
 
     // Rincian Resmi Biaya Tiket Sesuai Pengaturan Jadwal & Pas Pelabuhan Perusahaan Login:
-    let operatorBasePerPax = currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (isNunukanTawau ? 430000 : 690000);
-    let taxPerPax = currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : (isNunukanTawau ? 25000 : 30000);
+    const defaultBase = isDom ? 690000 : (isNunukanTawau ? 430000 : 690000);
+    const defaultTax = isDom ? 30000 : (isNunukanTawau ? 25000 : 30000);
+    let operatorBasePerPax = (currentClass && currentClass.price) ? Number(currentClass.price) : (currentClass && currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (sch && sch.priceEconomy ? Number(sch.priceEconomy) : defaultBase));
+    let taxPerPax = (sch && sch.portPassFee !== undefined) ? Number(sch.portPassFee) : (currentClass && currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : defaultTax);
     let totalPerPax = operatorBasePerPax + taxPerPax;
 
     const totalOperatorBase = operatorBasePerPax * calcCount;
@@ -1015,7 +1021,8 @@ const App = {
         return;
       }
     }
-    const isIntl = (origPort.id === 'TWU' || destPort.id === 'TWU' || comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional'));
+    const isDom = origPort.id === 'PRE' || destPort.id === 'PRE' || (sch.destinationId === 'PRE');
+    const isIntl = !isDom && (origPort.id === 'TWU' || destPort.id === 'TWU' || comp.category.toLowerCase().includes('tawau') || comp.category.toLowerCase().includes('internasional'));
 
     if (isIntl && (docType === 'PASSPORT_RI' || docType === 'PASSPORT_FOREIGN') && passportExp) {
       const expDate = new Date(passportExp);
@@ -1927,13 +1934,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       Store.addVessel(newVessel);
 
       // Otomatis buat jadwal pelayaran awal agar armada dan seat langsung aktif saat perusahaan login
-      const isIntl = vType.toLowerCase().includes('tawau') || vType.toLowerCase().includes('internasional') || (comp && comp.category && comp.category.toLowerCase().includes('tawau'));
+      const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
+      const isIntl = !isDom && (vType.toLowerCase().includes('tawau') || vType.toLowerCase().includes('internasional') || (comp && comp.category && comp.category.toLowerCase().includes('tawau')));
       const origId = 'NNK';
-      const destId = isIntl ? 'TWU' : 'PRE';
+      const destId = isDom ? 'PRE' : 'TWU';
       const origCity = 'Nunukan';
-      const destCity = isIntl ? 'Tawau' : 'Parepare';
-      const ticketPrice = isIntl ? 430000 : 690000;
-      const portPassPrice = isIntl ? 25000 : 30000;
+      const destCity = isDom ? 'Parepare' : 'Tawau';
+      const ticketPrice = isDom ? 690000 : 430000;
+      const portPassPrice = isDom ? 30000 : 25000;
 
       const defaultSched = {
         id: `SCH-${Date.now().toString(36).toUpperCase()}`,
@@ -1944,10 +1952,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         destinationId: destId,
         originCity: origCity,
         destinationCity: destCity,
+        categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
         departTime: '09:00',
-        arrivalTime: isIntl ? '10:30' : '17:30',
+        arrivalTime: isDom ? '17:30' : '10:30',
         date: new Date().toISOString().split('T')[0],
-        pier: 'Dermaga Utama KSOP',
+        pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
         priceEconomy: ticketPrice,
         portPassFee: portPassPrice,
         quotaTotal: capacity,
@@ -2022,24 +2031,71 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         facilities: facilities
       });
 
+      const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
+      const targetDestId = isDom ? 'PRE' : 'TWU';
+      const targetDestCity = isDom ? 'Parepare' : 'Tawau';
+      const targetTicketPrice = isDom ? 690000 : 430000;
+      const targetPortPass = isDom ? 30000 : 25000;
+
       // Sinkronisasi data di jadwal terkait
       const schedules = Store.getSchedules();
       let schedChanged = false;
+      let hasSched = false;
       schedules.forEach(s => {
         if (s.vesselId === vId || (oldName && s.vesselNameCustom === oldName)) {
+          hasSched = true;
           if (oldName && oldName !== vName) s.vesselNameCustom = vName;
           s.companyId = compId;
           s.capacity = capacity;
           s.quotaTotal = capacity;
+          s.originId = 'NNK';
+          s.originCity = 'Nunukan';
+          s.destinationId = targetDestId;
+          s.destinationCity = targetDestCity;
+          s.categoryType = isDom ? 'DOMESTIC' : 'INTERNATIONAL';
+          s.priceEconomy = targetTicketPrice;
+          s.portPassFee = targetPortPass;
+          s.pier = isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP';
+          s.arrivalTime = isDom ? '17:30' : '10:30';
           if (Array.isArray(s.classes) && s.classes.length > 0) {
             s.classes[0].quota = capacity;
+            s.classes[0].price = targetTicketPrice;
             const booked = s.classes[0].booked || 0;
             s.classes[0].available = Math.max(0, capacity - booked);
           }
           schedChanged = true;
         }
       });
-      if (schedChanged) Store.saveSchedules(schedules);
+
+      if (!hasSched) {
+        const newSched = {
+          id: `SCH-${Date.now().toString(36).toUpperCase()}`,
+          companyId: compId,
+          vesselId: vId,
+          vesselNameCustom: vName,
+          originId: 'NNK',
+          destinationId: targetDestId,
+          originCity: 'Nunukan',
+          destinationCity: targetDestCity,
+          categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
+          departTime: '09:00',
+          arrivalTime: isDom ? '17:30' : '10:30',
+          date: new Date().toISOString().split('T')[0],
+          pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
+          priceEconomy: targetTicketPrice,
+          portPassFee: targetPortPass,
+          quotaTotal: capacity,
+          quotaBooked: 0,
+          classes: [
+            { id: 'cls-eko', name: 'Tiket Reguler', price: targetTicketPrice, quota: capacity, available: capacity, booked: 0 }
+          ],
+          status: 'ACTIVE',
+          isDefault: true
+        };
+        Store.addSchedule(newSched);
+      } else if (schedChanged) {
+        Store.saveSchedules(schedules);
+      }
 
       closeDevEditVes();
       this.renderDevAdminDashboard();
@@ -2114,9 +2170,20 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         if (s.vesselId === vesselId) {
           s.quotaTotal = capacity;
           s.capacity = capacity;
+          const vType = (vessel.type || '').toLowerCase();
+          const isDom = vType.includes('parepare') || vType.includes('domestik');
+          s.originId = 'NNK';
+          s.destinationId = isDom ? 'PRE' : 'TWU';
+          s.originCity = 'Nunukan';
+          s.destinationCity = isDom ? 'Parepare' : 'Tawau';
+          s.categoryType = isDom ? 'DOMESTIC' : 'INTERNATIONAL';
+          s.priceEconomy = isDom ? 690000 : 430000;
+          s.portPassFee = isDom ? 30000 : 25000;
+          s.pier = isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP';
           if (Array.isArray(s.classes) && s.classes.length > 0) {
             s.classes[0].quota = capacity;
             s.classes[0].name = className;
+            s.classes[0].price = isDom ? 690000 : 430000;
             const booked = s.classes[0].booked || 0;
             s.classes[0].available = Math.max(0, capacity - booked);
           }
@@ -2127,9 +2194,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       // If no schedule exists yet for this vessel, create one so seat map is immediately available!
       if (schedUpdatedCount === 0) {
-        const isIntl = (vessel.type || '').toLowerCase().includes('tawau') || (vessel.type || '').toLowerCase().includes('internasional') || (comp && comp.category && comp.category.toLowerCase().includes('tawau'));
+        const vType = (vessel.type || '').toLowerCase();
+        const isDom = vType.includes('parepare') || vType.includes('domestik');
         const origId = 'NNK';
-        const destId = isIntl ? 'TWU' : 'PRE';
+        const destId = isDom ? 'PRE' : 'TWU';
         const defaultSched = {
           id: `SCH-${Date.now().toString(36).toUpperCase()}`,
           companyId: compId,
@@ -2138,17 +2206,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           originId: origId,
           destinationId: destId,
           originCity: 'Nunukan',
-          destinationCity: isIntl ? 'Tawau' : 'Parepare',
+          destinationCity: isDom ? 'Parepare' : 'Tawau',
+          categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
           departTime: '09:00',
-          arrivalTime: isIntl ? '10:30' : '17:30',
+          arrivalTime: isDom ? '17:30' : '10:30',
           date: new Date().toISOString().split('T')[0],
-          pier: 'Dermaga Utama KSOP',
-          priceEconomy: isIntl ? 430000 : 690000,
-          portPassFee: isIntl ? 25000 : 30000,
+          pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
+          priceEconomy: isDom ? 690000 : 430000,
+          portPassFee: isDom ? 30000 : 25000,
           quotaTotal: capacity,
           quotaBooked: 0,
           classes: [
-            { id: 'cls-eko', name: className, price: isIntl ? 430000 : 690000, quota: capacity, available: capacity, booked: 0 }
+            { id: 'cls-eko', name: className, price: isDom ? 690000 : 430000, quota: capacity, available: capacity, booked: 0 }
           ],
           status: 'ACTIVE',
           isDefault: makeDefault

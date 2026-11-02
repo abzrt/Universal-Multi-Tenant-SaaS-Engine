@@ -442,16 +442,36 @@ const Store = {
       return DEFAULT_SCHEDULES;
     }
     const list = JSON.parse(raw) || [];
+    const vessels = this.getVessels ? this.getVessels() : [];
     return list.map(s => {
+      const v = vessels.find(item => item.id === s.vesselId || item.name === s.vesselNameCustom);
+      const vType = (v ? (v.type || '') : (s.vesselType || '')).toLowerCase();
+      const isDom = vType.includes('parepare') || vType.includes('domestik') || (s.destinationId === 'PRE' || s.destinationCity === 'Parepare');
+      if (isDom) {
+        s.originId = 'NNK';
+        s.destinationId = 'PRE';
+        s.originCity = 'Nunukan';
+        s.destinationCity = 'Parepare';
+        s.categoryType = 'DOMESTIC';
+        s.priceEconomy = 690000;
+        s.portPassFee = 30000;
+      } else {
+        s.originId = 'NNK';
+        s.destinationId = 'TWU';
+        s.originCity = 'Nunukan';
+        s.destinationCity = 'Tawau';
+        s.categoryType = 'INTERNATIONAL';
+        s.priceEconomy = 430000;
+        s.portPassFee = 25000;
+      }
+      const targetPrice = isDom ? 690000 : 430000;
       if (!Array.isArray(s.classes) || s.classes.length === 0) {
-        const isTwu = s.originId === 'TWU' || s.destinationId === 'TWU';
-        const defaultPrice = isTwu ? 480000 : (s.priceEconomy || 690000);
         s.classes = [
-          { id: 'cls-eko', name: 'Tiket Reguler', price: defaultPrice, quota: s.quotaTotal || 200, available: 200 }
+          { id: 'cls-eko', name: 'Tiket Reguler', price: targetPrice, quota: s.quotaTotal || 150, available: s.quotaTotal || 150 }
         ];
-      } else if (s.classes.length > 1) {
-        const eko = s.classes.find(c => c.id === 'cls-eko' || (c.name && !c.name.toLowerCase().includes('vip'))) || s.classes[0];
-        s.classes = [{ ...eko, id: eko.id || 'cls-eko', name: 'Tiket Reguler' }];
+      } else {
+        const eko = s.classes[0];
+        s.classes = [{ ...eko, id: eko.id || 'cls-eko', name: eko.name || 'Tiket Reguler', price: targetPrice }];
       }
       return s;
     });
@@ -951,7 +971,7 @@ const Store = {
         destinationName: 'Tawau',
         category: 'Internasional',
         ticketPrice: 430000,
-        portPassFee: 50000,
+        portPassFee: 25000,
         notes: 'Rute Lintas Batas RI - Malaysia'
       },
       {
@@ -984,10 +1004,19 @@ const Store = {
 
         let updatedStorage = filtered.length !== parsed.length;
         filtered.forEach(r => {
-          if ((r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) && (r.ticketPrice === 250000 || r.portPassFee === 10000)) {
-            r.ticketPrice = 690000;
-            r.portPassFee = 30000;
-            updatedStorage = true;
+          if (r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) {
+            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000) {
+              r.ticketPrice = 690000;
+              r.portPassFee = 30000;
+              updatedStorage = true;
+            }
+          }
+          if (r.id === 'ROUTE-NNK-TWU' || (r.originId === 'NNK' && r.destinationId === 'TWU')) {
+            if (r.ticketPrice !== 430000 || r.portPassFee !== 25000) {
+              r.ticketPrice = 430000;
+              r.portPassFee = 25000;
+              updatedStorage = true;
+            }
           }
         });
 
