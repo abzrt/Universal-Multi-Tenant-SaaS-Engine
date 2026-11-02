@@ -960,6 +960,22 @@ const Store = {
     return null;
   },
 
+  // Standar Alokasi Dek & Kapasitas Penumpang Rute Nunukan - Sulawesi (Parepare): Total 1.084 Kursi
+  getSulawesiDecks() {
+    return [
+      { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
+      { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
+      { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
+      { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
+      { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
+      { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
+    ];
+  },
+
+  getSulawesiTotalCapacity() {
+    return 1084;
+  },
+
   // 7. Master Penetapan Tarif Resmi Seluruh Rute Kapal (Developer Tariff Authority)
   getMasterRouteTariffs() {
     const defaultRoutes = [
@@ -983,7 +999,16 @@ const Store = {
         category: 'Domestik',
         ticketPrice: 690000,
         portPassFee: 30000,
-        notes: 'Rute Antar Pulau Domestik'
+        totalCapacity: 1084,
+        decks: [
+          { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
+          { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
+          { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
+          { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
+          { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
+          { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
+        ],
+        notes: 'Rute Antar Pulau Domestik (Sulawesi)'
       }
     ];
 
@@ -1005,9 +1030,18 @@ const Store = {
         let updatedStorage = filtered.length !== parsed.length;
         filtered.forEach(r => {
           if (r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) {
-            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000) {
+            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000 || !r.decks || r.totalCapacity !== 1084) {
               r.ticketPrice = 690000;
               r.portPassFee = 30000;
+              r.totalCapacity = 1084;
+              r.decks = [
+                { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
+                { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
+                { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
+                { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
+                { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
+                { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
+              ];
               updatedStorage = true;
             }
           }

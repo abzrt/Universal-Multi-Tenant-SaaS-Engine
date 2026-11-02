@@ -2121,7 +2121,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const vessel = Store.getVessels().find(v => v.id === vId);
       if (vessel) {
         const capInput = document.getElementById('devSeatCapacityInput');
-        if (capInput) capInput.value = vessel.capacity || 150;
+        const isVesselSulawesi = (vessel.type || '').toLowerCase().includes('parepare') || (vessel.type || '').toLowerCase().includes('domestik') || (vessel.name || '').toLowerCase().includes('pantokrator');
+    if (capInput) {
+      capInput.value = (isVesselSulawesi && (!vessel.capacity || vessel.capacity === 150))
+        ? 1084
+        : (vessel.capacity || 150);
+    }
         const deckInput = document.getElementById('devSeatDeckNameInput');
         if (deckInput) deckInput.value = vessel.deckName || 'Main Deck';
         const classInput = document.getElementById('devSeatClassNameInput');
@@ -2242,6 +2247,40 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       closeDevSeats();
       this.renderDevAdminDashboard();
       this.showToast('Pengaturan Kursi Disimpan', `Denah kursi "${vessel.name}" (${capacity} Kursi - ${deckName}) berhasil disimpan. Otomatis menjadi default saat ${comp ? comp.name : 'perusahaan'} login.`);
+    });
+
+    // Event listener untuk tombol Rincian Dek & Kapasitas Penumpang Rute Sulawesi di Dev Mode
+    document.getElementById('btnDevApplySulawesiDecks')?.addEventListener('click', () => {
+      this.applySulawesiDecksToFleets();
+    });
+    document.getElementById('btnDevOpenSulawesiSeatModal')?.addEventListener('click', () => {
+      const companies = Store.getCompanies();
+      const vessels = Store.getVessels();
+      const sulawesiVessel = vessels.find(v => ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator')));
+      const targetCompId = sulawesiVessel ? sulawesiVessel.companyId : (companies[0]?.id || null);
+      this.openDevConfigSeatsModal(targetCompId, sulawesiVessel ? sulawesiVessel.id : null);
+    });
+    document.getElementById('btnDevApplySulawesiPresetInModal')?.addEventListener('click', () => {
+      const capInput = document.getElementById('devSeatCapacityInput');
+      const deckInput = document.getElementById('devSeatDeckNameInput');
+      if (capInput) capInput.value = 1084;
+      if (deckInput) deckInput.value = 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
+      this.updateDevSeatModalPreview();
+      this.showToast('Preset Rute Sulawesi Aktif', 'Kapasitas 1.084 kursi dengan 6 dek rute Nunukan - Sulawesi diterapkan.');
+    });
+
+    // Auto update capacity saat memilih tipe rute di form tambah / edit kapal dev mode
+    document.getElementById('devAddVesselType')?.addEventListener('change', (e) => {
+      const isDom = e.target.value.includes('Parepare') || e.target.value.includes('Domestik');
+      const capEl = document.getElementById('devAddVesselCapacity');
+      if (capEl) capEl.value = isDom ? '1084' : '150';
+    });
+    document.getElementById('devEditVesselType')?.addEventListener('change', (e) => {
+      const isDom = e.target.value.includes('Parepare') || e.target.value.includes('Domestik');
+      const capEl = document.getElementById('devEditVesselCapacity');
+      if (capEl && (capEl.value === '150' || capEl.value === '1084')) {
+        capEl.value = isDom ? '1084' : '150';
+      }
     });
 
     ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevEditVessel', 'modalDevConfigSeats'].forEach(mId => {
@@ -2952,6 +2991,228 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         }).join('');
       }
     }
+
+    // Render Section 1C: Rincian Jumlah Penumpang & Deck Rute Nunukan - Sulawesi (Parepare)
+    this.renderDevSulawesiDeckSection();
+  },
+
+  // State & Render Rincian Dek & Kapasitas Penumpang Rute Nunukan - Sulawesi (Parepare)
+  devSulawesiActiveDeck: '3B',
+
+  renderDevSulawesiDeckSection() {
+    const decks = (typeof Store !== 'undefined' && Store.getSulawesiDecks) 
+      ? Store.getSulawesiDecks() 
+      : [
+        { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
+        { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
+        { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
+        { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
+        { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
+        { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
+      ];
+
+    // 1. Render Table Breakdown
+    const tbody = document.getElementById('tbodyDevSulawesiDecksList');
+    if (tbody) {
+      tbody.innerHTML = decks.map(d => {
+        const isActive = this.devSulawesiActiveDeck === d.code;
+        return `
+          <tr style="background: ${isActive ? 'rgba(56, 189, 248, 0.12)' : '#162032'}; color: #e2e8f0; transition: background 0.15s ease;">
+            <td style="white-space: nowrap;">
+              <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <span style="font-weight: 800; color: ${isActive ? '#38bdf8' : '#f8fafc'};">${d.carriage}</span>
+                ${isActive ? '<span style="background: rgba(56,189,248,0.25); color:#38bdf8; font-size:0.62rem; font-weight:800; padding:0.05rem 0.35rem; border-radius:4px;">AKTIF</span>' : ''}
+              </div>
+            </td>
+            <td style="white-space: nowrap;">
+              <strong style="color: #34d399; font-size: 0.84rem;">${d.capacity}</strong> <span style="font-size: 0.72rem; color: #94a3b8;">kursi (${d.percent})</span>
+            </td>
+            <td style="white-space: nowrap;">
+              <code style="color: #38bdf8; font-size: 0.74rem;">${d.range}</code>
+            </td>
+            <td>
+              <span style="color: #cbd5e1; font-size: 0.72rem;">${d.desc}</span>
+            </td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button type="button" class="btn-dev-preview-sulawesi-deck" data-deck="${d.code}" style="background: ${isActive ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#334155'}; color: #ffffff; border: 1px solid ${isActive ? '#38bdf8' : '#475569'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
+                ${isActive ? '👁️ Sedang Ditampilkan' : '👁️ Denah'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.btn-dev-preview-sulawesi-deck').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const deckCode = btn.getAttribute('data-deck');
+          this.devSulawesiActiveDeck = deckCode;
+          this.renderDevSulawesiDeckSection();
+        });
+      });
+    }
+
+    // 2. Render Carriage Tabs
+    const tabsContainer = document.getElementById('devSulawesiCarriageTabs');
+    if (tabsContainer) {
+      tabsContainer.innerHTML = decks.map(d => {
+        const isActive = this.devSulawesiActiveDeck === d.code;
+        return `
+          <button type="button" class="btn-dev-sulawesi-tab" data-deck="${d.code}" style="background: ${isActive ? '#0284c7' : '#1e293b'}; color: ${isActive ? '#ffffff' : '#94a3b8'}; border: 1px solid ${isActive ? '#38bdf8' : '#334155'}; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.76rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; box-shadow: ${isActive ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'};">
+            ${d.carriage} <span style="font-size: 0.68rem; opacity: 0.85;">(${d.capacity})</span>
+          </button>
+        `;
+      }).join('');
+
+      tabsContainer.querySelectorAll('.btn-dev-sulawesi-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const deckCode = btn.getAttribute('data-deck');
+          this.devSulawesiActiveDeck = deckCode;
+          this.renderDevSulawesiDeckSection();
+        });
+      });
+    }
+
+    // 3. Render Visual Seat Grid Preview for Active Deck (Mirrors User Screenshot)
+    const activeDeckObj = decks.find(d => d.code === this.devSulawesiActiveDeck) || decks[3]; // default 3B
+    const nameLabel = document.getElementById('devSulawesiSelectedDeckName');
+    if (nameLabel) nameLabel.textContent = `${activeDeckObj.carriage} (${activeDeckObj.name})`;
+    const badgeLabel = document.getElementById('devSulawesiSelectedDeckBadge');
+    if (badgeLabel) badgeLabel.textContent = `${activeDeckObj.capacity} Kursi (${activeDeckObj.range})`;
+
+    const gridContainer = document.getElementById('devSulawesiSeatGridPreview');
+    if (gridContainer) {
+      gridContainer.innerHTML = '';
+      const cap = activeDeckObj.capacity;
+      const cols = 8; // 8 kursi per baris (4 kiri - 4 kanan) seperti di screenshot foto
+      const totalRows = Math.ceil(cap / cols);
+
+      for (let r = 0; r < totalRows; r++) {
+        const rowEl = document.createElement('div');
+        rowEl.style.display = 'flex';
+        rowEl.style.gap = '0.2rem';
+        rowEl.style.justifyContent = 'center';
+        rowEl.style.alignItems = 'center';
+
+        for (let c = 1; c <= cols; c++) {
+          const seatNum = r * cols + c;
+          if (seatNum > cap) {
+            const emptySpace = document.createElement('div');
+            emptySpace.style.width = '24px';
+            emptySpace.style.height = '24px';
+            rowEl.appendChild(emptySpace);
+            continue;
+          }
+
+          // In screenshot: some seats are orange (reserved), some yellow (purchased), others white (available)
+          const isOrange = (seatNum >= 5 && seatNum <= 9) || (seatNum >= 13 && seatNum <= 15) || (seatNum >= 50 && seatNum <= 53) || (seatNum >= 57 && seatNum <= 60) || (seatNum >= 66 && seatNum <= 71) || (seatNum >= 78 && seatNum <= 81) || (seatNum >= 87 && seatNum <= 93) || (seatNum >= 104 && seatNum <= 106) || (seatNum >= 108 && seatNum <= 113) || (seatNum >= 130 && seatNum <= 133);
+          const isYellow = (seatNum >= 31 && seatNum <= 38) || (seatNum === 77) || (seatNum === 28) || (seatNum === 30);
+
+          let bg = '#ffffff';
+          let textColor = '#1e293b';
+          let border = '1px solid #cbd5e1';
+          let prefix = '';
+
+          if (isOrange) {
+            bg = '#ea580c';
+            textColor = '#ffffff';
+            border = '1px solid #c2410c';
+            prefix = 'L';
+          } else if (isYellow) {
+            bg = '#eab308';
+            textColor = '#0f172a';
+            border = '1px solid #ca8a04';
+            prefix = (seatNum === 34 || seatNum === 77) ? 'P' : 'L';
+          }
+
+          // Aisle between 4 and 5
+          if (c === 5) {
+            const aisle = document.createElement('div');
+            aisle.style.width = '12px';
+            rowEl.appendChild(aisle);
+          }
+
+          const seatEl = document.createElement('div');
+          seatEl.style.width = '26px';
+          seatEl.style.height = '22px';
+          seatEl.style.background = bg;
+          seatEl.style.color = textColor;
+          seatEl.style.border = border;
+          seatEl.style.borderRadius = '3px';
+          seatEl.style.display = 'flex';
+          seatEl.style.alignItems = 'center';
+          seatEl.style.justifyContent = 'center';
+          seatEl.style.fontSize = '0.62rem';
+          seatEl.style.fontWeight = '800';
+          seatEl.style.cursor = 'pointer';
+          seatEl.style.fontFamily = 'monospace';
+          seatEl.style.position = 'relative';
+          seatEl.title = `Kursi ${seatNum} (${activeDeckObj.carriage})`;
+
+          if (prefix) {
+            const sup = document.createElement('span');
+            sup.style.fontSize = '0.45rem';
+            sup.style.position = 'absolute';
+            sup.style.top = '1px';
+            sup.style.left = '2px';
+            sup.textContent = prefix;
+            seatEl.appendChild(sup);
+          }
+
+          const numText = document.createTextNode(String(seatNum));
+          seatEl.appendChild(numText);
+
+          rowEl.appendChild(seatEl);
+        }
+
+        gridContainer.appendChild(rowEl);
+      }
+    }
+  },
+
+  applySulawesiDecksToFleets() {
+    const vessels = Store.getVessels();
+    const sulawesiDecks = (Store.getSulawesiDecks ? Store.getSulawesiDecks() : []);
+    let updatedCount = 0;
+
+    vessels.forEach(v => {
+      const vType = (v.type || '').toLowerCase();
+      const vName = (v.name || '').toLowerCase();
+      if (vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator')) {
+        v.capacity = 1084;
+        v.deckName = 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
+        v.decks = sulawesiDecks;
+        Store.updateVessel(v.id, {
+          capacity: 1084,
+          deckName: 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan',
+          decks: sulawesiDecks
+        });
+        updatedCount++;
+      }
+    });
+
+    const scheds = Store.getSchedules();
+    let schedUpdated = 0;
+    scheds.forEach(s => {
+      const v = vessels.find(item => item.id === s.vesselId);
+      const isSulawesi = (s.destinationId === 'PRE' || s.destinationCity === 'Parepare' || (v && ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator'))));
+      if (isSulawesi) {
+        s.quotaTotal = 1084;
+        s.capacity = 1084;
+        if (Array.isArray(s.classes) && s.classes.length > 0) {
+          s.classes[0].quota = 1084;
+          const booked = s.classes[0].booked || 0;
+          s.classes[0].available = Math.max(0, 1084 - booked);
+        }
+        schedUpdated++;
+      }
+    });
+
+    if (schedUpdated > 0) {
+      Store.saveSchedules(scheds);
+    }
+
+    this.renderDevAdminDashboard();
+    this.showToast('Kapasitas Rute Sulawesi Diterapkan', `Berhasil menerapkan alokasi 1.084 kursi dan 6 dek ke ${updatedCount} armada dan ${schedUpdated} jadwal rute Sulawesi.`);
   },
 
   // Helper function to switch tabs in company dashboard
@@ -7955,7 +8216,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
       typeSelect.value = vessel.type || typeSelect.options[0]?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
     }
-    if (capInput) capInput.value = vessel.capacity || 150;
+    const isVesselSulawesi = (vessel.type || '').toLowerCase().includes('parepare') || (vessel.type || '').toLowerCase().includes('domestik') || (vessel.name || '').toLowerCase().includes('pantokrator');
+    if (capInput) {
+      capInput.value = (isVesselSulawesi && (!vessel.capacity || vessel.capacity === 150))
+        ? 1084
+        : (vessel.capacity || 150);
+    }
     if (facInput) {
       facInput.value = (Array.isArray(vessel.facilities) && vessel.facilities.length > 0)
         ? vessel.facilities.join(', ')
@@ -8029,10 +8295,29 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     const activeVessel = vessels.find(v => v.id === vesselSel.value) || vessels[0];
     if (activeVessel) {
+      const vType = (activeVessel.type || '').toLowerCase();
+      const vName = (activeVessel.name || '').toLowerCase();
+      const isSulawesi = vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
+
+      const presetBanner = document.getElementById('devSeatSulawesiPresetBanner');
+      if (presetBanner) presetBanner.style.display = isSulawesi ? 'block' : 'none';
+
       const capInput = document.getElementById('devSeatCapacityInput');
-      if (capInput) capInput.value = activeVessel.capacity || 150;
+      if (capInput) {
+        if (isSulawesi && (!activeVessel.capacity || activeVessel.capacity === 150)) {
+          capInput.value = 1084;
+        } else {
+          capInput.value = activeVessel.capacity || 150;
+        }
+      }
       const deckInput = document.getElementById('devSeatDeckNameInput');
-      if (deckInput) deckInput.value = activeVessel.deckName || 'Main Deck';
+      if (deckInput) {
+        if (isSulawesi && (!activeVessel.deckName || activeVessel.deckName === 'Main Deck')) {
+          deckInput.value = 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
+        } else {
+          deckInput.value = activeVessel.deckName || 'Main Deck';
+        }
+      }
       const classInput = document.getElementById('devSeatClassNameInput');
       if (classInput) classInput.value = activeVessel.className || 'Tiket Reguler';
 
@@ -8063,14 +8348,27 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const lastRow = getRowCode(Math.max(0, totalRows - 1));
 
     const badge = document.getElementById('devSeatSummaryBadge');
-    if (badge) badge.textContent = `${cap} Kursi (${totalRows} Baris)`;
+    if (badge) {
+      if (cap === 1084) {
+        badge.textContent = `1.084 Kursi (6 Dek: 2A, 2B, 3A, 3B, 3C, 3 Depan)`;
+      } else {
+        badge.textContent = `${cap} Kursi (${totalRows} Baris)`;
+      }
+    }
 
     const details = document.getElementById('devSeatPreviewDetails');
     if (details) {
-      details.innerHTML = `
-        Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8; font-weight: 700;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
-        Penomoran: Baris <strong>${firstRow}-01 s/d ${firstRow}-06</strong> hingga <strong>${lastRow}-01 s/d ${lastRow}-06</strong> (Total kapasitas: ${cap} kursi)
-      `;
+      if (cap === 1084) {
+        details.innerHTML = `
+          Format Rute Sulawesi: <strong>6 Dek Penumpang</strong> (2A: 274, 2B: 446, 3A: 122, 3B: 133, 3C: 45, 3 Depan: 64 kursi)<br>
+          Total Kapasitas: <strong>1.084 Penumpang</strong> (Sesuai Manifest Denah Kapal Rute Nunukan – Sulawesi)
+        `;
+      } else {
+        details.innerHTML = `
+          Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8; font-weight: 700;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
+          Penomoran: Baris <strong>${firstRow}-01 s/d ${firstRow}-06</strong> hingga <strong>${lastRow}-01 s/d ${lastRow}-06</strong> (Total kapasitas: ${cap} kursi)
+        `;
+      }
     }
 
     const miniGrid = document.getElementById('devSeatMiniGridPreview');
