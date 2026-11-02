@@ -484,7 +484,7 @@ const Store = {
   addSchedule(schedule) {
     if (!Array.isArray(schedule.classes) || schedule.classes.length === 0) {
       const isTwu = schedule.originId === 'TWU' || schedule.destinationId === 'TWU';
-      const defaultPrice = isTwu ? 480000 : (schedule.priceEconomy || 690000);
+      const defaultPrice = isTwu ? 430000 : (schedule.priceEconomy || 690000);
       schedule.classes = [
         { id: 'cls-eko', name: 'Main Deck', price: defaultPrice, quota: schedule.quotaTotal || 200, available: 200 }
       ];

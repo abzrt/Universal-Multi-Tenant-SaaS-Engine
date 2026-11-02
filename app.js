@@ -737,10 +737,31 @@ const App = {
       };
     }
 
-    // Configure Class Options - Membaca Tarif Tiket & Pas Pelabuhan Sesuai Jadwal Perusahaan Login
+    // Configure Class Options - Membaca Tarif Tiket & Pas Pelabuhan Sesuai Jadwal Perusahaan Login & Master Tarif Dev Mode
     const isNunukanTawau = !isDom && ((origPort.id === 'NNK' && destPort.id === 'TWU') || (origPort.id === 'TWU' && destPort.id === 'NNK') || isIntl);
-    const ticketFare = isDom ? 690000 : ((sch.classes && sch.classes[0] && sch.classes[0].price) ? Number(sch.classes[0].price) : Number(sch.priceEconomy || (isNunukanTawau ? 430000 : 690000)));
-    const portPassFee = isDom ? 30000 : (this.getSchedulePortPassFee ? this.getSchedulePortPassFee(sch, comp) : Number(sch.portPassFee !== undefined ? sch.portPassFee : (isNunukanTawau ? 50000 : 30000)));
+
+    const masterTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) 
+      ? Store.getMasterRouteTariff(origPort.id, destPort.id) 
+      : null;
+
+    let ticketFare = isDom ? 690000 : (isNunukanTawau ? 430000 : 690000);
+    if (masterTariff && masterTariff.ticketPrice) {
+      ticketFare = Number(masterTariff.ticketPrice);
+    } else if (sch.priceEconomy) {
+      ticketFare = (isNunukanTawau && Number(sch.priceEconomy) === 480000) ? 430000 : Number(sch.priceEconomy);
+    } else if (sch.classes && sch.classes[0] && sch.classes[0].price) {
+      ticketFare = (isNunukanTawau && Number(sch.classes[0].price) === 480000) ? 430000 : Number(sch.classes[0].price);
+    }
+
+    let portPassFee = isDom ? 30000 : (isNunukanTawau ? 50000 : 30000);
+    if (masterTariff && masterTariff.portPassFee !== undefined) {
+      portPassFee = Number(masterTariff.portPassFee);
+    } else if (sch.portPassFee !== undefined) {
+      portPassFee = Number(sch.portPassFee);
+    } else if (this.getSchedulePortPassFee) {
+      portPassFee = this.getSchedulePortPassFee(sch, comp);
+    }
+
     const basePrice = ticketFare + portPassFee;
     this.bookingClasses = [
       { 
@@ -941,12 +962,34 @@ const App = {
     const isIntl = !isDom && (origPort?.id === 'TWU' || destPort?.id === 'TWU');
     const isNunukanTawau = !isDom && ((origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl);
 
-    // Rincian Resmi Biaya Tiket Sesuai Pengaturan Jadwal & Pas Pelabuhan Perusahaan Login:
+    // Rincian Resmi Biaya Tiket Sesuai Pengaturan Jadwal & Pas Pelabuhan Perusahaan Login & Master Tarif:
+    const masterTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) 
+      ? Store.getMasterRouteTariff(origPort?.id, destPort?.id) 
+      : null;
+
     const defaultBase = isDom ? 690000 : (isNunukanTawau ? 430000 : 690000);
     const defaultTax = isDom ? 30000 : (isNunukanTawau ? 50000 : 30000);
-    let operatorBasePerPax = (currentClass && currentClass.price) ? Number(currentClass.price) : (currentClass && currentClass.baseFare !== undefined ? Number(currentClass.baseFare) : (sch && sch.priceEconomy ? Number(sch.priceEconomy) : defaultBase));
-    let taxPerPax = (sch && sch.portPassFee !== undefined) ? Number(sch.portPassFee) : (currentClass && currentClass.taxFee !== undefined ? Number(currentClass.taxFee) : defaultTax);
+
+    let operatorBasePerPax = (currentClass && currentClass.baseFare !== undefined)
+      ? Number(currentClass.baseFare)
+      : (masterTariff && masterTariff.ticketPrice ? Number(masterTariff.ticketPrice) : (sch && sch.priceEconomy ? Number(sch.priceEconomy) : defaultBase));
+
+    // Jangan tambahkan tax dua kali jika base fare tertulis 480.000 pada rute Tawau
+    if (isNunukanTawau && operatorBasePerPax === 480000) {
+      operatorBasePerPax = 430000;
+    }
+
+    let taxPerPax = (currentClass && currentClass.taxFee !== undefined)
+      ? Number(currentClass.taxFee)
+      : (masterTariff && masterTariff.portPassFee !== undefined ? Number(masterTariff.portPassFee) : (sch && sch.portPassFee !== undefined ? Number(sch.portPassFee) : defaultTax));
+
     let totalPerPax = operatorBasePerPax + taxPerPax;
+
+    if (currentClass) {
+      currentClass.price = totalPerPax;
+      currentClass.baseFare = operatorBasePerPax;
+      currentClass.taxFee = taxPerPax;
+    }
 
     const totalOperatorBase = operatorBasePerPax * calcCount;
     const totalTax = taxPerPax * calcCount;
@@ -964,12 +1007,7 @@ const App = {
     if (feeInsuEl) {
       const insuRow = feeInsuEl.closest('.fee-breakdown-row');
       if (insuRow) {
-        if (isNunukanTawau) {
-          insuRow.style.display = 'none';
-        } else {
-          insuRow.style.display = 'flex';
-          feeInsuEl.innerText = fmt(10000 * calcCount);
-        }
+        insuRow.style.display = 'none';
       }
     }
 
