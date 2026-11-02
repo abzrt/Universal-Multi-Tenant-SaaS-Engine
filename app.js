@@ -2012,7 +2012,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const capacity = parseInt(document.getElementById('devSeatCapacityInput')?.value, 10) || 150;
       const deckName = (document.getElementById('devSeatDeckNameInput')?.value || 'Main Deck').trim();
       const className = (document.getElementById('devSeatClassNameInput')?.value || 'Tiket Reguler').trim();
-      const ticketPrice = parseInt(document.getElementById('devSeatTicketPriceInput')?.value, 10) || 690000;
       const makeDefault = document.getElementById('devSeatMakeDefaultCheck')?.checked ?? true;
 
       if (!compId || !vesselId) {
@@ -2046,11 +2045,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           if (Array.isArray(s.classes) && s.classes.length > 0) {
             s.classes[0].quota = capacity;
             s.classes[0].name = className;
-            if (ticketPrice > 0) s.classes[0].price = ticketPrice;
             const booked = s.classes[0].booked || 0;
             s.classes[0].available = Math.max(0, capacity - booked);
           }
-          if (ticketPrice > 0) s.priceEconomy = ticketPrice;
           targetSchedId = s.id;
           schedUpdatedCount++;
         }
@@ -2074,12 +2071,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           arrivalTime: isIntl ? '10:30' : '17:30',
           date: new Date().toISOString().split('T')[0],
           pier: 'Dermaga Utama KSOP',
-          priceEconomy: ticketPrice,
+          priceEconomy: isIntl ? 430000 : 690000,
           portPassFee: isIntl ? 25000 : 30000,
           quotaTotal: capacity,
           quotaBooked: 0,
           classes: [
-            { id: 'cls-eko', name: className, price: ticketPrice, quota: capacity, available: capacity, booked: 0 }
+            { id: 'cls-eko', name: className, price: isIntl ? 430000 : 690000, quota: capacity, available: capacity, booked: 0 }
           ],
           status: 'ACTIVE',
           isDefault: makeDefault
