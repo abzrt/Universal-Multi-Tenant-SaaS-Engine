@@ -6881,9 +6881,15 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.processFinalPosBookings();
     });
 
-    // Bulk / Single fallback button
+    // Bulk / Single buttons
     document.getElementById('btnOpenBulkPassengerFromTicketing')?.addEventListener('click', () => {
-      this.openBulkPassengerModal();
+      this.setTicketingEntryMode('BULK');
+    });
+    document.getElementById('btnTixModeSingle')?.addEventListener('click', () => {
+      this.setTicketingEntryMode('SINGLE');
+    });
+    document.getElementById('btnTixModeBulk')?.addEventListener('click', () => {
+      this.setTicketingEntryMode('BULK');
     });
   },
 
@@ -7471,6 +7477,83 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // Buka Boarding Pass
     this.openBoardingPassModal(newBooking);
     this.showToast('Tiket Berhasil Diterbitkan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seatListSuccess}).`);
+  },
+
+  setTicketingEntryMode(mode) {
+    const singleSection = document.getElementById('tixSingleModeSection');
+    const bulkContainer = document.getElementById('tixBulkEntryContainer');
+    const btnSingle = document.getElementById('btnTixModeSingle');
+    const btnBulk = document.getElementById('btnTixModeBulk');
+
+    if (mode === 'BULK') {
+      if (singleSection) singleSection.style.display = 'none';
+      if (bulkContainer) bulkContainer.style.display = 'block';
+      if (btnSingle) {
+        btnSingle.classList.remove('active');
+        btnSingle.style.background = 'transparent';
+        btnSingle.style.color = '#64748b';
+      }
+      if (btnBulk) {
+        btnBulk.classList.add('active');
+        btnBulk.style.background = '#0284c7';
+        btnBulk.style.color = '#ffffff';
+      }
+
+      // Pastikan data bulk diinisialisasi
+      const tenant = Store.getCurrentTenant();
+      if (tenant) {
+        const fleet = Store.getVesselsByCompany(tenant.id);
+        const companySchedules = Store.getSchedulesByCompany(tenant.id);
+        const vesselSelect = document.getElementById('bulkTargetVesselSelect');
+        const select = document.getElementById('bulkTargetScheduleSelect');
+
+        if (vesselSelect && fleet && fleet.length > 0) {
+          vesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada (${fleet.length} Kapal)</option>`;
+          fleet.forEach(fv => {
+            const opt = new Option(`🚢 ${fv.name} (${fv.capacity || 150} Kursi)`, fv.id);
+            vesselSelect.add(opt);
+          });
+          if (this.selectedTicketingVessel && this.selectedTicketingVessel !== 'ALL') {
+            vesselSelect.value = this.selectedTicketingVessel;
+          }
+        }
+
+        if (select && companySchedules && companySchedules.length > 0) {
+          select.innerHTML = '';
+          companySchedules.forEach(s => {
+            const opt = new Option(`${s.vesselName || s.shipName || 'Armada'} — ${s.route} (${s.departureTime || s.time || s.departTime || '09:00'}) [Sisa: ${s.quota || 150}]`, s.id);
+            select.add(opt);
+          });
+          if (this.bulkState && this.bulkState.targetScheduleId) {
+            select.value = this.bulkState.targetScheduleId;
+          } else if (companySchedules[0]) {
+            if (!this.bulkState) this.bulkState = {};
+            this.bulkState.targetScheduleId = companySchedules[0].id;
+          }
+        }
+
+        if (typeof this.updateBulkScheduleInfo === 'function') {
+          this.updateBulkScheduleInfo();
+        }
+        if (typeof this.renderBulkPassengerPreview === 'function') {
+          this.renderBulkPassengerPreview();
+        }
+      }
+    } else {
+      if (singleSection) singleSection.style.display = 'block';
+      if (bulkContainer) bulkContainer.style.display = 'none';
+      if (btnSingle) {
+        btnSingle.classList.add('active');
+        btnSingle.style.background = '#0284c7';
+        btnSingle.style.color = '#ffffff';
+      }
+      if (btnBulk) {
+        btnBulk.classList.remove('active');
+        btnBulk.style.background = 'transparent';
+        btnBulk.style.color = '#64748b';
+      }
+      this.renderTicketingConsole();
+    }
   },
 
   // ================= LIVE SEAT MAP DASHBOARD =================
