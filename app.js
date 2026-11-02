@@ -3274,6 +3274,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       tabOverview: 'Dashboard Loket',
       tabManifest: 'Tagihan & Riwayat Tiket',
       tabTicketing: 'Entri Penumpang',
+      tabBulk: 'Entri Tiket Rombongan',
       tabFleet: 'Armada Kapal Saya',
       tabSchedules: 'Daftar Rute & Jadwal',
       tabCalendar: 'Kalender Pelayaran',
@@ -3304,6 +3305,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       if (typeof this.renderTicketingConsole === 'function') {
         this.renderTicketingConsole();
       }
+    }
+    if (tabKey === 'tabBulk') {
+      document.getElementById('paneBulk')?.classList.add('active');
+      this.openBulkPassengerModal();
     }
     if (tabKey === 'tabSeats') {
       document.getElementById('paneSeats')?.classList.add('active');
@@ -9720,10 +9725,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Close / Cancel in-page
     document.getElementById('btnCloseBulkPassengerEntry')?.addEventListener('click', () => {
-      this.setTicketingEntryMode('SINGLE');
+      this.switchDashboardTab('tabTicketing');
     });
     document.getElementById('btnCancelBulkPassengerEntry')?.addEventListener('click', () => {
-      this.setTicketingEntryMode('SINGLE');
+      this.switchDashboardTab('tabTicketing');
     });
 
     // Close on backdrop click
@@ -9915,8 +9920,6 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (preselectedScheduleId && this.tixConsoleState) {
       this.tixConsoleState.selectedScheduleId = preselectedScheduleId;
     }
-    this.switchDashboardTab('tabTicketing');
-
     const fleet = Store.getVesselsByCompany(tenant.id);
     const companySchedules = Store.getSchedulesByCompany(tenant.id);
 
@@ -10023,9 +10026,8 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     // Render initial state
     this.renderBulkPassengerPreview();
 
-    // In-page mode: tidak membuka popup modal baru, tetap di halaman yang sama
-    this.switchDashboardTab('tabTicketing');
-    this.setTicketingEntryMode('BULK');
+    // Buka di pane khusus Entri Tiket Rombongan
+    document.getElementById('paneBulk')?.classList.add('active');
   },
 
   updateBulkScheduleInfo() {

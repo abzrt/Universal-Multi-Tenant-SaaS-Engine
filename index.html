@@ -510,6 +510,21 @@
               </div>
             </button>
 
+            <!-- 6b. Entri Tiket Rombongan -->
+            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabBulk" title="Entri Tiket Rombongan">
+              <div class="ticky-nav-left">
+                <span class="ticky-nav-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </span>
+                <span class="ticky-nav-label">Entri Tiket Rombongan</span>
+              </div>
+            </button>
+
 
 
             <!-- 8. Gate Scanner QR -->
@@ -583,7 +598,7 @@
               </div>
             </div>
 
-            <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.75rem;">
+            <div class="ticky-header-actions" style="position: relative; display: flex; align-items: center; gap: 0.75rem; margin-left: auto;">
               <!-- Realtime Weather Logo, Kota Nunukan & Hari Tanggal Tahun -->
               <div id="headerRealtimeWeatherWidget" class="header-realtime-weather-widget" style="display: inline-flex; align-items: center; gap: 0.65rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 0.32rem 0.85rem 0.32rem 0.45rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); cursor: pointer; user-select: none;" title="Klik untuk menyembunyikan rincian cuaca (hanya menyisakan logo)">
                 <div id="headerWeatherLogoIcon" style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #fef3c7 0%, #bae6fd 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;" title="Logo Cuaca Real-Time Nunukan">
@@ -951,6 +966,312 @@
           <div class="schedules-deck" id="companyTicketingSchedulesList" style="display: none;">
             <!-- Rendered by JS -->
           </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB: ENTRI TIKET ROMBONGAN -->
+      <div class="dash-pane" id="paneBulk">
+        <div class="dash-block-panel">
+          <div id="tixBulkEntryContainer" style="display: block; margin-top: 0;">
+                    <!-- Modal Top -->
+      <div class="modal-top" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; background: #f8fafc; border-radius: 8px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <h4 style="color: #0f172a; margin: 0; font-size: 1.2rem; font-weight: 800;">Entri Tiket Rombongan (Group & Bulk Booking)</h4>
+            <span class="tag-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.75rem;">KSOP & Ditjen Hubla Ready</span>
+          </div>
+          <p class="text-dim" style="color: #64748b; margin: 0.25rem 0 0 0; font-size: 0.84rem;">
+            Input atau impor data rombongan penumpang kapal sekaligus. Setiap inputan tiket penumpang dapat disimpan (save draft) terlebih dahulu kapan saja sebelum konfirmasi tiket resmi diterbitkan.
+          </p>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseBulkPassengerEntry" style="color: #64748b; font-size: 1.5rem; line-height: 1; border: none; background: transparent; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Scrollable Modal Body -->
+      <div class="modal-body-scroll" style="padding: 1rem 0; display: flex; flex-direction: column; gap: 1.15rem;">
+        
+        <!-- Quick Info Strip Pelayaran & Kuota Armada Full-Page -->
+        <div id="bulkFleetStatusStrip" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 8px; padding: 0.75rem 1.15rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <span style="font-size: 1.25rem;">🚢</span>
+            <strong id="bulkInfoVesselBadge" style="color: #0369a1; font-size: 0.95rem;">Armada Pelayaran Resmi</strong>
+            <span class="tag-badge" id="bulkInfoRouteBadge" style="background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 800; font-size: 0.76rem;">RUTE</span>
+            <span class="tag-badge" id="bulkInfoDateBadge" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.76rem;">🕒 Keberangkatan</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.85rem; font-size: 0.82rem; flex-wrap: wrap;">
+            <span style="color: #166534; font-weight: 700;">🟢 Kuota Tersedia: <strong id="bulkInfoAvailBadge" style="font-size: 1.05rem;">-</strong> Seat</span>
+            <span style="color: #cbd5e1;">|</span>
+            <span style="color: #475569;">Tarif Resmi: <strong id="bulkInfoFareBadge" style="color: #ea580c; font-weight: 900; font-size: 1.05rem;">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <!-- STEP 1: Konfigurasi Pelayaran, Rombongan & Tarif -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>1️⃣</span> Pengaturan Jadwal Pelayaran & Rombongan
+            </strong>
+            <span class="text-dim" style="font-size: 0.78rem; color: #64748b;">Pilih armada kapal yang akan menampung rombongan</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.85rem;">
+            <!-- Pilih Armada Kapal -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Pilih Armada Kapal *</label>
+              <select id="bulkTargetVesselSelect" class="form-input" style="background: #ffffff; color: #0284c7; border-color: #0284c7; font-weight: 700; font-size: 0.82rem;">
+                <!-- Injected dynamically -->
+              </select>
+            </div>
+
+            <!-- Pilih Jadwal Pelayaran -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Jadwal Kapal Tujuan *</label>
+              <select id="bulkTargetScheduleSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <!-- Injected dynamically -->
+              </select>
+            </div>
+
+            <!-- Pilih Kelas & Tarif -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Kelas & Tarif Tiket *</label>
+              <select id="bulkClassSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <option value="EKONOMI" data-fare="250000">Ekonomi — Rp 250.000 / Pax</option>
+                <option value="BISNIS" data-fare="350000">Bisnis — Rp 350.000 / Pax</option>
+                <option value="VIP" data-fare="500000">VIP Stateroom — Rp 500.000 / Pax</option>
+              </select>
+            </div>
+
+            <!-- Nama Grup / Rombongan -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Nama Rombongan / Instansi *</label>
+              <input type="text" id="bulkGroupNameInput" class="form-input" placeholder="Contoh: Rombongan TKI Mandiri / Wisatawan" value="Rombongan Penumpang Resmi" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Status & Metode Bayar *</label>
+              <select id="bulkPaymentMethodSelect" class="form-input" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600; font-size: 0.82rem;">
+                <option value="Loket Resmi / Tunai">Loket Resmi Perusahaan / Pelabuhan</option>
+                <option value="Sistem Booked">Sistem Booked (Bayar Saat Check-In)</option>
+              </select>
+            </div>
+
+            <!-- PIC Koordinator -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Nama Koordinator / PIC</label>
+              <input type="text" id="bulkPicNameInput" class="form-input" placeholder="Nama Ketua Rombongan" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+
+            <!-- Kontak Telepon PIC -->
+            <div class="input-block" style="margin-bottom: 0;">
+              <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">No. WhatsApp / HP PIC</label>
+              <input type="tel" id="bulkPicPhoneInput" class="form-input" placeholder="08xxxxxxxxxx" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-size: 0.82rem;">
+            </div>
+          </div>
+
+          <!-- Opsi Penomoran Tiket -->
+          <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">Model Penomoran Tiket:</div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #0f172a; cursor: pointer;">
+                <input type="radio" name="bulkPnrGroupingMode" value="GROUP" checked>
+                <span>👥 1 PNR Grup Rombongan (Kolektif)</span>
+              </label>
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #0f172a; cursor: pointer;">
+                <input type="radio" name="bulkPnrGroupingMode" value="INDIVIDUAL">
+                <span>🎫 PNR Terpisah Per Penumpang</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+                <!-- STEP 2: Pilih Metode Input Data Penumpang -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>2️⃣</span> Masukkan Data Penumpang
+            </strong>
+            <button type="button" id="btnDownloadBulkCsvTemplate" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <span>⬇ Unduh Format Template Excel / CSV Resmi</span>
+            </button>
+          </div>
+
+          <!-- Nav Tabs: 3 Opsi Input -->
+          <div class="bulk-input-tabs" id="bulkInputTabs">
+            <button type="button" class="bulk-tab-btn active" data-mode="GRID">
+              ✍️ Tabel Grid Interaktif
+            </button>
+            <button type="button" class="bulk-tab-btn" data-mode="PASTE">
+              📋 Copy-Paste Cepat dari Excel
+            </button>
+            <button type="button" class="bulk-tab-btn" data-mode="FILE">
+              📂 Unggah File CSV / Excel
+            </button>
+          </div>
+
+          <!-- PANE 1: TABEL GRID INTERAKTIF (FIRST & DEFAULT) -->
+          <div id="bulkPaneGrid" class="bulk-input-pane">
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.78rem; color: #64748b;">Ketik langsung data penumpang pada tabel baris demi baris:</span>
+              <div style="display: flex; gap: 0.4rem;">
+                <button type="button" class="btn-action-sm" id="btnAddGridRow" style="background: #0284c7; color: #ffffff; border: none; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 1 Baris</button>
+                <button type="button" class="btn-action-sm" id="btnAdd5GridRows" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 5 Baris</button>
+                <button type="button" class="btn-action-sm" id="btnClearGridRows" style="background: #ffffff; color: #dc2626; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">Bersihkan</button>
+                <button type="button" class="btn-action-sm" id="btnSaveGridRows" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                  <span>Simpan Data</span>
+                </button>
+              </div>
+            </div>
+            <div style="max-height: 380px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <table class="bulk-grid-table" id="tableBulkManualGrid">
+                <thead>
+                  <tr>
+                    <th style="width: 36px; text-align: center;">No</th>
+                    <th>Nama Lengkap Penumpang *</th>
+                    <th style="width: 170px;">No. Paspor / NIK *</th>
+                    <th style="width: 80px;">L/P</th>
+                    <th style="width: 110px;">Jenis Pax</th>
+                    <th style="width: 110px;">Warga</th>
+                    <th style="width: 110px;">Kursi</th>
+                    <th style="width: 45px; text-align: center;">Hapus</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyBulkManualGrid">
+                  <!-- Injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PANE 2: COPY-PASTE DARI SPREADSHEET (SECOND) -->
+          <div id="bulkPanePaste" class="bulk-input-pane" style="display: none;">
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.78rem; color: #64748b;">
+                Salin baris data dari Excel/Google Sheets dan tempel (Paste) langsung ke kotak di bawah.
+              </span>
+              <button type="button" id="btnLoadBulkDemoData" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                + Muat 10 Contoh Data Demo
+              </button>
+            </div>
+            <textarea id="bulkPasteTextarea" class="form-input" rows="5" placeholder="Contoh format kolom:&#10;Ahmad Dahlan	A1234567	L	Dewasa	ID&#10;Siti Fatimah	6401024508900001	P	Dewasa	ID&#10;Muhammad Rizki	B8765432	L	Anak	ID&#10;&#10;*Format otomatis membaca pemisah Tab, Koma, atau Titik Koma." style="width: 100%; font-family: monospace; font-size: 0.8rem; background: #ffffff; color: #0f172a; border-color: #cbd5e1;"></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem; gap: 0.5rem;">
+              <button type="button" class="btn-action-sm" id="btnParsePastedText" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
+                ⚡ Proses & Analisis Teks Tempel
+              </button>
+            </div>
+          </div>
+
+          <!-- PANE 3: UPLOAD FILE CSV (THIRD) -->
+          <div id="bulkPaneFile" class="bulk-input-pane" style="display: none;">
+            <div class="bulk-dropzone" id="bulkDropzoneArea">
+              <input type="file" id="bulkFileInput" accept=".csv,.txt,.tsv" style="display: none;">
+              <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">📂</div>
+              <strong style="color: #0f172a; font-size: 0.95rem; display: block;">Pilih atau Tarik Berkas CSV / Excel ke Sini</strong>
+              <span style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Mendukung format .csv, .tsv, dan .txt dengan pemisah koma atau tab</span>
+              <div style="margin-top: 0.85rem;">
+                <button type="button" class="btn-action-sm" id="btnBrowseBulkFile" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+                  Pilih File dari Komputer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Live Preview & Ringkasan Validasi Data -->
+        <div class="bulk-preview-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
+            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
+              <span>3️⃣</span> Hasil Analisis & Pratinjau Penumpang Siap Terbit
+            </strong>
+            <button type="button" id="btnReallocateBulkSeats" class="btn-action-sm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+              🔄 Alokasikan Ulang Kursi Otomatis
+            </button>
+          </div>
+
+          <!-- KPI Summary Strip -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-bottom: 0.85rem;">
+            <div class="bulk-kpi-badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;">
+              <span>👥</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #0369a1;">Total Penumpang:</span>
+                <strong id="kpiBulkTotalPax" style="font-size: 1.05rem;">0 Orang</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;">
+              <span>✓</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #166534;">Validasi KSOP:</span>
+                <strong id="kpiBulkValidPax" style="font-size: 1.05rem;">0 Lolos</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe;">
+              <span>💺</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #6d28d9;">Alokasi Kursi:</span>
+                <strong id="kpiBulkSeatMode" style="font-size: 0.88rem;">Otomatis (Berurutan)</strong>
+              </div>
+            </div>
+            <div class="bulk-kpi-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+              <span>💰</span>
+              <div>
+                <span style="font-size: 0.7rem; display: block; color: #92400e;">Total Nilai Tiket:</span>
+                <strong id="kpiBulkTotalFare" style="font-size: 1.05rem;">Rp 0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scrollable Live Preview Table -->
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+            <table class="dash-table" style="font-size: 0.8rem; margin: 0;">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th style="width: 32px; text-align: center;">No</th>
+                  <th>Nama Lengkap</th>
+                  <th>No. Dokumen / NIK / Paspor</th>
+                  <th>L/P</th>
+                  <th>Jenis</th>
+                  <th>Warga</th>
+                  <th>Alokasi Kursi</th>
+                  <th>Status</th>
+                  <th style="width: 40px; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyBulkPreview">
+                <tr>
+                  <td colspan="9" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+                    Belum ada data penumpang dimasukkan. Tempel data teks di atas atau unggah file.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Bottom Actions -->
+      <div class="modal-bottom-actions" style="background: #ffffff; border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <button type="button" class="btn-cancel" id="btnCancelBulkPassengerEntry" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.55rem 1.15rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer;">
+            ← Kembali ke Entri Penumpang
+          </button>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <button type="button" id="btnClearBulkData" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.65rem 1.1rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer;">
+            Bersihkan
+          </button>
+          <button type="button" id="btnSaveBulkDraft" style="background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; font-weight: 700; padding: 0.65rem 1.15rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            <span>Simpan Draft</span>
+          </button>
+          <button type="button" class="btn-submit-action" id="btnSubmitBulkPassenger" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 700; padding: 0.65rem 1.5rem; border-radius: 8px; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span id="btnSubmitBulkPassengerText">Terbitkan Tiket Rombongan (0 Penumpang)</span>
+          </button>
+        </div>
+      </div>
         </div>
       </div>
 

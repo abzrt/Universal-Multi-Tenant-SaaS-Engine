@@ -6022,3 +6022,18 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
 .ticky-top-header {
   position: static !important;
 }
+
+/* Posisikan widget cuaca & profil operator kembali ke kanan web */
+.ticky-top-header {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.ticky-header-actions {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
