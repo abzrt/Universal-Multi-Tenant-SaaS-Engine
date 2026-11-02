@@ -8719,7 +8719,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       });
     }
 
-    // Grid row buttons
+    // Grid row buttons & Save triggers
     document.getElementById('btnAddGridRow')?.addEventListener('click', () => {
       this.addManualGridRow();
     });
@@ -8729,6 +8729,13 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     document.getElementById('btnClearGridRows')?.addEventListener('click', () => {
       this.initManualGridRows(3);
       this.syncGridToPaxList();
+      try { localStorage.removeItem('tech_bulk_draft_passengers_v1'); } catch (e) {}
+    });
+    document.getElementById('btnSaveGridRows')?.addEventListener('click', () => {
+      this.saveManualGridRows(true);
+    });
+    document.getElementById('btnSaveBulkDraft')?.addEventListener('click', () => {
+      this.saveManualGridRows(true);
     });
 
     // Clear All Bulk Data
@@ -8862,11 +8869,23 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (paneFile) paneFile.style.display = 'none';
     if (paneGrid) paneGrid.style.display = 'block';
 
-    // Initialize manual grid rows if empty
+    // Initialize manual grid rows if empty (check saved draft first)
+    if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
+      try {
+        const savedDraft = localStorage.getItem('tech_bulk_draft_passengers_v1');
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.bulkState.manualGridRows = parsed;
+          }
+        }
+      } catch (e) {}
+    }
     if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
       this.initManualGridRows(3);
     } else {
       this.renderManualGridTable();
+      this.syncGridToPaxList();
     }
 
     // Render initial state
@@ -9107,6 +9126,53 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     this.renderManualGridTable();
   },
 
+  saveManualGridRows(showFeedback = true) {
+    const tbody = document.getElementById('tbodyBulkManualGrid');
+    if (tbody) {
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach((tr, idx) => {
+        if (!this.bulkState.manualGridRows[idx]) {
+          this.bulkState.manualGridRows[idx] = {
+            name: '',
+            docNum: '',
+            gender: 'L',
+            paxType: 'Dewasa',
+            nationality: 'ID',
+            seat: ''
+          };
+        }
+        const nameInput = tr.querySelector('[data-field="name"]');
+        const docInput = tr.querySelector('[data-field="docNum"]');
+        const genderInput = tr.querySelector('[data-field="gender"]');
+        const paxTypeInput = tr.querySelector('[data-field="paxType"]');
+        const natInput = tr.querySelector('[data-field="nationality"]');
+        const seatInput = tr.querySelector('[data-field="seat"]');
+
+        if (nameInput) this.bulkState.manualGridRows[idx].name = nameInput.value;
+        if (docInput) this.bulkState.manualGridRows[idx].docNum = docInput.value;
+        if (genderInput) this.bulkState.manualGridRows[idx].gender = genderInput.value;
+        if (paxTypeInput) this.bulkState.manualGridRows[idx].paxType = paxTypeInput.value;
+        if (natInput) this.bulkState.manualGridRows[idx].nationality = natInput.value;
+        if (seatInput) this.bulkState.manualGridRows[idx].seat = seatInput.value;
+      });
+    }
+
+    try {
+      localStorage.setItem('tech_bulk_draft_passengers_v1', JSON.stringify(this.bulkState.manualGridRows));
+    } catch (e) {}
+
+    this.syncGridToPaxList();
+
+    const validCount = (this.bulkState.paxList || []).length;
+    if (showFeedback) {
+      if (validCount > 0) {
+        this.showToast('Data Berhasil Disimpan', `${validCount} data penumpang berhasil disimpan ke daftar tiket massal.`);
+      } else {
+        this.showToast('Draft Disimpan', 'Data baris telah disimpan.', 'warning');
+      }
+    }
+  },
+
   renderManualGridTable() {
     const tbody = document.getElementById('tbodyBulkManualGrid');
     if (!tbody) return;
@@ -9268,6 +9334,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
   resetBulkPassengerState() {
     this.bulkState.paxList = [];
     this.bulkState.manualGridRows = [];
+    try { localStorage.removeItem('tech_bulk_draft_passengers_v1'); } catch (e) {}
     const ta = document.getElementById('bulkPasteTextarea');
     if (ta) ta.value = '';
     const fi = document.getElementById('bulkFileInput');
@@ -9278,6 +9345,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
 
   processBulkPassengerSubmit() {
     try {
+      this.saveManualGridRows(false);
       let tenant = Store.getCurrentTenant();
       if (!tenant) {
         tenant = Store.getCompanies()[0];
