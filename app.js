@@ -1904,7 +1904,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const vType = document.getElementById('devAddVesselType')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
       const capacity = parseInt(document.getElementById('devAddVesselCapacity')?.value, 10) || 150;
       const facStr = (document.getElementById('devAddVesselFacilities')?.value || '').trim();
-      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['AC', 'Toilet'];
+      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['-'];
       const makeDefault = document.getElementById('devAddVesselMakeDefaultCheck')?.checked ?? true;
 
       if (!compId || !vName || !reg) {
@@ -7758,6 +7758,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('formDevAddVessel')?.reset();
     const capEl = document.getElementById('devAddVesselCapacity');
     if (capEl) capEl.value = '150';
+    const facEl = document.getElementById('devAddVesselFacilities');
+    if (facEl) facEl.value = '-';
     const chkEl = document.getElementById('devAddVesselMakeDefaultCheck');
     if (chkEl) chkEl.checked = true;
 
