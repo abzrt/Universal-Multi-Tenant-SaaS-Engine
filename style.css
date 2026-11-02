@@ -5897,14 +5897,18 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 0.25rem 0.45rem !important;
+  gap: 0.35rem 0.6rem !important;
   flex: 1 !important;
-  flex-wrap: wrap !important;
+  flex-wrap: nowrap !important;
   overflow: visible !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
   padding: 0 !important;
   margin: 0 !important;
+}
+
+.ticky-breadcrumb {
+  display: none !important;
 }
 
 .ticky-nav-list::-webkit-scrollbar {
