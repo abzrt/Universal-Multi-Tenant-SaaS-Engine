@@ -5832,10 +5832,10 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.18);
 }
 
-
 /* ========================================================
    TOP HORIZONTAL NAVBAR (PANEL SIDE DIUBAH KE ATAS)
    Halaman web terlihat lebar penuh (Full-Width)
+   Semua item menu sejajar, font jelas & tanpa slider/scrollbar
    ======================================================== */
 .ticky-dashboard-window {
   display: flex !important;
@@ -5848,30 +5848,45 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   width: 100% !important;
   min-width: 100% !important;
   height: auto !important;
-  min-height: 56px !important;
+  min-height: 52px !important;
   background: #ffffff !important;
   border-right: none !important;
   border-bottom: 1.5px solid #e2e8f0 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  justify-content: space-between !important;
-  padding: 0.45rem 1.25rem !important;
+  justify-content: flex-start !important;
+  padding: 0.35rem 1.15rem !important;
   position: sticky !important;
   top: 0 !important;
   left: 0 !important;
   z-index: 100 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  overflow: visible !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ticky-sidebar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .ticky-brand-row {
   display: flex !important;
   align-items: center !important;
   padding: 0 !important;
-  margin: 0 1.25rem 0 0 !important;
+  margin: 0 1.15rem 0 0 !important;
   flex-shrink: 0 !important;
+}
+
+.ticky-brand-title {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
 }
 
 .ticky-collapse-btn {
@@ -5882,12 +5897,20 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 0.35rem !important;
+  gap: 0.25rem 0.45rem !important;
   flex: 1 !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  padding: 2px 0 !important;
+  flex-wrap: wrap !important;
+  overflow: visible !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  padding: 0 !important;
   margin: 0 !important;
+}
+
+.ticky-nav-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .ticky-nav-section-title {
@@ -5895,14 +5918,76 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
 }
 
 .ticky-nav-item {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   white-space: nowrap !important;
-  padding: 0.42rem 0.8rem !important;
+  padding: 0.38rem 0.72rem !important;
   border-radius: 8px !important;
   font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.ticky-nav-item:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+.ticky-nav-item.active {
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
+  font-weight: 700 !important;
+}
+
+.ticky-nav-left {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  color: inherit !important;
+}
+
+.ticky-nav-icon {
+  width: 16px !important;
+  height: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   flex-shrink: 0 !important;
-  margin-bottom: 0 !important;
+}
+
+.ticky-nav-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke: currentColor !important;
+}
+
+.ticky-nav-label {
+  display: inline-block !important;
+  font-size: 0.78rem !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  white-space: nowrap !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ticky-sidebar.collapsed .ticky-brand-title,
+.ticky-sidebar.collapsed .ticky-nav-label {
+  display: inline-block !important;
+  visibility: visible !important;
 }
 
 .ticky-sidebar-footer {
@@ -5914,7 +5999,7 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   align-items: center !important;
   gap: 0.6rem !important;
   flex-shrink: 0 !important;
-  margin-left: 0.85rem !important;
+  margin-left: auto !important;
 }
 
 .btn-sidebar-logout {
