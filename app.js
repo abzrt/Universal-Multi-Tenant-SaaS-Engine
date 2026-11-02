@@ -8987,6 +8987,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('bulkTargetScheduleSelect')?.addEventListener('change', (e) => {
       this.bulkState.targetScheduleId = e.target.value;
       this.updateBulkScheduleInfo();
+      this.renderManualGridTable();
       this.reallocateBulkSeats();
     });
 
@@ -9551,6 +9552,82 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    const tenant = Store.getCurrentTenant();
+    const companySchedules = tenant ? Store.getSchedulesByCompany(tenant.id) : [];
+    const targetSched = companySchedules.find(s => s.id === this.bulkState.targetScheduleId) || companySchedules[0] || (typeof Store !== 'undefined' ? Store.getSchedules().find(s => s.id === this.bulkState.targetScheduleId) : null);
+    const fleet = tenant ? Store.getVesselsByCompany(tenant.id) : [];
+    const targetVessel = targetSched ? (fleet.find(f => f.id === targetSched.vesselId) || fleet.find(f => f.name === targetSched.vesselName) || Store.getVessels().find(v => v.id === targetSched.vesselId)) : null;
+
+    const occupiedSeats = (targetSched && targetSched.id && typeof this.getOccupiedSeatsForSchedule === 'function')
+      ? this.getOccupiedSeatsForSchedule(targetSched.id)
+      : new Set();
+
+    const isSulawesi = (targetSched && (targetSched.destinationId === 'PRE' || targetSched.destinationCity === 'Parepare')) ||
+                       (targetVessel && (((targetVessel.type || '').toLowerCase().includes('parepare')) || 
+                                         ((targetVessel.type || '').toLowerCase().includes('domestik')) || 
+                                         ((targetVessel.name || '').toLowerCase().includes('pantokrator'))));
+
+    const vesselDecks = (isSulawesi && Store.getSulawesiDecks)
+      ? Store.getSulawesiDecks()
+      : (targetVessel && targetVessel.decks && targetVessel.decks.length > 0
+          ? targetVessel.decks
+          : null);
+
+    const seatItems = [];
+    const getRowCode = (rIdx) => {
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      if (rIdx < letters.length) return letters[rIdx];
+      const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+      const p2 = letters[rIdx % letters.length];
+      return `${p1}${p2}`;
+    };
+
+    if (vesselDecks && vesselDecks.length > 0) {
+      vesselDecks.forEach(deck => {
+        const dCap = deck.capacity || 100;
+        const totalRows = Math.ceil(dCap / 6);
+        let gen = 0;
+        for (let r = 0; r < totalRows; r++) {
+          if (gen >= dCap) break;
+          const rCode = getRowCode(r);
+          for (let col = 1; col <= 6; col++) {
+            if (gen >= dCap) break;
+            gen++;
+            const sCode = `${deck.code}-${rCode}${String(col).padStart(2, '0')}`;
+            seatItems.push({
+              code: sCode,
+              label: `${sCode} (${deck.name})`,
+              group: deck.name,
+              occupied: occupiedSeats.has(sCode)
+            });
+          }
+        }
+      });
+    } else {
+      let cap = 150;
+      if (targetVessel && targetVessel.capacity) cap = parseInt(targetVessel.capacity, 10);
+      else if (targetSched && (targetSched.capacity || targetSched.quotaTotal)) cap = parseInt(targetSched.capacity || targetSched.quotaTotal, 10);
+      if (!cap || cap <= 0) cap = 150;
+
+      const totalRows = Math.ceil(cap / 6);
+      let gen = 0;
+      for (let r = 0; r < totalRows; r++) {
+        if (gen >= cap) break;
+        const rCode = getRowCode(r);
+        for (let col = 1; col <= 6; col++) {
+          if (gen >= cap) break;
+          gen++;
+          const sCode = `${rCode}-${String(col).padStart(2, '0')}`;
+          seatItems.push({
+            code: sCode,
+            label: sCode,
+            group: (targetVessel && targetVessel.deckName) || 'Main Deck',
+            occupied: occupiedSeats.has(sCode)
+          });
+        }
+      }
+    }
+
     this.bulkState.manualGridRows.forEach((row, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -9582,7 +9659,40 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           </select>
         </td>
         <td>
-          <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="seat" value="${row.seat || ''}" placeholder="Otomatis">
+          <select class="bulk-grid-input grid-field" data-idx="${idx}" data-field="seat">
+            <option value="" ${!row.seat ? 'selected' : ''}>Otomatis</option>
+            ${(() => {
+              let optionsHtml = '';
+              const groups = {};
+              seatItems.forEach(s => {
+                if (!groups[s.group]) groups[s.group] = [];
+                groups[s.group].push(s);
+              });
+              const groupKeys = Object.keys(groups);
+              const hasMultipleGroups = groupKeys.length > 1;
+
+              groupKeys.forEach(grp => {
+                const groupSeats = groups[grp];
+                const innerOpts = groupSeats.map(s => {
+                  const isSelected = row.seat && row.seat.trim().toUpperCase() === s.code.toUpperCase();
+                  const isOcc = s.occupied && !isSelected;
+                  return `<option value="${s.code}" ${isSelected ? 'selected' : ''} ${isOcc ? 'disabled style="color: #94a3b8;"' : ''}>${s.label}${isOcc ? ' (Terisi)' : ''}</option>`;
+                }).join('');
+
+                if (hasMultipleGroups) {
+                  optionsHtml += `<optgroup label="${grp}">${innerOpts}</optgroup>`;
+                } else {
+                  optionsHtml += innerOpts;
+                }
+              });
+
+              if (row.seat && !seatItems.some(s => s.code.toUpperCase() === row.seat.trim().toUpperCase())) {
+                optionsHtml = `<option value="${row.seat}" selected>${row.seat} (Manual)</option>` + optionsHtml;
+              }
+
+              return optionsHtml;
+            })()}
+          </select>
         </td>
         <td style="text-align: center;">
           <button type="button" class="btn-del-grid-row" data-idx="${idx}" style="background: transparent; border: none; color: #ef4444; font-weight: bold; cursor: pointer;">&times;</button>
@@ -9592,14 +9702,16 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     });
 
     tbody.querySelectorAll('.grid-field').forEach(input => {
-      input.addEventListener('input', (e) => {
+      const updateHandler = (e) => {
         const idx = parseInt(e.target.getAttribute('data-idx'), 10);
         const field = e.target.getAttribute('data-field');
         if (this.bulkState.manualGridRows[idx]) {
           this.bulkState.manualGridRows[idx][field] = e.target.value;
           this.syncGridToPaxList();
         }
-      });
+      };
+      input.addEventListener('input', updateHandler);
+      input.addEventListener('change', updateHandler);
     });
 
     tbody.querySelectorAll('.btn-del-grid-row').forEach(btn => {
