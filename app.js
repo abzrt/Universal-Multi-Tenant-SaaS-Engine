@@ -7282,12 +7282,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
   setTicketingEntryMode(mode) {
+    const ws = document.getElementById('ticketingConsoleWorkspace');
     const singleForm = document.getElementById('formInPageDirectTicket');
     const bulkContainer = document.getElementById('tixBulkEntryContainer');
     const btnSingle = document.getElementById('btnTixModeSingle');
     const btnBulk = document.getElementById('btnTixModeBulk');
 
     if (mode === 'BULK') {
+      if (ws) ws.classList.add('mode-bulk');
       if (singleForm) singleForm.style.display = 'none';
       if (bulkContainer) bulkContainer.style.display = 'block';
       if (btnSingle) {
@@ -7376,6 +7378,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       bulkContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
+      if (ws) ws.classList.remove('mode-bulk');
       if (singleForm) singleForm.style.display = 'block';
       if (bulkContainer) bulkContainer.style.display = 'none';
       if (btnSingle) {
@@ -9879,6 +9882,28 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
 
       classSelect.innerHTML = `<option value="Reguler" data-fare="${totalPerPax}">Tiket Reguler — ${formatRupiah(ticketPrice)} (+ Pas Pelabuhan ${formatRupiah(passFee)}) / Pax</option>`;
       this.bulkState.farePerPax = totalPerPax;
+
+      // Update Quick Info Strip Pelayaran & Kuota Full-Page
+      const fleet = Store.getVesselsByCompany(tenant.id);
+      const v = fleet.find(f => f.id === targetSched.vesselId);
+      const vName = v ? v.name : (targetSched.vesselNameCustom || 'Armada Reguler');
+      const orig = MASTER_PORTS.find(pt => pt.id === targetSched.originId) || { city: targetSched.originId || 'Nunukan' };
+      const dest = MASTER_PORTS.find(pt => pt.id === targetSched.destinationId) || { city: targetSched.destinationId || 'Tawau' };
+      const totalSeats = targetSched.quotaTotal || (v ? v.capacity : 150);
+      const booked = targetSched.quotaBooked || 0;
+      const avail = Math.max(0, totalSeats - booked);
+
+      const elVes = document.getElementById('bulkInfoVesselBadge');
+      const elRoute = document.getElementById('bulkInfoRouteBadge');
+      const elDate = document.getElementById('bulkInfoDateBadge');
+      const elAvail = document.getElementById('bulkInfoAvailBadge');
+      const elFare = document.getElementById('bulkInfoFareBadge');
+
+      if (elVes) elVes.innerText = `Armada: ${vName}`;
+      if (elRoute) elRoute.innerText = `${orig.city} ➔ ${dest.city}`;
+      if (elDate) elDate.innerText = `🕒 ${targetSched.departTime || '09:00'} WITA • ${targetSched.departDate || 'Hari Ini'}`;
+      if (elAvail) elAvail.innerText = avail;
+      if (elFare) elFare.innerText = formatRupiah(totalPerPax);
     }
   },
 

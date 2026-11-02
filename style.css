@@ -5709,3 +5709,39 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   background: #f0f9ff !important;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.18);
 }
+
+
+/* FULL-PAGE IN-PAGE BULK PASSENGER ENTRY CONSOLE */
+#ticketingConsoleWorkspace.mode-bulk .tix-console-grid {
+  display: block !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk #tixConsoleLeftCol {
+  display: none !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk #tixConsoleRightCol {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk #tixConsoleSeatInfoCard {
+  display: none !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk #tixConsolePassengerCard {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 14px !important;
+  padding: 1.5rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk .bulk-grid-table th {
+  padding: 0.75rem 0.85rem !important;
+  font-size: 0.82rem !important;
+}
+
+#ticketingConsoleWorkspace.mode-bulk .bulk-grid-table td {
+  padding: 0.45rem 0.55rem !important;
+}

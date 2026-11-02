@@ -748,7 +748,7 @@
             <div class="tix-console-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.25rem; align-items: start;">
               
               <!-- KOLOM KIRI: KALENDER PELAYARAN ARMADA TERPILIH -->
-              <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+              <div id="tixConsoleLeftCol" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
                   <div style="display: flex; align-items: center; gap: 0.4rem;">
                     <span style="font-size: 1.1rem;">📅</span>
@@ -785,10 +785,10 @@
               </div>
 
               <!-- KOLOM KANAN: STATUS SEAT ARMADA & FORMULIR TIKET LANGSUNG -->
-              <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div id="tixConsoleRightCol" style="display: flex; flex-direction: column; gap: 1rem;">
                 
                 <!-- Card 1: Informasi Pelayaran & Status Kuota Seat Armada -->
-                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.02);">
+                <div id="tixConsoleSeatInfoCard" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.02);">
                   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.85rem;">
                     <div>
                       <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
@@ -840,7 +840,7 @@
                 </div>
 
                 <!-- Card 2: Formulir Data Penumpang & Penerbitan Langsung (In-Page) -->
-                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+                <div id="tixConsolePassengerCard" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
                   <!-- Mode Switcher: Tiket Satuan vs Entri Penumpang Massal -->
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
                     <div style="display: flex; align-items: center; gap: 0.4rem; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -948,6 +948,21 @@
       <!-- Scrollable Modal Body -->
       <div class="modal-body-scroll" style="padding: 1rem 0; display: flex; flex-direction: column; gap: 1.15rem;">
         
+        <!-- Quick Info Strip Pelayaran & Kuota Armada Full-Page -->
+        <div id="bulkFleetStatusStrip" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 8px; padding: 0.75rem 1.15rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <span style="font-size: 1.25rem;">🚢</span>
+            <strong id="bulkInfoVesselBadge" style="color: #0369a1; font-size: 0.95rem;">Armada Pelayaran Resmi</strong>
+            <span class="tag-badge" id="bulkInfoRouteBadge" style="background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 800; font-size: 0.76rem;">RUTE</span>
+            <span class="tag-badge" id="bulkInfoDateBadge" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.76rem;">🕒 Keberangkatan</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.85rem; font-size: 0.82rem; flex-wrap: wrap;">
+            <span style="color: #166534; font-weight: 700;">🟢 Kuota Tersedia: <strong id="bulkInfoAvailBadge" style="font-size: 1.05rem;">-</strong> Seat</span>
+            <span style="color: #cbd5e1;">|</span>
+            <span style="color: #475569;">Tarif Resmi: <strong id="bulkInfoFareBadge" style="color: #ea580c; font-weight: 900; font-size: 1.05rem;">Rp 0</strong></span>
+          </div>
+        </div>
+
         <!-- STEP 1: Konfigurasi Pelayaran, Rombongan & Tarif -->
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
@@ -957,7 +972,7 @@
             <span class="text-dim" style="font-size: 0.78rem; color: #64748b;">Pilih armada kapal yang akan menampung rombongan</span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.85rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.85rem;">
             <!-- Pilih Armada Kapal -->
             <div class="input-block" style="margin-bottom: 0;">
               <label style="font-weight: 700; color: #0f172a; font-size: 0.82rem; margin-bottom: 0.35rem; display: block;">Pilih Armada Kapal *</label>
@@ -1067,7 +1082,7 @@
                 </button>
               </div>
             </div>
-            <div style="max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="max-height: 380px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
               <table class="bulk-grid-table" id="tableBulkManualGrid">
                 <thead>
                   <tr>
@@ -3291,7 +3306,7 @@
       </div>
 
       <!-- KPI Overview Row -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <div style="background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 1.15rem 1.25rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
           <div style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Total Perusahaan Terdaftar</div>
           <div style="font-size: 1.65rem; font-weight: 800; color: #f8fafc; margin: 0.3rem 0;" id="devKpiTotalCompanies">0 Perusahaan</div>
