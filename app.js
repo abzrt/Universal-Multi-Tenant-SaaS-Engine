@@ -6858,6 +6858,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('btnTixSubmitDirect')?.addEventListener('click', () => {
       this.processInPageDirectTicket();
     });
+
+    document.getElementById('btnTixModeSingle')?.addEventListener('click', () => {
+      this.setTicketingEntryMode('SINGLE');
+    });
+
+    document.getElementById('btnTixModeBulk')?.addEventListener('click', () => {
+      this.setTicketingEntryMode('BULK');
+    });
   },
 
   renderTicketingConsole() {
@@ -7271,6 +7279,116 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // Buka Boarding Pass
     this.openBoardingPassModal(newBooking);
     this.showToast('Tiket Berhasil Diterbitkan!', `Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seat}).`);
+  },
+
+  setTicketingEntryMode(mode) {
+    const singleForm = document.getElementById('formInPageDirectTicket');
+    const bulkContainer = document.getElementById('tixBulkEntryContainer');
+    const btnSingle = document.getElementById('btnTixModeSingle');
+    const btnBulk = document.getElementById('btnTixModeBulk');
+
+    if (mode === 'BULK') {
+      if (singleForm) singleForm.style.display = 'none';
+      if (bulkContainer) bulkContainer.style.display = 'block';
+      if (btnSingle) {
+        btnSingle.classList.remove('active');
+        btnSingle.style.background = 'transparent';
+        btnSingle.style.color = '#64748b';
+      }
+      if (btnBulk) {
+        btnBulk.classList.add('active');
+        btnBulk.style.background = '#0284c7';
+        btnBulk.style.color = '#ffffff';
+      }
+
+      // Pastikan data bulk diinisialisasi
+      const tenant = Store.getCurrentTenant();
+      if (tenant) {
+        const fleet = Store.getVesselsByCompany(tenant.id);
+        const companySchedules = Store.getSchedulesByCompany(tenant.id);
+        const vesselSelect = document.getElementById('bulkTargetVesselSelect');
+        const select = document.getElementById('bulkTargetScheduleSelect');
+
+        if (vesselSelect) {
+          vesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada (${fleet.length} Kapal)</option>`;
+          fleet.forEach(fv => {
+            const opt = new Option(`⚓ ${fv.name} (${fv.capacity || 150} Kursi)`, fv.id);
+            vesselSelect.add(opt);
+          });
+          if (this.tixConsoleState && this.tixConsoleState.selectedVesselId) {
+            vesselSelect.value = this.tixConsoleState.selectedVesselId;
+          }
+        }
+
+        if (select) {
+          select.innerHTML = '';
+          const vid = vesselSelect ? vesselSelect.value : 'ALL';
+          const filtered = vid === 'ALL' ? companySchedules : companySchedules.filter(s => s.vesselId === vid);
+          const listToUse = filtered.length > 0 ? filtered : companySchedules;
+          listToUse.forEach((s, idx) => {
+            const v = fleet.find(f => f.id === s.vesselId);
+            const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
+            const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
+            const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
+            const booked = s.quotaBooked || 0;
+            const total = s.quotaTotal || (v ? v.capacity : 250);
+            const sisa = Math.max(0, total - booked);
+            const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [Sisa: ${sisa} Seat]`;
+            const opt = new Option(label, s.id);
+            if (this.tixConsoleState && this.tixConsoleState.selectedScheduleId && s.id === this.tixConsoleState.selectedScheduleId) {
+              opt.selected = true;
+            } else if (idx === 0) {
+              opt.selected = true;
+            }
+            select.add(opt);
+          });
+          this.bulkState.targetScheduleId = select.value;
+        }
+
+        this.updateBulkScheduleInfo();
+
+        const routeLabel = this.getTenantRouteScope(tenant) === 'INTL' ? 'Nunukan - Tawau' : 'Nunukan - Parepare';
+        const groupInput = document.getElementById('bulkGroupNameInput');
+        if (groupInput && !groupInput.value) {
+          groupInput.value = `Rombongan ${tenant.shortName || tenant.name} (${routeLabel})`;
+        }
+
+        if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
+          try {
+            const savedDraft = localStorage.getItem('tech_bulk_draft_passengers_v1');
+            if (savedDraft) {
+              const parsed = JSON.parse(savedDraft);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                this.bulkState.manualGridRows = parsed;
+              }
+            }
+          } catch (e) {}
+        }
+        if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
+          this.initManualGridRows(3);
+        } else {
+          this.renderManualGridTable();
+          this.syncGridToPaxList();
+        }
+
+        this.renderBulkPassengerPreview();
+      }
+
+      bulkContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      if (singleForm) singleForm.style.display = 'block';
+      if (bulkContainer) bulkContainer.style.display = 'none';
+      if (btnSingle) {
+        btnSingle.classList.add('active');
+        btnSingle.style.background = '#0284c7';
+        btnSingle.style.color = '#ffffff';
+      }
+      if (btnBulk) {
+        btnBulk.classList.remove('active');
+        btnBulk.style.background = 'transparent';
+        btnBulk.style.color = '#64748b';
+      }
+    }
   },
 
   // ================= LIVE SEAT MAP DASHBOARD =================
@@ -9435,12 +9553,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.openBulkPassengerModal(schId);
     });
 
-    // Close Modal
+    // Close / Cancel in-page
     document.getElementById('btnCloseBulkPassengerEntry')?.addEventListener('click', () => {
-      document.getElementById('modalBulkPassengerEntry')?.classList.remove('show');
+      this.setTicketingEntryMode('SINGLE');
     });
     document.getElementById('btnCancelBulkPassengerEntry')?.addEventListener('click', () => {
-      document.getElementById('modalBulkPassengerEntry')?.classList.remove('show');
+      this.setTicketingEntryMode('SINGLE');
     });
 
     // Close on backdrop click
@@ -9629,6 +9747,11 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       return;
     }
 
+    if (preselectedScheduleId && this.tixConsoleState) {
+      this.tixConsoleState.selectedScheduleId = preselectedScheduleId;
+    }
+    this.switchDashboardTab('tabTicketing');
+
     const fleet = Store.getVesselsByCompany(tenant.id);
     const companySchedules = Store.getSchedulesByCompany(tenant.id);
 
@@ -9735,8 +9858,9 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     // Render initial state
     this.renderBulkPassengerPreview();
 
-    // Show modal
-    document.getElementById('modalBulkPassengerEntry')?.classList.add('show');
+    // In-page mode: tidak membuka popup modal baru, tetap di halaman yang sama
+    this.switchDashboardTab('tabTicketing');
+    this.setTicketingEntryMode('BULK');
   },
 
   updateBulkScheduleInfo() {
