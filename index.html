@@ -4872,8 +4872,8 @@
     <div class="modal-window" style="max-width: 680px;">
       <div class="modal-top">
         <div>
-          <h4>Edit Data Manifest Penumpang</h4>
-          <p class="text-dim">Perbarui data identitas penumpang resmi KSOP & Imigrasi (PNR: <strong id="editManifestPnrLabel" style="color: var(--primary-cyan);">PNR-000</strong>).</p>
+          <h4>Edit Data Lengkap Tiket & Manifest</h4>
+          <p class="text-dim">Perbarui data identitas penumpang, nomor kursi, status pembayaran, dan status boarding (PNR: <strong id="editManifestPnrLabel" style="color: var(--primary-cyan);">PNR-000</strong>).</p>
         </div>
         <button type="button" class="btn-close-x" id="btnCloseEditManifest">&times;</button>
       </div>
@@ -5145,13 +5145,57 @@
 
           <!-- 8. Remark / Keterangan -->
           <div class="input-block">
-            <label>Remark / Keterangan</label>
+            <label>Remark / Keterangan KSOP</label>
             <select id="editPaxRemark" class="form-input">
               <option value="None">None</option>
-              <option value="LC">LC</option>
-              <option value="PGS">PGS</option>
-              <option value="CAD">CAD</option>
+              <option value="LC">LC (Lintas Batas)</option>
+              <option value="PGS">PGS (Pengurus/Petugas)</option>
+              <option value="CAD">CAD (Cadangan)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Section 2: Status Tiket, Kursi & Pembayaran -->
+        <div style="margin: 1.15rem 0 0.85rem 0; padding-top: 0.85rem; border-top: 1.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between;">
+          <strong style="font-size: 0.85rem; color: #0284c7; display: flex; align-items: center; gap: 0.4rem;">
+            🎫 Status Tiket, Alokasi Kursi & Pembayaran
+          </strong>
+          <span style="font-size: 0.72rem; color: #10b981; font-weight: 700;">● Terintegrasi Otomatis</span>
+        </div>
+
+        <div class="form-row-2">
+          <!-- Nomor Kursi -->
+          <div class="input-block">
+            <label>Nomor Kursi Penumpang *</label>
+            <input type="text" id="editManifestSeat" class="form-input" placeholder="contoh: A-01, B-04" required>
+          </div>
+
+          <!-- Status Pembayaran -->
+          <div class="input-block">
+            <label>Status Pembayaran *</label>
+            <select id="editManifestPaymentStatus" class="form-input">
+              <option value="PAID">PAID (Lunas)</option>
+              <option value="BOOKED">BOOKED (Dipesan / Belum Bayar)</option>
+              <option value="UNPAID">UNPAID (Menunggu Bayar)</option>
+              <option value="REFUNDED">REFUNDED (Dibatalkan)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <!-- Status Boarding -->
+          <div class="input-block">
+            <label>Status Boarding Dermaga *</label>
+            <select id="editManifestBoardingStatus" class="form-input">
+              <option value="NOT_CHECKED_IN">NOT CHECKED IN (Menunggu di Dermaga)</option>
+              <option value="BOARDED">BOARDED (Sudah Naik ke Kapal)</option>
+            </select>
+          </div>
+
+          <!-- Kontak Telepon / WA -->
+          <div class="input-block">
+            <label>No. WhatsApp / HP Kontak</label>
+            <input type="text" id="editManifestContactPhone" class="form-input" placeholder="contoh: 08123456789">
           </div>
         </div>
 
@@ -5159,7 +5203,7 @@
           <button type="button" class="btn-cancel" id="btnCancelEditManifest">Batal</button>
           <button type="submit" class="btn-submit-action btn-green">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            <span>Simpan Perubahan Manifest</span>
+            <span>Simpan Semua Perubahan (Manifest & Tiket)</span>
           </button>
         </div>
       </form>

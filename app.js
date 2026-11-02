@@ -1137,6 +1137,10 @@ const App = {
 
   openBoardingPassModal(booking) {
     if (!booking) return;
+    this.openDirectTicketPrintModal(booking, 'BOARDING_PASS');
+  },
+
+  _legacyOpenBoardingPassModal(booking) {
     const comp = Store.getCompanyById(booking.companyId) || { name: 'Perusahaan Pelayaran', shortName: 'Operator' };
     const p0 = (booking.passengers && booking.passengers[0]) || { name: 'Penumpang Resmi', docType: 'KTP', nationality: 'ID', gender: 'L' };
 
@@ -4528,11 +4532,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             <button type="button" class="btn-action-sm btn-print-single-ticket" style="background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; padding: 2px 5px; font-size: 0.68rem;" title="Cetak Langsung Tiket / Boarding Pass Satuan">
               🖨️ Tiket
             </button>
-            <button type="button" class="btn-action-sm btn-edit-manifest" style="padding: 2px 5px; font-size: 0.68rem;" title="Edit Data Manifest Penumpang (Nama, Dokumen, Umur, Remark)">
-              ✏️ Manifest
-            </button>
-            <button type="button" class="btn-action-sm btn-edit-ticket" style="padding: 2px 5px; font-size: 0.68rem;" title="Edit Tiket (Nomor Kursi, Status Bayar & Boarding)">
-              🎫
+            <button type="button" class="btn-action-sm btn-edit-manifest btn-edit-ticket" style="padding: 2px 7px; font-size: 0.68rem; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; border-radius: 4px;" title="Edit Data Lengkap Tiket & Manifest Penumpang">
+              ✏️ Edit Tiket & Pax
             </button>
             <button type="button" class="btn-action-sm btn-transfer-vessel" style="padding: 2px 5px; font-size: 0.68rem;" title="Alihkan / Transfer Penumpang ke Kapal Lain">
               🔄
@@ -5733,10 +5734,36 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         }
       }
 
+      // Simpan perubahan data tiket, kursi & status pembayaran/boarding
+      if (booking) {
+        const editSeat = document.getElementById('editManifestSeat')?.value?.trim()?.toUpperCase();
+        const editPayment = document.getElementById('editManifestPaymentStatus')?.value;
+        const editBoarding = document.getElementById('editManifestBoardingStatus')?.value;
+        const editPhone = document.getElementById('editManifestContactPhone')?.value?.trim();
+
+        if (editPayment) booking.paymentStatus = editPayment;
+        if (editBoarding) {
+          booking.boardingStatus = editBoarding;
+          if (editBoarding === 'BOARDED' && !booking.boardedAt) {
+            booking.boardedAt = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+          }
+        }
+        if (editPhone && booking.contact) {
+          booking.contact.phone = editPhone;
+        }
+        if (editSeat && booking.passengers && booking.passengers[paxIndex]) {
+          booking.passengers[paxIndex].seat = editSeat;
+          updatedPax.seat = editSeat;
+        }
+        if (typeof Store.saveBookings === 'function') {
+          Store.saveBookings();
+        }
+      }
+
       Store.updatePassenger(pnr, paxIndex, updatedPax);
       document.getElementById('modalEditManifest').classList.remove('show');
       this.refreshCompanyDashboard();
-      this.showToast('Manifest Diperbarui', `Data manifest penumpang "${updatedPax.name}" (PNR: ${pnr}) berhasil disimpan.`);
+      this.showToast('Data Diperbarui', `Data tiket & manifest penumpang "${updatedPax.name}" (PNR: ${pnr}) berhasil disimpan.`);
     });
 
     // Modal 2: Edit Ticket Listeners
@@ -6075,11 +6102,29 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       checkEditDup();
     }
 
+    // Set unified ticket & boarding fields
+    const seatInput = document.getElementById('editManifestSeat');
+    if (seatInput) seatInput.value = p.seat || '';
+
+    const paySelect = document.getElementById('editManifestPaymentStatus');
+    if (paySelect) paySelect.value = booking.paymentStatus || 'PAID';
+
+    const boardSelect = document.getElementById('editManifestBoardingStatus');
+    if (boardSelect) boardSelect.value = booking.boardingStatus || 'NOT_CHECKED_IN';
+
+    const phoneInput = document.getElementById('editManifestContactPhone');
+    if (phoneInput) phoneInput.value = booking.contact?.phone || '';
+
     document.getElementById('modalEditManifest').classList.add('show');
   },
 
   // Open Modal 2: Edit Ticket
   openEditTicketModal(pnr) {
+    // Terintegrasi ke modal edit tiket & manifest terpadu
+    this.openEditManifestModal(pnr, 0);
+  },
+
+  _legacyOpenEditTicketModal(pnr) {
     const booking = Store.getBookingByPnr(pnr);
     if (!booking) {
       this.showToast('Tiket Tidak Ditemukan', `Tiket ${pnr} tidak ditemukan.`, 'warning');
@@ -7479,8 +7524,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     this.refreshCompanyDashboard();
     this.renderTicketingConsole();
 
-    // Buka Boarding Pass
-    this.openBoardingPassModal(newBooking);
+    // Buka Cetak Tiket Langsung (Thermal Kasir & A4 Boarding Pass)
+    this.openDirectTicketPrintModal(newBooking, 'BOARDING_PASS');
     this.showToast('Tiket Berhasil Diterbitkan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seatListSuccess}).`);
   },
 
@@ -7611,13 +7656,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         const sched = scheds.find(s => s.id === this.seatDashState.scheduleId);
         if (!sched) return;
 
-        // Open booking modal with pre-selected class and seat
-        this.openBookingModal(sched);
-        this.selectedClassIndex = this.seatDashState.classIdx;
-        this.selectedSeats = [this.seatDashState.selectedSeat];
-        this.renderClassOptions();
-        this.renderSeatPickerGrid();
-        this.updateSeatPickerSummary();
+        // Buka alur resmi One-Page POS Ticketing Console
+        const targetSeat = this.seatDashState.selectedSeat;
+        this.switchDashboardTab('tabTicketing');
+        if (this.tixConsoleState) {
+          this.tixConsoleState.selectedScheduleId = sched.id;
+          if (sched.date) this.tixConsoleState.selectedDate = sched.date;
+        }
+        this.renderTicketingConsole();
+        if (targetSeat && !this.tixConsoleState.selectedSeats.includes(targetSeat)) {
+          this.toggleSeatSelection(targetSeat);
+        }
+        this.showToast('Kursi Dipilih', `Nomor kursi ${targetSeat} telah dimasukkan ke entri penumpang.`);
       });
     }
 
