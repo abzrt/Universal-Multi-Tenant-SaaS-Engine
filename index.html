@@ -510,20 +510,6 @@
               </div>
             </button>
 
-            <!-- 6b. Entri Tiket Rombongan -->
-            <button type="button" class="ticky-nav-item dash-tab-btn" data-tab="tabBulk" title="Entri Tiket Rombongan">
-              <div class="ticky-nav-left">
-                <span class="ticky-nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                </span>
-                <span class="ticky-nav-label">Entri Tiket Rombongan</span>
-              </div>
-            </button>
 
 
 
@@ -719,6 +705,25 @@
           <!-- ALL-IN-ONE ONE-PAGE TICKETING CONSOLE (KALENDER + SEAT + TIKET SATU HALAMAN) -->
                     <!-- ALL-IN-ONE ONE-PAGE TICKETING CONSOLE -->
           <div id="ticketingConsoleWorkspace" style="margin-bottom: 1.5rem;">
+            <!-- SUB-MODE SWITCHER (TIKET SATUAN vs ENTRI PENUMPANG MASSAL/ROMBONGAN) -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: #f1f5f9; padding: 4px; border-radius: 9px; border: 1px solid #cbd5e1;">
+                <button type="button" id="btnTixModeSingle" class="tix-mode-tab-btn active" style="padding: 0.5rem 1.15rem; font-size: 0.82rem; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; background: #0284c7; color: #ffffff; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span>Tiket Satuan (Perorangan)</span>
+                </button>
+                <button type="button" id="btnTixModeBulk" class="tix-mode-tab-btn" style="padding: 0.5rem 1.15rem; font-size: 0.82rem; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; background: transparent; color: #64748b; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <span>Entri Penumpang Massal (Rombongan)</span>
+                </button>
+              </div>
+              <span style="font-size: 0.78rem; color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                KSOP & Ditjen Hubla Validated
+              </span>
+            </div>
+            <!-- MODE 1: TIKET SATUAN (POS 3-PANEL & TABEL PENUMPANG) -->
+            <div id="tixSingleModeSection" style="display: block;">
             <!-- BARIS ATAS: 3 PANEL SEJAJAR (1: KALENDER, 2: TUJUAN RUTE & JADWAL, 3: PILIH SEAT VISUAL) -->
             <div class="tix-pos-top-grid" style="display: grid; grid-template-columns: 290px 380px 1fr; gap: 1.15rem; align-items: stretch; margin-bottom: 1.25rem;">
               
@@ -961,18 +966,10 @@
                 </div>
               </div>
             </div>
-          </div>
+            </div><!-- /#tixSingleModeSection -->
 
-          <div class="schedules-deck" id="companyTicketingSchedulesList" style="display: none;">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBTAB: ENTRI TIKET ROMBONGAN -->
-      <div class="dash-pane" id="paneBulk">
-        <div class="dash-block-panel">
-          <div id="tixBulkEntryContainer" style="display: block; margin-top: 0;">
+            <!-- MODE 2: ENTRI PENUMPANG MASSAL / TIKET ROMBONGAN -->
+          <div id="tixBulkEntryContainer" style="display: none; margin-top: 0.5rem;">
                     <!-- Modal Top -->
       <div class="modal-top" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; background: #f8fafc; border-radius: 8px;">
         <div>
@@ -1273,8 +1270,16 @@
         </div>
       </div>
           </div>
+          </div>
+
+          <div class="schedules-deck" id="companyTicketingSchedulesList" style="display: none;">
+            <!-- Rendered by JS -->
+          </div>
         </div>
       </div>
+
+      <!-- SUBTAB: ENTRI TIKET ROMBONGAN (DIINTEGRASIKAN KE PANE TICKETING) -->
+      <div class="dash-pane" id="paneBulk" style="display: none !important;"></div>
 
       <!-- SUBTAB: DENAH KURSI & SEAT MAP ARMADA -->
       <div class="dash-pane" id="paneSeats">

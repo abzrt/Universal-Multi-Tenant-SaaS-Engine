@@ -3307,8 +3307,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     }
     if (tabKey === 'tabBulk') {
-      document.getElementById('paneBulk')?.classList.add('active');
-      this.openBulkPassengerModal();
+      this.switchDashboardTab('tabTicketing');
+      this.setTicketingEntryMode('BULK');
     }
     if (tabKey === 'tabSeats') {
       document.getElementById('paneSeats')?.classList.add('active');
@@ -9725,10 +9725,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Close / Cancel in-page
     document.getElementById('btnCloseBulkPassengerEntry')?.addEventListener('click', () => {
-      this.switchDashboardTab('tabTicketing');
+      this.setTicketingEntryMode('SINGLE');
     });
     document.getElementById('btnCancelBulkPassengerEntry')?.addEventListener('click', () => {
-      this.switchDashboardTab('tabTicketing');
+      this.setTicketingEntryMode('SINGLE');
     });
 
     // Close on backdrop click
@@ -10026,8 +10026,9 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     // Render initial state
     this.renderBulkPassengerPreview();
 
-    // Buka di pane khusus Entri Tiket Rombongan
-    document.getElementById('paneBulk')?.classList.add('active');
+    // Buka di pane Entri Penumpang mode Rombongan
+    this.switchDashboardTab('tabTicketing');
+    this.setTicketingEntryMode('BULK');
   },
 
   updateBulkScheduleInfo() {
