@@ -3273,7 +3273,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const tabTitles = {
       tabOverview: 'Dashboard Loket',
       tabManifest: 'Tagihan & Riwayat Tiket',
-      tabTicketing: 'Terbitkan Tiket Baru',
+      tabTicketing: 'Entri Penumpang',
       tabFleet: 'Armada Kapal Saya',
       tabSchedules: 'Daftar Rute & Jadwal',
       tabCalendar: 'Kalender Pelayaran',
