@@ -7546,8 +7546,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elBtnText = document.getElementById('btnTixSubmitBookingFinalText');
     if (elBtnText) {
       elBtnText.innerText = count > 0
-        ? `🖨️ Simpan & Cetak Tiket (${count} Penumpang)`
-        : `🖨️ Simpan & Cetak Tiket (Pilih Kursi Terlebih Dahulu)`;
+        ? `🖨️ Cetak Tiket (${count} Penumpang)`
+        : `🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)`;
     }
     const elBtnSaveOnlyText = document.getElementById('btnTixSaveOnlyText');
     if (elBtnSaveOnlyText) {

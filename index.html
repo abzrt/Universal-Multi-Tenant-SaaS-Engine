@@ -921,11 +921,11 @@
               </div>
 
               <!-- Ringkasan Tarif & Pembayaran Loket -->
-              <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem;">
                 <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                   <div>
                     <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">Metode Pembayaran Loket:</label>
-                    <select id="tixFinalPaymentMethod" class="form-input" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 700; background: #ffffff; min-width: 240px;">
+                    <select id="tixFinalPaymentMethod" class="form-input" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 700; background: #ffffff; min-width: 200px;">
                       <option value="Loket Resmi Perusahaan">💵 Tunai di Loket Pelabuhan</option>
                       <option value="Sistem Booked">⏳ Sistem Booked (Bayar Saat Check-In)</option>
                     </select>
@@ -938,7 +938,7 @@
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-left: auto;">
                   <div style="text-align: right; margin-right: 0.5rem;">
                     <span style="font-size: 0.74rem; color: #64748b; font-weight: 600;">TOTAL DIBAYARKAN:</span>
                     <div id="tixFinalFareTotal" style="font-size: 1.5rem; font-weight: 900; color: #ea580c; line-height: 1.2;">
@@ -946,9 +946,9 @@
                     </div>
                   </div>
 
-                  <button type="button" id="btnTixSubmitBookingFinal" class="btn-submit-action btn-green" style="font-size: 0.92rem; padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);" title="Simpan tiket ke database dan langsung buka layar cetak">
+                  <button type="button" id="btnTixSubmitBookingFinal" class="btn-submit-action btn-green" style="font-size: 0.92rem; padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); white-space: nowrap;" title="Simpan tiket ke database dan langsung buka layar cetak">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                    <span id="btnTixSubmitBookingFinalText">🖨️ Simpan & Cetak Tiket</span>
+                    <span id="btnTixSubmitBookingFinalText">🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)</span>
                   </button>
                 </div>
               </div>
