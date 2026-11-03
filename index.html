@@ -887,7 +887,7 @@
 
             </div>
 
-            <!-- BARIS BAWAH: ENTRI DATA PENUMPANG (LEBAR PENUH / FULL WIDTH) -->
+            <!-- BARIS BAWAH: ENTRI DATA PENUMPANG (SESUAI KURSI TERPILIH) -->
             <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 1.35rem; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -899,18 +899,24 @@
                     </p>
                   </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
                   <span id="tixPaxCountBadge" class="tag-badge" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-weight: 800; font-size: 0.8rem;">
                     0 Penumpang Terpilih
                   </span>
+                  <button type="button" id="btnTixSaveDraftSeats" style="background: #f0fdf4; border: 1px solid #86efac; color: #15803d; font-size: 0.74rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;" title="Simpan data penumpang sementara ke browser">
+                    💾 Simpan Draft
+                  </button>
+                  <button type="button" id="btnTixRestoreDraftSeats" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 0.74rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; display: none; align-items: center; gap: 0.3rem;" title="Muat draft penumpang yang pernah disimpan">
+                    📂 Muat Draft
+                  </button>
                   <button type="button" id="btnTixClearSelectedSeats" style="background: #ffffff; border: 1px solid #fecaca; color: #dc2626; font-size: 0.74rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer;">
                     Bersihkan Pilihan
                   </button>
                 </div>
               </div>
 
-              <!-- Tabel Baris Penumpang -->
-              <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1.15rem; background: #ffffff;">
+              <!-- Tabel Entri Penumpang Dinamis Sesuai Kursi Terpilih -->
+              <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1.25rem;">
                 <table class="dash-table" style="width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 0;">
                   <thead>
                     <tr style="background: #f8fafc;">
@@ -926,7 +932,7 @@
                     </tr>
                   </thead>
                   <tbody id="tixPassengerRowsTbody">
-                    <!-- Injected by JS -->
+                    <!-- Injected by JS: renderPassengerEntriesTable -->
                   </tbody>
                 </table>
               </div>
@@ -951,17 +957,22 @@
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 1.5rem;">
-                  <div style="text-align: right;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                  <div style="text-align: right; margin-right: 0.5rem;">
                     <span style="font-size: 0.74rem; color: #64748b; font-weight: 600;">TOTAL DIBAYARKAN:</span>
                     <div id="tixFinalFareTotal" style="font-size: 1.5rem; font-weight: 900; color: #ea580c; line-height: 1.2;">
                       Rp 0
                     </div>
                   </div>
 
-                  <button type="button" id="btnTixSubmitBookingFinal" class="btn-submit-action btn-green" style="font-size: 0.95rem; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span id="btnTixSubmitBookingFinalText">Konfirmasi & Terbitkan Tiket Resmi (0 Penumpang)</span>
+                  <button type="button" id="btnTixSaveOnly" class="btn-submit-action" style="font-size: 0.92rem; padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; background: #0284c7; color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);" title="Simpan tiket ke database & manifest tanpa langsung membuka dialog cetak">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span id="btnTixSaveOnlyText">💾 Simpan Tiket (Tanpa Cetak)</span>
+                  </button>
+
+                  <button type="button" id="btnTixSubmitBookingFinal" class="btn-submit-action btn-green" style="font-size: 0.92rem; padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);" title="Simpan tiket ke database dan langsung buka layar cetak">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    <span id="btnTixSubmitBookingFinalText">🖨️ Simpan & Cetak Tiket</span>
                   </button>
                 </div>
               </div>
@@ -1082,170 +1093,17 @@
           </div>
         </div>
 
-                <!-- STEP 2: Pilih Metode Input Data Penumpang -->
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
-            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
-              <span>2️⃣</span> Masukkan Data Penumpang
-            </strong>
-            <button type="button" id="btnDownloadBulkCsvTemplate" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-              <span>⬇ Unduh Format Template Excel / CSV Resmi</span>
-            </button>
-          </div>
-
-          <!-- Nav Tabs: 3 Opsi Input -->
-          <div class="bulk-input-tabs" id="bulkInputTabs">
-            <button type="button" class="bulk-tab-btn active" data-mode="GRID">
-              ✍️ Tabel Grid Interaktif
-            </button>
-            <button type="button" class="bulk-tab-btn" data-mode="PASTE">
-              📋 Copy-Paste Cepat dari Excel
-            </button>
-            <button type="button" class="bulk-tab-btn" data-mode="FILE">
-              📂 Unggah File CSV / Excel
-            </button>
-          </div>
-
-          <!-- PANE 1: TABEL GRID INTERAKTIF (FIRST & DEFAULT) -->
-          <div id="bulkPaneGrid" class="bulk-input-pane">
-            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-              <span style="font-size: 0.78rem; color: #64748b;">Ketik langsung data penumpang pada tabel baris demi baris:</span>
-              <div style="display: flex; gap: 0.4rem;">
-                <button type="button" class="btn-action-sm" id="btnAddGridRow" style="background: #0284c7; color: #ffffff; border: none; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 1 Baris</button>
-                <button type="button" class="btn-action-sm" id="btnAdd5GridRows" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">+ Tambah 5 Baris</button>
-                <button type="button" class="btn-action-sm" id="btnClearGridRows" style="background: #ffffff; color: #dc2626; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer;">Bersihkan</button>
-                <button type="button" class="btn-action-sm" id="btnSaveGridRows" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 0.76rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                  <span>Simpan Data</span>
-                </button>
-              </div>
-            </div>
-            <div style="max-height: 380px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <table class="bulk-grid-table" id="tableBulkManualGrid">
-                <thead>
-                  <tr>
-                    <th style="width: 36px; text-align: center;">No</th>
-                    <th>Nama Lengkap Penumpang *</th>
-                    <th style="width: 170px;">No. Paspor / NIK *</th>
-                    <th style="width: 80px;">L/P</th>
-                    <th style="width: 110px;">Jenis Pax</th>
-                    <th style="width: 110px;">Warga</th>
-                    <th style="width: 110px;">Kursi</th>
-                    <th style="width: 45px; text-align: center;">Hapus</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyBulkManualGrid">
-                  <!-- Injected by JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- PANE 2: COPY-PASTE DARI SPREADSHEET (SECOND) -->
-          <div id="bulkPanePaste" class="bulk-input-pane" style="display: none;">
-            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-              <span style="font-size: 0.78rem; color: #64748b;">
-                Salin baris data dari Excel/Google Sheets dan tempel (Paste) langsung ke kotak di bawah.
-              </span>
-              <button type="button" id="btnLoadBulkDemoData" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
-                + Muat 10 Contoh Data Demo
-              </button>
-            </div>
-            <textarea id="bulkPasteTextarea" class="form-input" rows="5" placeholder="Contoh format kolom:&#10;Ahmad Dahlan	A1234567	L	Dewasa	ID&#10;Siti Fatimah	6401024508900001	P	Dewasa	ID&#10;Muhammad Rizki	B8765432	L	Anak	ID&#10;&#10;*Format otomatis membaca pemisah Tab, Koma, atau Titik Koma." style="width: 100%; font-family: monospace; font-size: 0.8rem; background: #ffffff; color: #0f172a; border-color: #cbd5e1;"></textarea>
-            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem; gap: 0.5rem;">
-              <button type="button" class="btn-action-sm" id="btnParsePastedText" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
-                ⚡ Proses & Analisis Teks Tempel
-              </button>
-            </div>
-          </div>
-
-          <!-- PANE 3: UPLOAD FILE CSV (THIRD) -->
-          <div id="bulkPaneFile" class="bulk-input-pane" style="display: none;">
-            <div class="bulk-dropzone" id="bulkDropzoneArea">
-              <input type="file" id="bulkFileInput" accept=".csv,.txt,.tsv" style="display: none;">
-              <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">📂</div>
-              <strong style="color: #0f172a; font-size: 0.95rem; display: block;">Pilih atau Tarik Berkas CSV / Excel ke Sini</strong>
-              <span style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Mendukung format .csv, .tsv, dan .txt dengan pemisah koma atau tab</span>
-              <div style="margin-top: 0.85rem;">
-                <button type="button" class="btn-action-sm" id="btnBrowseBulkFile" style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
-                  Pilih File dari Komputer
-                </button>
-              </div>
-            </div>
-          </div>
+        <!-- INFORMASI: FITUR TELAH DIPINDAHKAN KE TAB TIKET SATUAN -->
+        <div style="background: #f0fdf4; border: 1.5px dashed #86efac; border-radius: 10px; padding: 1.5rem; text-align: center; margin-top: 1rem;">
+          <div style="font-size: 1.8rem; margin-bottom: 0.35rem;">🚢</div>
+          <h4 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 800;">Fitur Entri Data Penumpang Telah Dipindahkan</h4>
+          <p style="margin: 0.35rem 0 0.85rem 0; color: #166534; font-size: 0.84rem;">
+            Pemesanan tiket dan pemilihan nomor kursi resmi penumpang dapat diakses langsung pada <strong>Tab Tiket Satuan</strong>.
+          </p>
+          <button type="button" class="btn-submit-action" id="btnGoToIntegratedTix" style="background: #0284c7; color: #fff; padding: 0.5rem 1.25rem; font-size: 0.84rem; font-weight: 700; border-radius: 6px; border: none; cursor: pointer;">
+            Buka Tab Tiket Satuan Terpadu ➔
+          </button>
         </div>
-
-        <!-- STEP 3: Live Preview & Ringkasan Validasi Data -->
-        <div class="bulk-preview-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
-            <strong style="color: #0f172a; font-size: 0.9rem; display: flex; align-items: center; gap: 0.45rem;">
-              <span>3️⃣</span> Hasil Analisis & Pratinjau Penumpang Siap Terbit
-            </strong>
-            <button type="button" id="btnReallocateBulkSeats" class="btn-action-sm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-weight: 700; font-size: 0.76rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
-              🔄 Alokasikan Ulang Kursi Otomatis
-            </button>
-          </div>
-
-          <!-- KPI Summary Strip -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-bottom: 0.85rem;">
-            <div class="bulk-kpi-badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;">
-              <span>👥</span>
-              <div>
-                <span style="font-size: 0.7rem; display: block; color: #0369a1;">Total Penumpang:</span>
-                <strong id="kpiBulkTotalPax" style="font-size: 1.05rem;">0 Orang</strong>
-              </div>
-            </div>
-            <div class="bulk-kpi-badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;">
-              <span>✓</span>
-              <div>
-                <span style="font-size: 0.7rem; display: block; color: #166534;">Validasi KSOP:</span>
-                <strong id="kpiBulkValidPax" style="font-size: 1.05rem;">0 Lolos</strong>
-              </div>
-            </div>
-            <div class="bulk-kpi-badge" style="background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe;">
-              <span>💺</span>
-              <div>
-                <span style="font-size: 0.7rem; display: block; color: #6d28d9;">Alokasi Kursi:</span>
-                <strong id="kpiBulkSeatMode" style="font-size: 0.88rem;">Otomatis (Berurutan)</strong>
-              </div>
-            </div>
-            <div class="bulk-kpi-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
-              <span>💰</span>
-              <div>
-                <span style="font-size: 0.7rem; display: block; color: #92400e;">Total Nilai Tiket:</span>
-                <strong id="kpiBulkTotalFare" style="font-size: 1.05rem;">Rp 0</strong>
-              </div>
-            </div>
-          </div>
-
-          <!-- Scrollable Live Preview Table -->
-          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-            <table class="dash-table" style="font-size: 0.8rem; margin: 0;">
-              <thead>
-                <tr style="background: #f8fafc;">
-                  <th style="width: 32px; text-align: center;">No</th>
-                  <th>Nama Lengkap</th>
-                  <th>No. Dokumen / NIK / Paspor</th>
-                  <th>L/P</th>
-                  <th>Jenis</th>
-                  <th>Warga</th>
-                  <th>Alokasi Kursi</th>
-                  <th>Status</th>
-                  <th style="width: 40px; text-align: center;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyBulkPreview">
-                <tr>
-                  <td colspan="9" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
-                    Belum ada data penumpang dimasukkan. Tempel data teks di atas atau unggah file.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
 
       <!-- Modal Bottom Actions -->
@@ -2265,12 +2123,16 @@
           <div class="block-header flex-between align-center">
             <div>
               <h4>Daftar Armada Kapal Milik Perusahaan</h4>
-              <p class="text-dim">Kelola data kapal, nomor registrasi IMO, dan kapasitas kursi.</p>
+              <p class="text-dim">Daftar armada kapal, nomor registrasi IMO, dan kapasitas kursi resmi (Penambahan armada baru dikelola via Developer Mode).</p>
             </div>
-            <button type="button" class="btn-primary-action" id="btnOpenAddVessel" style="padding: 0.45rem 0.9rem; font-size: 0.8rem; gap: 0.35rem;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-              <span>Tambah Armada Baru</span>
-            </button>
+            <div style="display: flex; gap: 0.6rem; align-items: center;">
+              <span class="tag-badge" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.85rem; border-radius: 8px;">
+                🔒 Penambahan Armada Dikelola Developer Mode
+              </span>
+              <button type="button" class="btn-primary-action" id="btnOpenAddVessel" style="display: none !important;">
+                <span>Tambah Armada Baru</span>
+              </button>
+            </div>
           </div>
 
           <div class="table-responsive">
@@ -2338,10 +2200,9 @@
             </div>
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
               <span class="tag-badge" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.85rem; border-radius: 8px;">
-                🔒 Harga Tiket & Pas Pelabuhan Dikelola Developer
+                🔒 Pembukaan Jadwal & Tarif Dikelola Developer Mode
               </span>
-              <button type="button" class="btn-primary-action" id="btnOpenAddSchedule" style="padding: 0.45rem 0.9rem; font-size: 0.8rem; gap: 0.35rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+              <button type="button" class="btn-primary-action" id="btnOpenAddSchedule" style="display: none !important;">
                 <span>Buka Jadwal Baru</span>
               </button>
             </div>
@@ -2424,9 +2285,11 @@
                 </button>
               </div>
 
-              <!-- Add Schedule CTA -->
-              <button type="button" class="btn-primary-action" id="btnCalOpenAddSchedule" style="padding: 0.45rem 0.9rem; font-size: 0.8rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+              <!-- Add Schedule CTA (Hanya di Dev Mode) -->
+              <span class="tag-badge" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.85rem; border-radius: 8px;">
+                🔒 Jadwal Dikelola Developer Mode
+              </span>
+              <button type="button" class="btn-primary-action" id="btnCalOpenAddSchedule" style="display: none !important;">
                 <span>+ Jadwal Baru</span>
               </button>
             </div>
@@ -3377,6 +3240,12 @@
             <span id="devPendingAlertBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.76rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px;">0 Menunggu Approval</span>
             <button type="button" id="btnDevOpenAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.5); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
               <span>➕ Tambah Perusahaan</span>
+            </button>
+            <button type="button" id="btnDevOpenAddVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);">
+              <span>⛴️ Tambah Armada</span>
+            </button>
+            <button type="button" id="btnDevOpenAddSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1px solid rgba(129, 140, 248, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+              <span>📅 Tambah Jadwal</span>
             </button>
           </div>
         </div>
@@ -4856,7 +4725,11 @@
           Tutup
         </button>
 
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-submit-action" id="btnSaveDirectTicketFile" style="background: #ffffff; color: #0284c7; border: 1.5px solid #0284c7; font-weight: 800; padding: 0.65rem 1.3rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem;" title="Unduh dan simpan file dokumen tiket ke komputer sebelum dicetak">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>💾 Simpan File Tiket (HTML)</span>
+          </button>
           <button type="button" class="btn-submit-action" id="btnExecuteDirectPrint" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.65rem 1.6rem; border-radius: 8px; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
             <span id="btnExecuteDirectPrintText">🖨️ Cetak Sekarang (Semua Tiket)</span>
@@ -6045,6 +5918,102 @@
               <span>💾 Simpan Perubahan Armada</span>
             </button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Jadwal Pelayaran Baru (Developer Mode) -->
+  <div class="modal-layer" id="modalDevAddSchedule">
+    <div class="modal-window" style="max-width: 580px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">📅</span>
+          <div>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Buka Rute &amp; Jadwal Pelayaran Baru</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Tetapkan jadwal pelayaran resmi untuk perusahaan &amp; armada kapal pilihan.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevAddSchedule" style="color: #94a3b8;">&times;</button>
+      </div>
+      <form id="formDevAddSchedule" class="modal-content-form" style="padding-top: 1rem;">
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pilih Perusahaan *</label>
+            <select id="devAddSchedCompanySelect" class="form-input" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pilih Kapal / Armada *</label>
+            <select id="devAddSchedVesselSelect" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+              <!-- Populated dynamically based on company -->
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pelabuhan Asal *</label>
+            <select id="devAddSchedOriginSelect" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pelabuhan Tujuan *</label>
+            <select id="devAddSchedDestSelect" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Tanggal Pelayaran Mulai *</label>
+            <input type="date" id="devAddSchedDateInput" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pola Keberangkatan</label>
+            <select id="devAddSchedRecurrenceSelect" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <option value="ONCE">1 Kali Saja (Sesuai Tanggal)</option>
+              <option value="DAILY_WEEK">Harian Selama 1 Minggu (7 Hari Berturut-turut)</option>
+              <option value="DAILY_MONTH">Harian Penuh s/d Akhir Bulan Ini</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Jam Berangkat *</label>
+            <input type="time" id="devAddSchedDepartTime" class="form-input" value="09:00" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Estimasi Jam Tiba</label>
+            <input type="time" id="devAddSchedArrivalTime" class="form-input" value="10:30" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+        </div>
+        <div class="form-row-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem;">
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Dermaga / Pier</label>
+            <input type="text" id="devAddSchedPierInput" class="form-input" value="Dermaga Utama KSOP" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Harga Tiket (Rp)</label>
+            <input type="number" id="devAddSchedPriceEko" class="form-input" value="430000" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Pas Pelabuhan (Rp)</label>
+            <input type="number" id="devAddSchedPortPassPrice" class="form-input" value="50000" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+          </div>
+        </div>
+        <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.75rem; color: #c7d2fe; margin-top: 0.25rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; margin: 0;">
+            <input type="checkbox" id="devAddSchedMakeDefaultCheck" checked style="accent-color: #6366f1; margin-top: 0.15rem;">
+            <span><strong>Otomatis Jadikan Jadwal Utama:</strong> Jadwal ini otomatis langsung aktif dan siap untuk transaksi tiket saat perusahaan login.</span>
+          </label>
+        </div>
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevAddSchedule" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevAddSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+            <span>💾 Buka &amp; Simpan Jadwal Pelayaran</span>
+          </button>
         </div>
       </form>
     </div>

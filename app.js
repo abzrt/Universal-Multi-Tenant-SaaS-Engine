@@ -2325,7 +2325,117 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     });
 
-    ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevEditVessel', 'modalDevConfigSeats'].forEach(mId => {
+    // ----------------- DEVELOPER MODE: TAMBAH JADWAL -----------------
+    document.getElementById('btnDevOpenAddSchedule')?.addEventListener('click', () => {
+      this.openDevAddScheduleModal();
+    });
+    const closeDevAddSched = () => {
+      document.getElementById('modalDevAddSchedule')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevAddSchedule')?.addEventListener('click', closeDevAddSched);
+    document.getElementById('btnCancelDevAddSchedule')?.addEventListener('click', closeDevAddSched);
+
+    document.getElementById('formDevAddSchedule')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const compId = document.getElementById('devAddSchedCompanySelect')?.value;
+      const vesselId = document.getElementById('devAddSchedVesselSelect')?.value;
+      const originId = document.getElementById('devAddSchedOriginSelect')?.value || 'NNK';
+      const destinationId = document.getElementById('devAddSchedDestSelect')?.value || 'TWU';
+      const dateVal = document.getElementById('devAddSchedDateInput')?.value || new Date().toISOString().split('T')[0];
+      const recurrence = document.getElementById('devAddSchedRecurrenceSelect')?.value || 'ONCE';
+      const departTime = document.getElementById('devAddSchedDepartTime')?.value || '09:00';
+      const arrivalTime = document.getElementById('devAddSchedArrivalTime')?.value || '10:30';
+      const pier = (document.getElementById('devAddSchedPierInput')?.value || 'Dermaga Utama KSOP').trim();
+      const priceEko = parseInt(document.getElementById('devAddSchedPriceEko')?.value || '430000', 10);
+      const portPassFee = parseInt(document.getElementById('devAddSchedPortPassPrice')?.value || '50000', 10);
+      const makeDefault = document.getElementById('devAddSchedMakeDefaultCheck')?.checked ?? true;
+
+      const comp = Store.getCompanyById(compId);
+      const vessel = Store.getVessels().find(v => v.id === vesselId);
+      if (!compId || !vesselId || !vessel) {
+        this.showToast('Data Tidak Lengkap', 'Pilih perusahaan dan armada kapal yang valid.', 'warning');
+        return;
+      }
+
+      const vName = vessel.name || 'KM Armada';
+      const isDom = originId === 'PRE' || destinationId === 'PRE';
+      const origCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === originId)?.city) || 'Nunukan';
+      const destCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === destinationId)?.city) || (isDom ? 'Parepare' : 'Tawau');
+
+      const createSchedObj = (dStr) => ({
+        id: `SCH-${comp.code || 'DEV'}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`,
+        companyId: comp.id,
+        vesselId,
+        vesselNameCustom: vName,
+        originId,
+        destinationId,
+        originCity: origCity,
+        destinationCity: destCity,
+        departDate: dStr,
+        departTime,
+        arrivalTime,
+        daysToAdd: 0,
+        pier,
+        status: 'ACTIVE',
+        priceEconomy: priceEko,
+        portPassFee,
+        categoryType: (originId === 'TWU' || destinationId === 'TWU') ? 'INTERNATIONAL' : 'DOMESTIC',
+        quotaTotal: vessel.capacity || 150,
+        quotaBooked: 0,
+        classes: [
+          { id: 'cls-eko', name: 'Tiket Reguler', price: priceEko, quota: vessel.capacity || 150, available: vessel.capacity || 150, booked: 0 }
+        ],
+        isDefault: makeDefault
+      });
+
+      let addedFirstSched = null;
+      let addedCount = 0;
+      if (recurrence === 'DAILY_WEEK') {
+        const base = new Date(dateVal);
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(base);
+          d.setDate(base.getDate() + i);
+          const dStr = d.toISOString().split('T')[0];
+          const schedObj = createSchedObj(dStr);
+          Store.addSchedule(schedObj);
+          if (!addedFirstSched) addedFirstSched = schedObj;
+          addedCount++;
+        }
+      } else if (recurrence === 'DAILY_MONTH') {
+        const base = new Date(dateVal);
+        const y = base.getFullYear();
+        const m = base.getMonth();
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        for (let day = base.getDate(); day <= lastDay; day++) {
+          const d = new Date(y, m, day);
+          const dStr = d.toISOString().split('T')[0];
+          const schedObj = createSchedObj(dStr);
+          Store.addSchedule(schedObj);
+          if (!addedFirstSched) addedFirstSched = schedObj;
+          addedCount++;
+        }
+      } else {
+        const schedObj = createSchedObj(dateVal);
+        Store.addSchedule(schedObj);
+        addedFirstSched = schedObj;
+        addedCount = 1;
+      }
+
+      if (makeDefault && addedFirstSched) {
+        Store.updateCompany(comp.id, {
+          defaultVesselId: vesselId,
+          defaultScheduleId: addedFirstSched.id,
+          defaultCapacity: vessel.capacity || 150
+        });
+      }
+
+      closeDevAddSched();
+      document.getElementById('formDevAddSchedule')?.reset();
+      this.renderDevAdminDashboard();
+      this.showToast('Jadwal Berhasil Dibuka', `${addedCount} jadwal pelayaran untuk ${vName} (${comp.name}) berhasil ditetapkan.`);
+    });
+
+    ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevEditVessel', 'modalDevConfigSeats', 'modalDevAddSchedule'].forEach(mId => {
       const el = document.getElementById(mId);
       if (el) {
         el.addEventListener('click', (e) => {
@@ -2493,6 +2603,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                   <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(13, 148, 136, 0.2); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Tambah Armada untuk Perusahaan Ini">
                     ⛴️ + Armada
                   </button>
+                  <button type="button" class="btn-dev-row-add-schedule" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Buka Jadwal Baru untuk Perusahaan Ini">
+                    📅 + Jadwal
+                  </button>
                   <button type="button" class="btn-dev-row-config-seat" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Pengaturan Seat Armada Perusahaan Ini">
                     💺 Seat
                   </button>
@@ -2548,6 +2661,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           btn.addEventListener('click', () => {
             const compId = btn.getAttribute('data-id');
             this.openDevAddVesselModal(compId);
+          });
+        });
+
+        tbodyComp.querySelectorAll('.btn-dev-row-add-schedule').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const compId = btn.getAttribute('data-id');
+            this.openDevAddScheduleModal(compId);
           });
         });
 
@@ -3591,8 +3711,16 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.handleGateScan(code);
     });
 
-    // Add Vessel Modal trigger
-    document.getElementById('btnOpenAddVessel').addEventListener('click', () => {
+    // Add Vessel Modal trigger (Hanya di Developer Mode)
+    document.getElementById('btnOpenAddVessel')?.addEventListener('click', () => {
+      if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+        this.showToast('Fitur Dibatasi', 'Penambahan armada kapal baru hanya dapat dilakukan melalui Mode Pengembang (Developer Mode).', 'warning');
+        return;
+      }
+      this.openDevAddVesselModal();
+    });
+    // Legacy helper trigger
+    const _legacyOpenAddVessel = () => {
       const modalTitle = document.getElementById('modalVesselTitle');
       const submitBtn = document.getElementById('btnSubmitVessel');
       const editIdInput = document.getElementById('vesselEditId');
@@ -3605,7 +3733,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.populateVesselTypeDropdown();
       document.getElementById('formAddVessel')?.reset();
       document.getElementById('modalAddVessel').classList.add('show');
-    });
+    };
 
     // Add Schedule Modal triggers
     document.getElementById('btnOpenAddSchedule').addEventListener('click', () => {
@@ -5673,6 +5801,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('btnExecuteDirectPrint')?.addEventListener('click', () => {
       window.print();
     });
+    document.getElementById('btnSaveDirectTicketFile')?.addEventListener('click', () => {
+      this.downloadDirectTicketPrintHtml();
+    });
     document.querySelectorAll('.btn-toggle-print-format')?.forEach(btn => {
       btn.addEventListener('click', () => {
         const format = btn.getAttribute('data-format') || 'BOARDING_PASS';
@@ -6926,9 +7057,22 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Pilihan Dikosongkan', 'Seluruh pilihan kursi telah dibersihkan.', 'warning');
     });
 
-    // Final Booking Submit Button
+    // Save Only Button (Save Ticket without immediate printing)
+    document.getElementById('btnTixSaveOnly')?.addEventListener('click', () => {
+      this.processFinalPosBookings(false);
+    });
+
+    // Final Booking Submit & Print Button
     document.getElementById('btnTixSubmitBookingFinal')?.addEventListener('click', () => {
-      this.processFinalPosBookings();
+      this.processFinalPosBookings(true);
+    });
+
+    // Save & Restore Single Seat Draft
+    document.getElementById('btnTixSaveDraftSeats')?.addEventListener('click', () => {
+      this.saveSinglePassengerDraft();
+    });
+    document.getElementById('btnTixRestoreDraftSeats')?.addEventListener('click', () => {
+      this.restoreSinglePassengerDraft();
     });
 
     // Bulk / Single buttons
@@ -7263,6 +7407,16 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // 5. RENDER ENTRI DATA PENUMPANG (DI BAWAHNYA)
     this.renderPassengerEntriesTable(activeSched, tenant, vessel, minPrice, passFee);
+
+    // Sync bulk state schedule & render manual grid table in integrated tab
+    if (activeSched) {
+      this.bulkState.targetScheduleId = activeSched.id;
+    }
+    if (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0) {
+      this.initManualGridRows(3);
+    } else {
+      this.renderManualGridTable();
+    }
   },
 
   toggleSeatSelection(seatCode) {
@@ -7392,19 +7546,44 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elBtnText = document.getElementById('btnTixSubmitBookingFinalText');
     if (elBtnText) {
       elBtnText.innerText = count > 0
-        ? `Konfirmasi & Terbitkan Tiket Resmi (${count} Penumpang)`
-        : `Konfirmasi & Terbitkan Tiket Resmi (Pilih Kursi Terlebih Dahulu)`;
+        ? `🖨️ Simpan & Cetak Tiket (${count} Penumpang)`
+        : `🖨️ Simpan & Cetak Tiket (Pilih Kursi Terlebih Dahulu)`;
     }
+    const elBtnSaveOnlyText = document.getElementById('btnTixSaveOnlyText');
+    if (elBtnSaveOnlyText) {
+      elBtnSaveOnlyText.innerText = count > 0
+        ? `💾 Simpan Tiket (${count} Penumpang)`
+        : `💾 Simpan Tiket (Tanpa Cetak)`;
+    }
+    const btnRestore = document.getElementById('btnTixRestoreDraftSeats');
+    if (btnRestore) {
+      const hasDraft = localStorage.getItem('tech_single_draft_passengers_v1');
+      btnRestore.style.display = (entries.length === 0 && hasDraft) ? 'inline-flex' : 'none';
+    }
+    const elTabPax = document.getElementById('tixTabPaxCount');
+    if (elTabPax) elTabPax.innerText = entries.length;
   },
 
-  processFinalPosBookings() {
+  processFinalPosBookings(openPrint = true) {
     const tenant = Store.getCurrentTenant();
     if (!tenant) {
       this.showToast('Gagal', 'Sesi perusahaan tidak aktif.', 'error');
       return;
     }
 
-    const entries = this.tixConsoleState.passengerEntries;
+    let entries = this.tixConsoleState.passengerEntries;
+    if ((!entries || entries.length === 0) && this.bulkState && this.bulkState.paxList && this.bulkState.paxList.length > 0) {
+      entries = this.bulkState.paxList.map(p => ({
+        seat: p.seat || '-',
+        name: p.name,
+        docNum: p.docNum || p.passportNo || p.nik || '',
+        gender: p.gender || 'L',
+        paxType: p.paxType || 'Dewasa',
+        nationality: p.nationality || 'ID',
+        phone: p.phone || ''
+      }));
+      this.tixConsoleState.passengerEntries = entries;
+    }
     if (!entries || entries.length === 0) {
       this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu nomor kursi pada denah visual untuk membuat entri penumpang.', 'warning');
       return;
@@ -7519,14 +7698,86 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const seatListSuccess = entries.map(e => e.seat).join(', ');
     this.tixConsoleState.selectedSeats = [];
     this.tixConsoleState.passengerEntries = [];
+    try { localStorage.removeItem('tech_single_draft_passengers_v1'); } catch (e) {}
 
     // Refresh dashboard & console
     this.refreshCompanyDashboard();
     this.renderTicketingConsole();
 
-    // Buka Cetak Tiket Langsung (Thermal Kasir & A4 Boarding Pass)
-    this.openDirectTicketPrintModal(newBooking, 'BOARDING_PASS');
-    this.showToast('Tiket Berhasil Diterbitkan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seatListSuccess}).`);
+    if (openPrint) {
+      // Buka Cetak Tiket Langsung (Thermal Kasir & A4 Boarding Pass)
+      this.openDirectTicketPrintModal(newBooking, 'BOARDING_PASS');
+      this.showToast('Tiket Berhasil Diterbitkan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil diterbitkan (PNR: ${pnr}, Kursi: ${seatListSuccess}).`);
+    } else {
+      this.showToast('Tiket Berhasil Disimpan!', `${totalPaxSuccess} Tiket resmi ${vesselName} berhasil disimpan ke sistem & manifest (PNR: ${pnr}, Kursi: ${seatListSuccess}). Tiket siap dicetak sewaktu-waktu dari menu Tagihan & Manifest.`, 'success');
+    }
+  },
+
+  saveSinglePassengerDraft() {
+    const entries = this.tixConsoleState.passengerEntries || [];
+    if (entries.length === 0) {
+      this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu kursi pada denah visual sebelum menyimpan draft.', 'warning');
+      return;
+    }
+    const data = {
+      scheduleId: this.tixConsoleState.selectedScheduleId,
+      seats: this.tixConsoleState.selectedSeats,
+      entries: entries
+    };
+    localStorage.setItem('tech_single_draft_passengers_v1', JSON.stringify(data));
+    this.showToast('Draft Tersimpan', `Draft ${entries.length} data penumpang kursi berhasil disimpan ke browser.`, 'success');
+    const btnRestore = document.getElementById('btnTixRestoreDraftSeats');
+    if (btnRestore) btnRestore.style.display = 'none';
+  },
+
+  restoreSinglePassengerDraft() {
+    try {
+      const raw = localStorage.getItem('tech_single_draft_passengers_v1');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && data.seats && data.entries && data.entries.length > 0) {
+        if (data.scheduleId) this.tixConsoleState.selectedScheduleId = data.scheduleId;
+        this.tixConsoleState.selectedSeats = data.seats;
+        this.tixConsoleState.passengerEntries = data.entries;
+        this.renderTicketingConsole();
+        this.showToast('Draft Dimuat', `${data.entries.length} data penumpang kursi berhasil dipulihkan dari draft.`, 'success');
+      }
+    } catch (e) {
+      console.error('Error restore draft:', e);
+    }
+  },
+
+  downloadDirectTicketPrintHtml() {
+    const area = document.getElementById('directBatchTicketPrintArea');
+    if (!area || !area.innerHTML.trim()) {
+      this.showToast('Tidak Ada Tiket', 'Tidak ada data tiket yang dapat disimpan.', 'warning');
+      return;
+    }
+    const pnr = (this.directPrintState.items && this.directPrintState.items[0]?.pnr) || 'TIKET-MARITIM';
+    const htmlContent = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Tiket Resmi Pelayaran - ${pnr}</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; padding: 20px; color: #0f172a; margin: 0; }
+@media print { body { background: #fff; padding: 0; } }
+</style>
+</head>
+<body>
+${area.innerHTML}
+</body>
+</html>`;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Tiket-${pnr}-${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.showToast('File Tiket Disimpan', `File dokumen tiket ${pnr} berhasil diunduh ke komputer.`);
   },
 
   setTicketingEntryMode(mode) {
@@ -8330,9 +8581,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <div class="cal-voyages-list">
             ${voyagesHtml}
           </div>
+          ${(typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) ? `
           <button type="button" class="btn-quick-add-voyage" data-date="${dStr}" title="Tambah Jadwal di Tanggal Ini">
             + Jadwal
-          </button>
+          </button>` : ''}
         `;
 
         // Click handlers on voyage chips
@@ -8385,7 +8637,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" style="margin-bottom:0.75rem;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <h5 style="color:#0f172a;font-size:1rem;margin-bottom:0.35rem;">Tidak Ada Jadwal Pelayaran di Bulan Ini</h5>
             <p style="font-size:0.82rem;margin-bottom:1rem;">Gunakan tombol "+ Jadwal Baru" di atas untuk menambahkan jadwal keberangkatan armada kapal Anda.</p>
-            <button type="button" class="btn-primary-action" onclick="App.openAddScheduleModal()">+ Buka Jadwal Baru Sekarang</button>
+            <span class="tag-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 8px;">
+              🔒 Penambahan Jadwal Dikelola Developer Mode
+            </span>
           </div>
         `;
       } else {
@@ -9018,6 +9272,133 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     setTimeout(() => document.getElementById('devAddCompName')?.focus(), 80);
   },
 
+  openDevAddScheduleModal(preselectedCompanyId = null) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const companies = Store.getCompanies();
+    if (companies.length === 0) {
+      this.showToast('Perusahaan Kosong', 'Daftarkan perusahaan terlebih dahulu sebelum membuka jadwal.', 'warning');
+      this.openDevAddCompanyModal();
+      return;
+    }
+
+    const compSel = document.getElementById('devAddSchedCompanySelect');
+    const vesSel = document.getElementById('devAddSchedVesselSelect');
+    const origSel = document.getElementById('devAddSchedOriginSelect');
+    const destSel = document.getElementById('devAddSchedDestSelect');
+
+    if (compSel) {
+      compSel.innerHTML = '';
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.code || c.id})`;
+        if (preselectedCompanyId && c.id === preselectedCompanyId) opt.selected = true;
+        compSel.appendChild(opt);
+      });
+      if (preselectedCompanyId && [...compSel.options].some(o => o.value === preselectedCompanyId)) {
+        compSel.value = preselectedCompanyId;
+      }
+    }
+
+    // Populate Ports
+    const allPorts = (typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.slice() : []);
+    const masterRoutes = (typeof Store !== 'undefined' && Store.getMasterRouteTariffs) ? Store.getMasterRouteTariffs() : [];
+    masterRoutes.forEach(r => {
+      if (r.originId && !allPorts.some(p => p.id === r.originId)) {
+        allPorts.push({ id: r.originId, name: r.originName || r.originId, city: r.originName || r.originId });
+      }
+      if (r.destinationId && !allPorts.some(p => p.id === r.destinationId)) {
+        allPorts.push({ id: r.destinationId, name: r.destinationName || r.destinationId, city: r.destinationName || r.destinationId });
+      }
+    });
+
+    if (origSel && destSel) {
+      origSel.innerHTML = '';
+      destSel.innerHTML = '';
+      allPorts.forEach(port => {
+        origSel.add(new Option(`${port.name} (${port.city})`, port.id));
+        destSel.add(new Option(`${port.name} (${port.city})`, port.id));
+      });
+      origSel.value = 'NNK';
+      destSel.value = 'TWU';
+    }
+
+    // Function to populate vessels for selected company
+    const populateVessels = () => {
+      const cId = compSel ? compSel.value : (companies[0] ? companies[0].id : '');
+      const compFleet = Store.getVesselsByCompany(cId);
+      if (vesSel) {
+        vesSel.innerHTML = '';
+        if (compFleet.length === 0) {
+          vesSel.innerHTML = '<option value="">-- Tidak ada armada (Tambah armada dulu) --</option>';
+        } else {
+          compFleet.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = `${v.name} (${v.type || 'Kapal'} • ${v.capacity} Seat)`;
+            vesSel.appendChild(opt);
+          });
+        }
+      }
+      syncRouteAndPrice();
+    };
+
+    // Function to sync tariffs based on route
+    const syncRouteAndPrice = () => {
+      const oVal = origSel ? origSel.value : 'NNK';
+      const dVal = destSel ? destSel.value : 'TWU';
+      const isDestIntl = dVal === 'TWU' || oVal === 'TWU';
+      const pEko = document.getElementById('devAddSchedPriceEko');
+      const pPass = document.getElementById('devAddSchedPortPassPrice');
+      const pPier = document.getElementById('devAddSchedPierInput');
+      const rTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) ? Store.getMasterRouteTariff(oVal, dVal) : null;
+      if (pEko) pEko.value = rTariff ? rTariff.ticketPrice : (isDestIntl ? 430000 : 690000);
+      if (pPass) pPass.value = rTariff ? rTariff.portPassFee : (isDestIntl ? 50000 : 30000);
+      if (pPier) pPier.value = isDestIntl ? 'Dermaga Lintas Batas Internasional' : 'Dermaga Nusantara Domestik';
+    };
+
+    if (compSel) compSel.onchange = populateVessels;
+    if (origSel) origSel.onchange = syncRouteAndPrice;
+    if (destSel) destSel.onchange = syncRouteAndPrice;
+    if (vesSel) {
+      vesSel.onchange = () => {
+        const v = Store.getVessels().find(item => item.id === vesSel.value);
+        if (v && origSel && destSel) {
+          const vType = (v.type || '').toLowerCase();
+          const vName = (v.name || '').toLowerCase();
+          if (vType.includes('parepare - nunukan') || vName.includes('parepare - nunukan')) {
+            origSel.value = 'PRE';
+            destSel.value = 'NNK';
+          } else if (vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator')) {
+            origSel.value = 'NNK';
+            destSel.value = 'PRE';
+          } else if (vType.includes('tawau - nunukan') || vName.includes('tawau - nunukan')) {
+            origSel.value = 'TWU';
+            destSel.value = 'NNK';
+          } else if (vType.includes('tawau') || vType.includes('internasional') || vName.includes('labuan')) {
+            origSel.value = 'NNK';
+            destSel.value = 'TWU';
+          }
+          syncRouteAndPrice();
+        }
+      };
+    }
+
+    populateVessels();
+
+    const dateInput = document.getElementById('devAddSchedDateInput');
+    if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
+      dateInput.min = today;
+    }
+
+    document.getElementById('modalDevAddSchedule')?.classList.add('show');
+  },
+
   openDevAddVesselModal(preselectedCompanyId = null) {
     if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
       this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
@@ -9629,6 +10010,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
   openAddScheduleModal(defaultDate = null) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Fitur Dibatasi', 'Pembukaan dan penambahan jadwal baru hanya dapat dilakukan melalui Mode Pengembang (Developer Mode).', 'warning');
+      return;
+    }
     const modal = document.getElementById('modalAddSchedule');
     if (!modal) return;
     const tenant = Store.getCurrentTenant();
@@ -9819,10 +10204,21 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         const panePaste = document.getElementById('bulkPanePaste');
         const paneFile = document.getElementById('bulkPaneFile');
         const paneGrid = document.getElementById('bulkPaneGrid');
+        const paneSeats = document.getElementById('tixPaneVisualSeats');
 
         if (panePaste) panePaste.style.display = (mode === 'PASTE') ? 'block' : 'none';
         if (paneFile) paneFile.style.display = (mode === 'FILE') ? 'block' : 'none';
         if (paneGrid) paneGrid.style.display = (mode === 'GRID') ? 'block' : 'none';
+        if (paneSeats) paneSeats.style.display = (mode === 'SEATS') ? 'block' : 'none';
+
+        tabBtns.forEach(b => {
+          b.style.color = '#64748b';
+          b.style.borderBottom = '2px solid transparent';
+          b.style.fontWeight = '700';
+        });
+        btn.style.color = '#0284c7';
+        btn.style.borderBottom = '2px solid #0284c7';
+        btn.style.fontWeight = '800';
 
         if (mode === 'GRID' && (!this.bulkState.manualGridRows || this.bulkState.manualGridRows.length === 0)) {
           this.initManualGridRows(3);
@@ -9831,6 +10227,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // Download CSV Template
+    document.getElementById('btnGoToIntegratedTix')?.addEventListener('click', () => {
+      this.setTicketingEntryMode('SINGLE');
+      document.querySelector('.bulk-tab-btn[data-mode="GRID"]')?.click();
+    });
+
     document.getElementById('btnDownloadBulkCsvTemplate')?.addEventListener('click', () => {
       this.downloadBulkPassengerTemplate();
     });
@@ -10467,7 +10868,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       tr.innerHTML = `
         <td style="text-align: center; color: #64748b; font-weight: 700;">${idx + 1}</td>
         <td>
-          <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="name" value="${row.name || ''}" placeholder="Nama lengkap...">
+          <input type="text" class="bulk-grid-input grid-field grid-pax-name" data-idx="${idx}" data-field="name" value="${row.name || ''}" placeholder="Nama lengkap...">
         </td>
         <td>
           <input type="text" class="bulk-grid-input grid-field" data-idx="${idx}" data-field="docNum" value="${row.docNum || ''}" placeholder="NIK / Paspor...">
