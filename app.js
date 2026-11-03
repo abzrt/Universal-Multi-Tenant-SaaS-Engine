@@ -3432,7 +3432,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
     if (tabKey === 'tabBulk') {
       this.switchDashboardTab('tabTicketing');
-      this.setTicketingEntryMode('BULK');
+      this.setTicketingEntryMode('SINGLE');
     }
     if (tabKey === 'tabSeats') {
       document.getElementById('paneSeats')?.classList.add('active');
@@ -7781,6 +7781,7 @@ ${area.innerHTML}
   },
 
   setTicketingEntryMode(mode) {
+    if (mode === 'BULK') mode = 'SINGLE';
     const singleSection = document.getElementById('tixSingleModeSection');
     const bulkContainer = document.getElementById('tixBulkEntryContainer');
     const btnSingle = document.getElementById('btnTixModeSingle');
