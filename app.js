@@ -10185,11 +10185,11 @@ ${area.innerHTML}
       btn.style.boxShadow = 'none';
       btn.style.transform = 'none';
       if (isAct) {
-        btn.style.border = '1.5px solid #38bdf8';
+        btn.style.border = '2px solid #38bdf8';
         btn.style.opacity = '1';
       } else {
-        btn.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-        btn.style.opacity = '0.78';
+        btn.style.border = '2px solid rgba(255, 255, 255, 0.15)';
+        btn.style.opacity = '0.75';
       }
     });
   },
