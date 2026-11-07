@@ -5855,8 +5855,8 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  justify-content: flex-start !important;
-  padding: 0.35rem 1.15rem !important;
+  justify-content: space-between !important;
+  padding: 0.35rem 1.75rem !important;
   position: sticky !important;
   top: 0 !important;
   left: 0 !important;
@@ -5877,7 +5877,7 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   display: flex !important;
   align-items: center !important;
   padding: 0 !important;
-  margin: 0 1.15rem 0 0 !important;
+  margin: 0 !important;
   flex-shrink: 0 !important;
 }
 
@@ -5897,6 +5897,7 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 0.35rem 0.6rem !important;
   flex: 1 !important;
   flex-wrap: nowrap !important;
@@ -5904,7 +5905,7 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
   padding: 0 !important;
-  margin: 0 !important;
+  margin: 0 0 0 auto !important;
 }
 
 .ticky-breadcrumb {
