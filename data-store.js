@@ -960,8 +960,8 @@ const Store = {
     return null;
   },
 
-  // Standar Alokasi Dek & Kapasitas Penumpang Rute Nunukan - Sulawesi (Parepare): Total 1.084 Kursi
-  getSulawesiDecks() {
+  // Standar Alokasi Dek & Kapasitas Penumpang (Bisa Diedit untuk Nunukan - Sulawesi & Nunukan - Tawau)
+  getDefaultSulawesiDecks() {
     return [
       { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
       { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
@@ -972,8 +972,84 @@ const Store = {
     ];
   },
 
+  getDefaultTawauDecks() {
+    return [
+      { code: 'MAIN', name: 'Main Deck', carriage: 'MAIN DECK', capacity: 110, range: 'Kursi 1 s/d 110', percent: '73.3%', desc: 'Dek Utama Bawah (110 Kursi)' },
+      { code: 'VIP', name: 'VIP Deck', carriage: 'VIP UPPER', capacity: 40, range: 'Kursi 1 s/d 40', percent: '26.7%', desc: 'Dek Atas VIP (40 Kursi)' }
+    ];
+  },
+
+  getRouteDecks(routeKey = 'sulawesi') {
+    const isTawau = (routeKey || '').toLowerCase().includes('tawau') || routeKey === 'TWU' || routeKey === 'ROUTE-NNK-TWU';
+    const storageKey = isTawau ? 'tech_route_decks_tawau_v1' : 'tech_route_decks_sulawesi_v1';
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    const defaults = isTawau ? this.getDefaultTawauDecks() : this.getDefaultSulawesiDecks();
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(defaults));
+    } catch (e) {}
+    return defaults;
+  },
+
+  saveRouteDecks(routeKey = 'sulawesi', decks = []) {
+    const isTawau = (routeKey || '').toLowerCase().includes('tawau') || routeKey === 'TWU' || routeKey === 'ROUTE-NNK-TWU';
+    const storageKey = isTawau ? 'tech_route_decks_tawau_v1' : 'tech_route_decks_sulawesi_v1';
+    
+    const totalCap = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+    const updated = decks.map(d => {
+      const cap = parseInt(d.capacity, 10) || 0;
+      const pct = totalCap > 0 ? ((cap / totalCap) * 100).toFixed(1) + '%' : '0%';
+      return {
+        code: d.code || 'DECK',
+        name: d.name || 'Dek Kapal',
+        carriage: (d.carriage || d.name || 'DECK').toUpperCase(),
+        capacity: cap,
+        percent: pct,
+        range: d.range || ('Kursi 1 s/d ' + cap),
+        desc: d.desc || ((d.name || d.carriage) + ' (' + cap + ' Kursi)')
+      };
+    });
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+    } catch (e) {}
+
+    // Sinkronkan ke master route tariffs
+    try {
+      const masterRouteId = isTawau ? 'ROUTE-NNK-TWU' : 'ROUTE-NNK-PRE';
+      const masterRoutes = this.getMasterRouteTariffs();
+      const targetRoute = masterRoutes.find(r => r.id === masterRouteId);
+      if (targetRoute) {
+        targetRoute.totalCapacity = totalCap;
+        targetRoute.decks = updated;
+        localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(masterRoutes));
+      }
+    } catch (e) {}
+
+    return updated;
+  },
+
+  getSulawesiDecks() {
+    return this.getRouteDecks('sulawesi');
+  },
+
+  getTawauDecks() {
+    return this.getRouteDecks('tawau');
+  },
+
   getSulawesiTotalCapacity() {
-    return 1084;
+    const decks = this.getSulawesiDecks();
+    return decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+  },
+
+  getTawauTotalCapacity() {
+    const decks = this.getTawauDecks();
+    return decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
   },
 
   // 7. Master Penetapan Tarif Resmi Seluruh Rute Kapal (Developer Tariff Authority)

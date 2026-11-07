@@ -2291,24 +2291,99 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Pengaturan Kursi Disimpan', `Denah kursi "${vessel.name}" (${capacity} Kursi - ${deckName}) berhasil disimpan. Otomatis menjadi default saat ${comp ? comp.name : 'perusahaan'} login.`);
     });
 
-    // Event listener untuk tombol Rincian Dek & Kapasitas Penumpang Rute Sulawesi di Dev Mode
-    document.getElementById('btnDevApplySulawesiDecks')?.addEventListener('click', () => {
-      this.applySulawesiDecksToFleets();
+    // Event listener untuk tombol Rincian Dek & Kapasitas Penumpang (Nunukan - Sulawesi & Nunukan - Tawau)
+    document.getElementById('btnDevRouteTabSulawesi')?.addEventListener('click', () => {
+      this.devSeatActiveRoute = 'sulawesi';
+      this.renderDevSulawesiDeckSection();
     });
+    document.getElementById('btnDevRouteTabTawau')?.addEventListener('click', () => {
+      this.devSeatActiveRoute = 'tawau';
+      this.renderDevSulawesiDeckSection();
+    });
+
+    document.getElementById('btnDevEditRouteDecks')?.addEventListener('click', () => {
+      this.openDevEditRouteDecksModal(this.devSeatActiveRoute || 'sulawesi');
+    });
+
+    const closeEditRouteDecksModal = () => {
+      document.getElementById('modalDevEditRouteDecks')?.classList.remove('show');
+    };
+    document.getElementById('btnCloseDevEditRouteDecks')?.addEventListener('click', closeEditRouteDecksModal);
+    document.getElementById('btnCancelDevEditRouteDecks')?.addEventListener('click', closeEditRouteDecksModal);
+
+    document.getElementById('btnDevAddNewDeckRow')?.addEventListener('click', () => {
+      const tbody = document.getElementById('tbodyModalEditRouteDecks');
+      if (!tbody) return;
+      const count = tbody.querySelectorAll('tr').length + 1;
+      const newTr = document.createElement('tr');
+      newTr.innerHTML = `
+        <td><input type="text" class="form-input deck-code-input" value="DECK ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%;"></td>
+        <td><input type="text" class="form-input deck-carriage-input" value="DECK ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%;"></td>
+        <td><input type="text" class="form-input deck-name-input" value="Deck ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; width: 100%;"></td>
+        <td><input type="number" class="form-input deck-capacity-input" value="100" min="1" max="2500" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%;"></td>
+        <td><input type="text" class="form-input deck-desc-input" value="Dek Penumpang Tambahan (${count})" style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #cbd5e1; width: 100%;"></td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-remove-deck-row" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.74rem; cursor: pointer;" title="Hapus Dek">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(newTr);
+      newTr.querySelector('.deck-capacity-input')?.addEventListener('input', () => this.updateEditRouteDecksModalSummary());
+      newTr.querySelector('.btn-remove-deck-row')?.addEventListener('click', () => {
+        newTr.remove();
+        this.updateEditRouteDecksModalSummary();
+      });
+      this.updateEditRouteDecksModalSummary();
+    });
+
+    document.getElementById('btnDevResetRouteDecksDefault')?.addEventListener('click', () => {
+      const isSul = (this.devSeatActiveRoute || 'sulawesi') === 'sulawesi';
+      const defaults = isSul ? Store.getDefaultSulawesiDecks() : Store.getDefaultTawauDecks();
+      this.renderEditRouteDecksTable(defaults);
+      this.showToast('Reset Standar', `Daftar dek dikembalikan ke format standar rute ${isSul ? 'Sulawesi' : 'Tawau'}.`);
+    });
+
+    document.getElementById('btnSaveDevEditRouteDecks')?.addEventListener('click', () => {
+      this.saveEditedRouteDecks();
+    });
+
+    document.getElementById('btnDevApplySulawesiDecks')?.addEventListener('click', () => {
+      this.applyRouteDecksToFleets(this.devSeatActiveRoute || 'sulawesi');
+    });
+
     document.getElementById('btnDevOpenSulawesiSeatModal')?.addEventListener('click', () => {
       const companies = Store.getCompanies();
       const vessels = Store.getVessels();
-      const sulawesiVessel = vessels.find(v => ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator')));
-      const targetCompId = sulawesiVessel ? sulawesiVessel.companyId : (companies[0]?.id || null);
-      this.openDevConfigSeatsModal(targetCompId, sulawesiVessel ? sulawesiVessel.id : null);
+      const isSul = (this.devSeatActiveRoute || 'sulawesi') === 'sulawesi';
+      const targetVessel = vessels.find(v => {
+        const vType = (v.type || '').toLowerCase();
+        const vName = (v.name || '').toLowerCase();
+        if (isSul) return vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
+        return vType.includes('tawau') || vType.includes('internasional') || !vType.includes('parepare');
+      });
+      const targetCompId = targetVessel ? targetVessel.companyId : (companies[0]?.id || null);
+      this.openDevConfigSeatsModal(targetCompId, targetVessel ? targetVessel.id : null);
     });
+
     document.getElementById('btnDevApplySulawesiPresetInModal')?.addEventListener('click', () => {
       const capInput = document.getElementById('devSeatCapacityInput');
       const deckInput = document.getElementById('devSeatDeckNameInput');
-      if (capInput) capInput.value = 1084;
-      if (deckInput) deckInput.value = 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
+      const sulDecks = Store.getSulawesiDecks ? Store.getSulawesiDecks() : [];
+      const sulCap = Store.getSulawesiTotalCapacity ? Store.getSulawesiTotalCapacity() : 1084;
+      if (capInput) capInput.value = sulCap;
+      if (deckInput) deckInput.value = sulDecks.map(d => d.name || d.carriage).join(', ') || 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
       this.updateDevSeatModalPreview();
-      this.showToast('Preset Rute Sulawesi Aktif', 'Kapasitas 1.084 kursi dengan 6 dek rute Nunukan - Sulawesi diterapkan.');
+      this.showToast('Preset Rute Sulawesi Aktif', `Kapasitas ${sulCap} kursi dengan ${sulDecks.length} dek rute Nunukan - Sulawesi diterapkan.`);
+    });
+
+    document.getElementById('btnDevApplyTawauPresetInModal')?.addEventListener('click', () => {
+      const capInput = document.getElementById('devSeatCapacityInput');
+      const deckInput = document.getElementById('devSeatDeckNameInput');
+      const twuDecks = Store.getTawauDecks ? Store.getTawauDecks() : [];
+      const twuCap = Store.getTawauTotalCapacity ? Store.getTawauTotalCapacity() : 150;
+      if (capInput) capInput.value = twuCap;
+      if (deckInput) deckInput.value = twuDecks.map(d => d.name || d.carriage).join(', ') || 'Main Deck, VIP Deck';
+      this.updateDevSeatModalPreview();
+      this.showToast('Preset Rute Tawau Aktif', `Kapasitas ${twuCap} kursi dengan ${twuDecks.length} dek rute Nunukan - Tawau diterapkan.`);
     });
 
     // Auto update capacity saat memilih tipe rute di form tambah / edit kapal dev mode
@@ -3149,31 +3224,125 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     this.renderDevSulawesiDeckSection();
   },
 
-  // State & Render Rincian Dek & Kapasitas Penumpang Rute Nunukan - Sulawesi (Parepare)
-  devSulawesiActiveDeck: '3B',
+  // State & Render Rincian Dek & Kapasitas Penumpang (Bisa Diedit untuk Nunukan - Sulawesi & Nunukan - Tawau)
+  devSeatActiveRoute: 'sulawesi',
+  devSulawesiActiveDeck: '2A',
+  devTawauActiveDeck: 'MAIN',
 
   renderDevSulawesiDeckSection() {
-    const decks = (typeof Store !== 'undefined' && Store.getSulawesiDecks) 
-      ? Store.getSulawesiDecks() 
-      : [
-        { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
-        { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
-        { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
-        { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
-        { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
-        { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
-      ];
+    const routeKey = this.devSeatActiveRoute || 'sulawesi';
+    const isSulawesi = routeKey === 'sulawesi';
+    const decks = (typeof Store !== 'undefined' && Store.getRouteDecks)
+      ? Store.getRouteDecks(routeKey)
+      : (isSulawesi ? (Store.getSulawesiDecks ? Store.getSulawesiDecks() : []) : (Store.getTawauDecks ? Store.getTawauDecks() : []));
+    
+    const totalCap = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
 
-    // 1. Render Table Breakdown
+    // Pastikan active deck code valid untuk rute terpilih
+    let activeDeckCode = isSulawesi ? this.devSulawesiActiveDeck : this.devTawauActiveDeck;
+    if (!activeDeckCode || !decks.some(d => d.code === activeDeckCode)) {
+      activeDeckCode = decks[0] ? decks[0].code : '';
+      if (isSulawesi) this.devSulawesiActiveDeck = activeDeckCode;
+      else this.devTawauActiveDeck = activeDeckCode;
+    }
+
+    // Update Route Switcher Tabs
+    const tabSulawesi = document.getElementById('btnDevRouteTabSulawesi');
+    const tabTawau = document.getElementById('btnDevRouteTabTawau');
+    if (tabSulawesi) {
+      if (isSulawesi) {
+        tabSulawesi.classList.add('active');
+        tabSulawesi.style.background = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+        tabSulawesi.style.color = '#ffffff';
+        tabSulawesi.style.borderColor = '#38bdf8';
+        tabSulawesi.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.4)';
+      } else {
+        tabSulawesi.classList.remove('active');
+        tabSulawesi.style.background = '#1e293b';
+        tabSulawesi.style.color = '#cbd5e1';
+        tabSulawesi.style.borderColor = '#334155';
+        tabSulawesi.style.boxShadow = 'none';
+      }
+    }
+    if (tabTawau) {
+      if (!isSulawesi) {
+        tabTawau.classList.add('active');
+        tabTawau.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+        tabTawau.style.color = '#ffffff';
+        tabTawau.style.borderColor = '#34d399';
+        tabTawau.style.boxShadow = '0 2px 8px rgba(5, 150, 105, 0.4)';
+      } else {
+        tabTawau.classList.remove('active');
+        tabTawau.style.background = '#1e293b';
+        tabTawau.style.color = '#cbd5e1';
+        tabTawau.style.borderColor = '#334155';
+        tabTawau.style.boxShadow = 'none';
+      }
+    }
+
+    // Update Badges & Headings
+    const badgeRoute = document.getElementById('devRouteBadgeRoute');
+    if (badgeRoute) {
+      badgeRoute.textContent = isSulawesi ? 'RUTE: NUNUKAN ➔ SULAWESI (PAREPARE)' : 'RUTE: NUNUKAN ➔ TAWAU (MALAYSIA)';
+    }
+    const badgeTotal = document.getElementById('devRouteBadgeTotalPax');
+    if (badgeTotal) {
+      badgeTotal.textContent = `TOTAL: ${totalCap.toLocaleString('id-ID')} PENUMPANG`;
+    }
+    const titleEl = document.getElementById('devRouteSectionTitle');
+    if (titleEl) {
+      titleEl.innerHTML = `<span>${isSulawesi ? '🛳️' : '🚢'} Rincian Jumlah Penumpang &amp; Deck Rute Nunukan – ${isSulawesi ? 'Sulawesi (Parepare)' : 'Tawau (Internasional)'}</span>`;
+    }
+    const subtitleEl = document.getElementById('devRouteSectionSubtitle');
+    if (subtitleEl) {
+      subtitleEl.textContent = isSulawesi
+        ? `Spesifikasi resmi pembagian kapasitas per dek gerbong penumpang (Carriage) kapal rute domestik Nunukan ➔ Sulawesi Selatan (Total ${totalCap.toLocaleString('id-ID')} Kursi).`
+        : `Spesifikasi resmi pembagian kapasitas per dek gerbong penumpang (Carriage) kapal rute internasional Nunukan ➔ Tawau, Sabah Malaysia (Total ${totalCap.toLocaleString('id-ID')} Kursi).`;
+    }
+
+    const applyBtnText = document.getElementById('btnDevApplyRouteDecksText');
+    if (applyBtnText) {
+      applyBtnText.textContent = `⚡ Terapkan ${totalCap.toLocaleString('id-ID')} Kursi ke Armada ${isSulawesi ? 'Sulawesi' : 'Tawau'}`;
+    }
+
+    // Render Dynamic KPI Grid
+    const kpiGrid = document.getElementById('devRouteDeckKpiGrid');
+    if (kpiGrid) {
+      let cardsHtml = `
+        <div style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 0.85rem 1rem;">
+          <div style="font-size: 0.7rem; font-weight: 800; color: #38bdf8; text-transform: uppercase;">TOTAL KAPASITAS</div>
+          <div style="font-size: 1.45rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">${totalCap.toLocaleString('id-ID')} <span style="font-size: 0.78rem; font-weight: 600; color: #94a3b8;">Pax</span></div>
+          <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">${decks.length} Dek Penumpang</div>
+        </div>
+      `;
+      decks.forEach(d => {
+        cardsHtml += `
+          <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 0.85rem 1rem;">
+            <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">${d.carriage || d.name}</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin: 0.15rem 0;">${d.capacity} <span style="font-size: 0.76rem; font-weight: 600; color: #94a3b8;">Pax</span></div>
+            <div style="font-size: 0.7rem; color: #38bdf8;">${d.percent} Alokasi</div>
+          </div>
+        `;
+      });
+      kpiGrid.innerHTML = cardsHtml;
+    }
+
+    // Update Table Subheader
+    const tableSubheader = document.getElementById('devRouteTableSubheader');
+    if (tableSubheader) {
+      tableSubheader.textContent = `Rute Nunukan ➔ ${isSulawesi ? 'Sulawesi' : 'Tawau'}`;
+    }
+
+    // Render Table Breakdown
     const tbody = document.getElementById('tbodyDevSulawesiDecksList');
     if (tbody) {
-      tbody.innerHTML = decks.map(d => {
-        const isActive = this.devSulawesiActiveDeck === d.code;
+      tbody.innerHTML = decks.map((d, idx) => {
+        const isActive = activeDeckCode === d.code;
         return `
           <tr style="background: ${isActive ? 'rgba(56, 189, 248, 0.12)' : '#162032'}; color: #e2e8f0; transition: background 0.15s ease;">
             <td style="white-space: nowrap;">
               <div style="display: flex; align-items: center; gap: 0.45rem;">
-                <span style="font-weight: 800; color: ${isActive ? '#38bdf8' : '#f8fafc'};">${d.carriage}</span>
+                <span style="font-weight: 800; color: ${isActive ? '#38bdf8' : '#f8fafc'};">${d.carriage || d.name}</span>
                 ${isActive ? '<span style="background: rgba(56,189,248,0.25); color:#38bdf8; font-size:0.62rem; font-weight:800; padding:0.05rem 0.35rem; border-radius:4px;">AKTIF</span>' : ''}
               </div>
             </td>
@@ -3187,56 +3356,83 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <span style="color: #cbd5e1; font-size: 0.72rem;">${d.desc}</span>
             </td>
             <td style="text-align: right; white-space: nowrap;">
-              <button type="button" class="btn-dev-preview-sulawesi-deck" data-deck="${d.code}" style="background: ${isActive ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#334155'}; color: #ffffff; border: 1px solid ${isActive ? '#38bdf8' : '#475569'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
-                ${isActive ? '👁️ Sedang Ditampilkan' : '👁️ Denah'}
-              </button>
+              <div style="display: inline-flex; gap: 0.35rem;">
+                <button type="button" class="btn-dev-preview-route-deck" data-deck="${d.code}" style="background: ${isActive ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#334155'}; color: #ffffff; border: 1px solid ${isActive ? '#38bdf8' : '#475569'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
+                  ${isActive ? '👁️ Sedang Ditampilkan' : '👁️ Denah'}
+                </button>
+                <button type="button" class="btn-dev-edit-single-deck" data-index="${idx}" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Edit Konfigurasi Seat">
+                  ✏️ Edit
+                </button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
 
-      tbody.querySelectorAll('.btn-dev-preview-sulawesi-deck').forEach(btn => {
+      tbody.querySelectorAll('.btn-dev-preview-route-deck').forEach(btn => {
         btn.addEventListener('click', () => {
           const deckCode = btn.getAttribute('data-deck');
-          this.devSulawesiActiveDeck = deckCode;
+          if (isSulawesi) this.devSulawesiActiveDeck = deckCode;
+          else this.devTawauActiveDeck = deckCode;
           this.renderDevSulawesiDeckSection();
+        });
+      });
+
+      tbody.querySelectorAll('.btn-dev-edit-single-deck').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.openDevEditRouteDecksModal(this.devSeatActiveRoute);
         });
       });
     }
 
-    // 2. Render Carriage Tabs
+    // Render Table Footer
+    const tfoot = document.getElementById('tfootDevRouteDecks');
+    if (tfoot) {
+      tfoot.innerHTML = `
+        <tr style="background: #0f172a; font-weight: 800; color: #38bdf8; border-top: 2px solid #334155;">
+          <td>TOTAL (${decks.length} DEK)</td>
+          <td>${totalCap.toLocaleString('id-ID')} Kursi</td>
+          <td>Kursi 1 - ${totalCap}</td>
+          <td>Seluruh Dek Kapal</td>
+          <td style="text-align: right;"><span style="color: #34d399;">100% Valid</span></td>
+        </tr>
+      `;
+    }
+
+    // Render Carriage Tabs
     const tabsContainer = document.getElementById('devSulawesiCarriageTabs');
     if (tabsContainer) {
       tabsContainer.innerHTML = decks.map(d => {
-        const isActive = this.devSulawesiActiveDeck === d.code;
+        const isActive = activeDeckCode === d.code;
         return `
-          <button type="button" class="btn-dev-sulawesi-tab" data-deck="${d.code}" style="background: ${isActive ? '#0284c7' : '#1e293b'}; color: ${isActive ? '#ffffff' : '#94a3b8'}; border: 1px solid ${isActive ? '#38bdf8' : '#334155'}; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.76rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; box-shadow: ${isActive ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'};">
-            ${d.carriage} <span style="font-size: 0.68rem; opacity: 0.85;">(${d.capacity})</span>
+          <button type="button" class="btn-dev-carriage-tab" data-deck="${d.code}" style="background: ${isActive ? '#0284c7' : '#1e293b'}; color: ${isActive ? '#ffffff' : '#94a3b8'}; border: 1px solid ${isActive ? '#38bdf8' : '#334155'}; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.76rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; box-shadow: ${isActive ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'};">
+            ${d.carriage || d.name} <span style="font-size: 0.68rem; opacity: 0.85;">(${d.capacity})</span>
           </button>
         `;
       }).join('');
 
-      tabsContainer.querySelectorAll('.btn-dev-sulawesi-tab').forEach(btn => {
+      tabsContainer.querySelectorAll('.btn-dev-carriage-tab').forEach(btn => {
         btn.addEventListener('click', () => {
           const deckCode = btn.getAttribute('data-deck');
-          this.devSulawesiActiveDeck = deckCode;
+          if (isSulawesi) this.devSulawesiActiveDeck = deckCode;
+          else this.devTawauActiveDeck = deckCode;
           this.renderDevSulawesiDeckSection();
         });
       });
     }
 
-    // 3. Render Visual Seat Grid Preview for Active Deck (Mirrors User Screenshot)
-    const activeDeckObj = decks.find(d => d.code === this.devSulawesiActiveDeck) || decks[3]; // default 3B
+    // Render Visual Seat Grid Preview for Active Deck
+    const activeDeckObj = decks.find(d => d.code === activeDeckCode) || decks[0] || { code: 'MAIN', name: 'Main Deck', carriage: 'MAIN DECK', capacity: 150, range: 'Kursi 1 s/d 150' };
     const nameLabel = document.getElementById('devSulawesiSelectedDeckName');
-    if (nameLabel) nameLabel.textContent = `${activeDeckObj.carriage} (${activeDeckObj.name})`;
+    if (nameLabel) nameLabel.textContent = `${activeDeckObj.carriage || activeDeckObj.name} (${activeDeckObj.name})`;
     const badgeLabel = document.getElementById('devSulawesiSelectedDeckBadge');
     if (badgeLabel) badgeLabel.textContent = `${activeDeckObj.capacity} Kursi (${activeDeckObj.range})`;
 
     const gridContainer = document.getElementById('devSulawesiSeatGridPreview');
     if (gridContainer) {
       gridContainer.innerHTML = '';
-      const cap = activeDeckObj.capacity;
-      const cols = 8; // 8 kursi per baris (4 kiri - 4 kanan) seperti di screenshot foto
+      const cap = parseInt(activeDeckObj.capacity, 10) || 100;
+      const cols = isSulawesi ? 8 : (cap <= 100 ? 4 : 6);
       const totalRows = Math.ceil(cap / cols);
 
       for (let r = 0; r < totalRows; r++) {
@@ -3256,8 +3452,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             continue;
           }
 
-          // In screenshot: some seats are orange (reserved), some yellow (purchased), others white (available)
-          const isOrange = (seatNum >= 5 && seatNum <= 9) || (seatNum >= 13 && seatNum <= 15) || (seatNum >= 50 && seatNum <= 53) || (seatNum >= 57 && seatNum <= 60) || (seatNum >= 66 && seatNum <= 71) || (seatNum >= 78 && seatNum <= 81) || (seatNum >= 87 && seatNum <= 93) || (seatNum >= 104 && seatNum <= 106) || (seatNum >= 108 && seatNum <= 113) || (seatNum >= 130 && seatNum <= 133);
+          // Visual status preview
+          const isOrange = (seatNum >= 5 && seatNum <= 9) || (seatNum >= 13 && seatNum <= 15) || (seatNum >= 50 && seatNum <= 53) || (seatNum >= 57 && seatNum <= 60) || (seatNum >= 66 && seatNum <= 71) || (seatNum >= 78 && seatNum <= 81);
           const isYellow = (seatNum >= 31 && seatNum <= 38) || (seatNum === 77) || (seatNum === 28) || (seatNum === 30);
 
           let bg = '#ffffff';
@@ -3274,11 +3470,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             bg = '#eab308';
             textColor = '#0f172a';
             border = '1px solid #ca8a04';
-            prefix = (seatNum === 34 || seatNum === 77) ? 'P' : 'L';
+            prefix = (seatNum % 2 === 0) ? 'P' : 'L';
           }
 
-          // Aisle between 4 and 5
-          if (c === 5) {
+          // Aisle in middle
+          const midAisle = Math.floor(cols / 2) + 1;
+          if (c === midAisle) {
             const aisle = document.createElement('div');
             aisle.style.width = '12px';
             rowEl.appendChild(aisle);
@@ -3299,7 +3496,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           seatEl.style.cursor = 'pointer';
           seatEl.style.fontFamily = 'monospace';
           seatEl.style.position = 'relative';
-          seatEl.title = `Kursi ${seatNum} (${activeDeckObj.carriage})`;
+          seatEl.title = `Kursi ${seatNum} (${activeDeckObj.carriage || activeDeckObj.name})`;
 
           if (prefix) {
             const sup = document.createElement('span');
@@ -3322,22 +3519,161 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
   },
 
-  applySulawesiDecksToFleets() {
+  openDevEditRouteDecksModal(routeKey = null) {
+    if (routeKey) this.devSeatActiveRoute = routeKey;
+    const currentRoute = this.devSeatActiveRoute || 'sulawesi';
+    const isSulawesi = currentRoute === 'sulawesi';
+    const decks = Store.getRouteDecks(currentRoute);
+
+    const titleEl = document.getElementById('modalEditRouteTargetName');
+    if (titleEl) {
+      titleEl.textContent = isSulawesi ? 'Rute Nunukan – Sulawesi (Parepare)' : 'Rute Nunukan – Tawau (Internasional)';
+    }
+
+    this.renderEditRouteDecksTable(decks);
+    document.getElementById('modalDevEditRouteDecks')?.classList.add('show');
+  },
+
+  renderEditRouteDecksTable(decks) {
+    const tbody = document.getElementById('tbodyModalEditRouteDecks');
+    if (!tbody) return;
+
+    tbody.innerHTML = decks.map((d, idx) => `
+      <tr data-index="${idx}">
+        <td>
+          <input type="text" class="form-input deck-code-input" value="${d.code || ''}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%;">
+        </td>
+        <td>
+          <input type="text" class="form-input deck-carriage-input" value="${d.carriage || d.name || ''}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%;">
+        </td>
+        <td>
+          <input type="text" class="form-input deck-name-input" value="${d.name || ''}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; width: 100%;">
+        </td>
+        <td>
+          <input type="number" class="form-input deck-capacity-input" value="${d.capacity || 100}" min="1" max="2500" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%;">
+        </td>
+        <td>
+          <input type="text" class="form-input deck-desc-input" value="${d.desc || ''}" style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #cbd5e1; width: 100%;">
+        </td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-remove-deck-row" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.74rem; cursor: pointer;" title="Hapus Dek">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.deck-capacity-input').forEach(inp => {
+      inp.addEventListener('input', () => this.updateEditRouteDecksModalSummary());
+    });
+
+    tbody.querySelectorAll('.btn-remove-deck-row').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rows = tbody.querySelectorAll('tr');
+        if (rows.length <= 1) {
+          this.showToast('Minimal 1 Dek', 'Konfigurasi kapal harus memiliki minimal satu dek penumpang.', 'warning');
+          return;
+        }
+        btn.closest('tr')?.remove();
+        this.updateEditRouteDecksModalSummary();
+      });
+    });
+
+    this.updateEditRouteDecksModalSummary();
+  },
+
+  updateEditRouteDecksModalSummary() {
+    const tbody = document.getElementById('tbodyModalEditRouteDecks');
+    if (!tbody) return;
+    const capInputs = tbody.querySelectorAll('.deck-capacity-input');
+    let total = 0;
+    capInputs.forEach(inp => {
+      total += parseInt(inp.value, 10) || 0;
+    });
+    const totalEl = document.getElementById('modalEditTotalSeatsCount');
+    if (totalEl) totalEl.textContent = total.toLocaleString('id-ID');
+    const deckCount = capInputs.length;
+    const decksEl = document.getElementById('modalEditTotalDecksCount');
+    if (decksEl) decksEl.textContent = `(${deckCount} Dek)`;
+    const pill = document.getElementById('modalEditRouteDeckCountPill');
+    if (pill) pill.textContent = `${deckCount} Dek`;
+  },
+
+  saveEditedRouteDecks() {
+    const tbody = document.getElementById('tbodyModalEditRouteDecks');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    if (rows.length === 0) {
+      this.showToast('Data Kosong', 'Tambahkan minimal satu dek.', 'warning');
+      return;
+    }
+
+    const newDecks = [];
+    let hasError = false;
+
+    rows.forEach(row => {
+      const code = row.querySelector('.deck-code-input')?.value.trim();
+      const carriage = row.querySelector('.deck-carriage-input')?.value.trim();
+      const name = row.querySelector('.deck-name-input')?.value.trim();
+      const capacity = parseInt(row.querySelector('.deck-capacity-input')?.value, 10);
+      const desc = row.querySelector('.deck-desc-input')?.value.trim();
+
+      if (!code || !name || isNaN(capacity) || capacity <= 0) {
+        hasError = true;
+      }
+
+      newDecks.push({
+        code: code || 'DECK',
+        carriage: carriage || (name ? name.toUpperCase() : 'DECK'),
+        name: name || 'Dek Kapal',
+        capacity: capacity || 100,
+        desc: desc || `${name} (${capacity} Kursi)`
+      });
+    });
+
+    if (hasError) {
+      this.showToast('Data Tidak Lengkap', 'Pastikan semua kolom kode, nama, dan kapasitas terisi dengan benar.', 'warning');
+      return;
+    }
+
+    const routeKey = this.devSeatActiveRoute || 'sulawesi';
+    const saved = Store.saveRouteDecks(routeKey, newDecks);
+
+    const autoApply = document.getElementById('modalEditAutoApplyFleets')?.checked;
+    if (autoApply) {
+      this.applyRouteDecksToFleets(routeKey);
+    }
+
+    document.getElementById('modalDevEditRouteDecks')?.classList.remove('show');
+    this.renderDevSulawesiDeckSection();
+    const routeName = routeKey === 'sulawesi' ? 'Nunukan - Sulawesi' : 'Nunukan - Tawau';
+    const totalCap = saved.reduce((s, d) => s + d.capacity, 0);
+    this.showToast('Konfigurasi Seat Tersimpan', `Berhasil memperbarui konfigurasi rute ${routeName} menjadi ${totalCap.toLocaleString('id-ID')} kursi (${saved.length} dek).`);
+  },
+
+  applyRouteDecksToFleets(routeKey = 'sulawesi') {
+    const isSulawesi = (routeKey || '').toLowerCase().includes('sulawesi') || routeKey === 'PRE';
+    const decks = Store.getRouteDecks(routeKey);
+    const totalCapacity = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+    const deckNames = decks.map(d => d.name || d.carriage).join(', ');
+
     const vessels = Store.getVessels();
-    const sulawesiDecks = (Store.getSulawesiDecks ? Store.getSulawesiDecks() : []);
     let updatedCount = 0;
 
     vessels.forEach(v => {
       const vType = (v.type || '').toLowerCase();
       const vName = (v.name || '').toLowerCase();
-      if (vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator')) {
-        v.capacity = 1084;
-        v.deckName = 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan';
-        v.decks = sulawesiDecks;
+      const matchSulawesi = isSulawesi && (vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator'));
+      const matchTawau = !isSulawesi && (vType.includes('tawau') || vType.includes('internasional') || !matchSulawesi);
+
+      if (matchSulawesi || matchTawau) {
+        v.capacity = totalCapacity;
+        v.deckName = deckNames;
+        v.decks = decks;
         Store.updateVessel(v.id, {
-          capacity: 1084,
-          deckName: 'Deck 2A, 2B, 3A, 3B, 3C, 3 Depan',
-          decks: sulawesiDecks
+          capacity: totalCapacity,
+          deckName: deckNames,
+          decks: decks
         });
         updatedCount++;
       }
@@ -3347,14 +3683,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     let schedUpdated = 0;
     scheds.forEach(s => {
       const v = vessels.find(item => item.id === s.vesselId);
-      const isSulawesi = (s.destinationId === 'PRE' || s.destinationCity === 'Parepare' || (v && ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator'))));
-      if (isSulawesi) {
-        s.quotaTotal = 1084;
-        s.capacity = 1084;
+      const isTargetSched = isSulawesi
+        ? (s.destinationId === 'PRE' || s.destinationCity === 'Parepare' || (v && ((v.type || '').toLowerCase().includes('parepare') || (v.name || '').toLowerCase().includes('pantokrator'))))
+        : (s.destinationId === 'TWU' || s.destinationCity === 'Tawau' || (v && ((v.type || '').toLowerCase().includes('tawau') || (v.type || '').toLowerCase().includes('internasional'))));
+
+      if (isTargetSched) {
+        s.quotaTotal = totalCapacity;
+        s.capacity = totalCapacity;
         if (Array.isArray(s.classes) && s.classes.length > 0) {
-          s.classes[0].quota = 1084;
+          s.classes[0].quota = totalCapacity;
           const booked = s.classes[0].booked || 0;
-          s.classes[0].available = Math.max(0, 1084 - booked);
+          s.classes[0].available = Math.max(0, totalCapacity - booked);
         }
         schedUpdated++;
       }
@@ -3365,7 +3704,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
 
     this.renderDevAdminDashboard();
-    this.showToast('Kapasitas Rute Sulawesi Diterapkan', `Berhasil menerapkan alokasi 1.084 kursi dan 6 dek ke ${updatedCount} armada dan ${schedUpdated} jadwal rute Sulawesi.`);
+    const routeLabel = isSulawesi ? 'Sulawesi' : 'Tawau';
+    this.showToast(`Kapasitas Rute ${routeLabel} Diterapkan`, `Berhasil menerapkan alokasi ${totalCapacity.toLocaleString('id-ID')} kursi (${decks.length} dek) ke ${updatedCount} armada dan ${schedUpdated} jadwal rute ${routeLabel}.`);
+  },
+
+  applySulawesiDecksToFleets() {
+    this.applyRouteDecksToFleets(this.devSeatActiveRoute || 'sulawesi');
   },
 
   // Helper function to switch tabs in company dashboard
