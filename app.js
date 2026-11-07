@@ -875,7 +875,13 @@ const App = {
       return `${p1}${p2}`;
     };
 
-    const totalRows = Math.ceil(capacity / 6);
+    const currentVessel = (comp && sch)
+      ? (Store.getVesselsByCompany(comp.id).find(v => v.id === sch.vesselId) || Store.getVessels().find(v => v.id === sch.vesselId))
+      : null;
+    const totalCols = (currentVessel && currentVessel.seatCols) ? currentVessel.seatCols : 6;
+    const totalRows = (currentVessel && currentVessel.seatRows) ? currentVessel.seatRows : Math.ceil(capacity / totalCols);
+    const colsLeft = (currentVessel && currentVessel.seatColsLeft) ? currentVessel.seatColsLeft : Math.ceil(totalCols / 2);
+    const colsRight = (currentVessel && currentVessel.seatColsRight) ? currentVessel.seatColsRight : (totalCols - colsLeft);
     let generatedCount = 0;
 
     for (let r = 0; r < totalRows; r++) {
@@ -884,8 +890,8 @@ const App = {
       rowWrap.className = 'seat-row';
       const rowCode = getRowCode(r);
 
-      // 3 Kolom Kursi Kiri (01, 02, 03)
-      for (let col = 1; col <= 3; col++) {
+      // Kolom Kursi Kiri
+      for (let col = 1; col <= colsLeft; col++) {
         if (generatedCount >= capacity) break;
         generatedCount++;
         const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
@@ -908,8 +914,8 @@ const App = {
       aisle.innerText = 'LORONG';
       rowWrap.appendChild(aisle);
 
-      // 3 Kolom Kursi Kanan (04, 05, 06)
-      for (let col = 4; col <= 6; col++) {
+      // Kolom Kursi Kanan
+      for (let col = colsLeft + 1; col <= totalCols; col++) {
         if (generatedCount >= capacity) break;
         generatedCount++;
         const seatCode = `${rowCode}-${String(col).padStart(2, '0')}`;
@@ -2211,6 +2217,69 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.updateDevSeatModalPreview();
     });
     document.getElementById('devSeatCapacityInput')?.addEventListener('input', () => {
+      const cap = parseInt(document.getElementById('devSeatCapacityInput').value, 10) || 0;
+      const cols = parseInt(document.getElementById('devSeatColsInput')?.value, 10) || 6;
+      const rowsInput = document.getElementById('devSeatRowsInput');
+      if (rowsInput && cap > 0 && cols > 0) {
+        rowsInput.value = Math.ceil(cap / cols);
+      }
+      this.updateDevSeatModalPreview();
+    });
+
+    document.getElementById('devSeatRowsInput')?.addEventListener('input', () => {
+      const rows = parseInt(document.getElementById('devSeatRowsInput').value, 10) || 0;
+      const cols = parseInt(document.getElementById('devSeatColsInput')?.value, 10) || 6;
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput && rows > 0 && cols > 0) {
+        capInput.value = rows * cols;
+      }
+      this.updateDevSeatModalPreview();
+    });
+
+    document.getElementById('devSeatColsInput')?.addEventListener('input', () => {
+      const cols = Math.max(2, parseInt(document.getElementById('devSeatColsInput').value, 10) || 6);
+      const leftInput = document.getElementById('devSeatColsLeftInput');
+      const rightInput = document.getElementById('devSeatColsRightInput');
+      if (leftInput && rightInput) {
+        const half = Math.ceil(cols / 2);
+        leftInput.value = half;
+        rightInput.value = cols - half;
+      }
+      const rows = parseInt(document.getElementById('devSeatRowsInput')?.value, 10) || 0;
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput && rows > 0 && cols > 0) {
+        capInput.value = rows * cols;
+      }
+      this.updateDevSeatModalPreview();
+    });
+
+    document.getElementById('devSeatColsLeftInput')?.addEventListener('input', () => {
+      const left = parseInt(document.getElementById('devSeatColsLeftInput').value, 10) || 1;
+      const right = parseInt(document.getElementById('devSeatColsRightInput')?.value, 10) || 1;
+      const colsInput = document.getElementById('devSeatColsInput');
+      if (colsInput) {
+        colsInput.value = left + right;
+      }
+      const rows = parseInt(document.getElementById('devSeatRowsInput')?.value, 10) || 0;
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput && rows > 0) {
+        capInput.value = rows * (left + right);
+      }
+      this.updateDevSeatModalPreview();
+    });
+
+    document.getElementById('devSeatColsRightInput')?.addEventListener('input', () => {
+      const left = parseInt(document.getElementById('devSeatColsLeftInput')?.value, 10) || 1;
+      const right = parseInt(document.getElementById('devSeatColsRightInput').value, 10) || 1;
+      const colsInput = document.getElementById('devSeatColsInput');
+      if (colsInput) {
+        colsInput.value = left + right;
+      }
+      const rows = parseInt(document.getElementById('devSeatRowsInput')?.value, 10) || 0;
+      const capInput = document.getElementById('devSeatCapacityInput');
+      if (capInput && rows > 0) {
+        capInput.value = rows * (left + right);
+      }
       this.updateDevSeatModalPreview();
     });
 
@@ -2235,11 +2304,20 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         return;
       }
 
-      // 1. Update Vessel
+      const rows = parseInt(document.getElementById('devSeatRowsInput')?.value, 10) || 25;
+      const cols = parseInt(document.getElementById('devSeatColsInput')?.value, 10) || 6;
+      const colsLeft = parseInt(document.getElementById('devSeatColsLeftInput')?.value, 10) || Math.ceil(cols / 2);
+      const colsRight = parseInt(document.getElementById('devSeatColsRightInput')?.value, 10) || (cols - colsLeft);
+
+      // 1. Update Vessel with horizontal and vertical seat configuration
       Store.updateVessel(vesselId, {
         capacity: capacity,
         deckName: deckName,
         className: className,
+        seatRows: rows,
+        seatCols: cols,
+        seatColsLeft: colsLeft,
+        seatColsRight: colsRight,
         isDefault: makeDefault
       });
 
@@ -2251,6 +2329,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         if (s.vesselId === vesselId) {
           s.quotaTotal = capacity;
           s.capacity = capacity;
+          s.seatRows = rows;
+          s.seatCols = cols;
+          s.seatColsLeft = colsLeft;
+          s.seatColsRight = colsRight;
           const vType = (vessel.type || '').toLowerCase();
           const isDom = vType.includes('parepare') || vType.includes('domestik');
           s.originId = 'NNK';
@@ -7871,12 +7953,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         return `${p1}${p2}`;
       };
 
-      const totalRows = Math.ceil(capacity / 6);
+      const totalCols = (vessel && vessel.seatCols) ? vessel.seatCols : 6;
+      const totalRows = (vessel && vessel.seatRows) ? vessel.seatRows : Math.ceil(capacity / totalCols);
+      seatGrid.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
       let count = 0;
       for (let r = 0; r < totalRows; r++) {
         if (count >= capacity) break;
         const rCode = getRowCode(r);
-        for (let col = 1; col <= 6; col++) {
+        for (let col = 1; col <= totalCols; col++) {
           if (count >= capacity) break;
           count++;
           const prefix = vesselDecks ? `${this.tixConsoleState.selectedDeckCode}-` : '';
@@ -10204,6 +10288,22 @@ ${area.innerHTML}
       const classInput = document.getElementById('devSeatClassNameInput');
       if (classInput) classInput.value = activeVessel.className || 'Tiket Reguler';
 
+      const capVal = activeVessel.capacity || 150;
+      const vCols = activeVessel.seatCols || 6;
+      const vRows = activeVessel.seatRows || Math.ceil(capVal / vCols);
+      const vColsLeft = activeVessel.seatColsLeft || Math.ceil(vCols / 2);
+      const vColsRight = activeVessel.seatColsRight || (vCols - vColsLeft);
+
+      const rowsInput = document.getElementById('devSeatRowsInput');
+      const colsInput = document.getElementById('devSeatColsInput');
+      const colsLeftInput = document.getElementById('devSeatColsLeftInput');
+      const colsRightInput = document.getElementById('devSeatColsRightInput');
+
+      if (rowsInput) rowsInput.value = vRows;
+      if (colsInput) colsInput.value = vCols;
+      if (colsLeftInput) colsLeftInput.value = vColsLeft;
+      if (colsRightInput) colsRightInput.value = vColsRight;
+
       // Suggested price based on route type
       const isIntl = (activeVessel.type || '').toLowerCase().includes('tawau') || (activeVessel.type || '').toLowerCase().includes('internasional');
       const ticketPriceInput = document.getElementById('devSeatTicketPriceInput');
@@ -10216,8 +10316,18 @@ ${area.innerHTML}
 
   updateDevSeatModalPreview() {
     const capInput = document.getElementById('devSeatCapacityInput');
-    const cap = Math.max(10, parseInt(capInput ? capInput.value : 150, 10) || 150);
-    const totalRows = Math.ceil(cap / 6);
+    const rowsInput = document.getElementById('devSeatRowsInput');
+    const colsInput = document.getElementById('devSeatColsInput');
+    const colsLeftInput = document.getElementById('devSeatColsLeftInput');
+    const colsRightInput = document.getElementById('devSeatColsRightInput');
+
+    const cols = Math.max(2, parseInt(colsInput ? colsInput.value : 6, 10) || 6);
+    const colsLeft = Math.max(1, parseInt(colsLeftInput ? colsLeftInput.value : Math.ceil(cols / 2), 10) || Math.ceil(cols / 2));
+    const colsRight = Math.max(1, parseInt(colsRightInput ? colsRightInput.value : (cols - colsLeft), 10) || (cols - colsLeft));
+    const effectiveCols = colsLeft + colsRight;
+
+    let rows = Math.max(1, parseInt(rowsInput ? rowsInput.value : 25, 10) || 25);
+    let cap = Math.max(2, parseInt(capInput ? capInput.value : (rows * effectiveCols), 10) || (rows * effectiveCols));
 
     const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     const getRowCode = (rIdx) => {
@@ -10228,57 +10338,54 @@ ${area.innerHTML}
     };
 
     const firstRow = 'A';
-    const lastRow = getRowCode(Math.max(0, totalRows - 1));
+    const lastRow = getRowCode(Math.max(0, rows - 1));
 
     const badge = document.getElementById('devSeatSummaryBadge');
     if (badge) {
-      if (cap === 1084) {
-        badge.textContent = `1.084 Kursi (6 Dek: 2A, 2B, 3A, 3B, 3C, 3 Depan)`;
-      } else {
-        badge.textContent = `${cap} Kursi (${totalRows} Baris)`;
-      }
+      badge.textContent = `${cap} Kursi (${rows} Baris Vertikal × ${effectiveCols} Kolom Horizontal)`;
     }
 
     const details = document.getElementById('devSeatPreviewDetails');
     if (details) {
-      if (cap === 1084) {
-        details.innerHTML = `
-          Format Rute Sulawesi: <strong>6 Dek Penumpang</strong> (2A: 274, 2B: 446, 3A: 122, 3B: 133, 3C: 45, 3 Depan: 64 kursi)<br>
-          Total Kapasitas: <strong>1.084 Penumpang</strong> (Sesuai Manifest Denah Kapal Rute Nunukan – Sulawesi)
-        `;
-      } else {
-        details.innerHTML = `
-          Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8; font-weight: 700;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
-          Penomoran: Baris <strong>${firstRow}-01 s/d ${firstRow}-06</strong> hingga <strong>${lastRow}-01 s/d ${lastRow}-06</strong> (Total kapasitas: ${cap} kursi)
-        `;
-      }
+      const leftRange = colsLeft === 1 ? '01' : `01 s/d ${String(colsLeft).padStart(2, '0')}`;
+      const rightStart = colsLeft + 1;
+      const rightRange = rightStart === effectiveCols ? String(effectiveCols).padStart(2, '0') : `${String(rightStart).padStart(2, '0')} s/d ${String(effectiveCols).padStart(2, '0')}`;
+      details.innerHTML = `
+        Format Horizontal: <strong>${colsLeft} Kursi Kiri (${leftRange})</strong> — <span style="color: #38bdf8; font-weight: 700;">Lorong Tengah</span> — <strong>${colsRight} Kursi Kanan (${rightRange})</strong><br>
+        Format Vertikal: Baris <strong>${firstRow}</strong> hingga Baris <strong>${lastRow}</strong> (${rows} baris ke belakang). Penomoran: <strong>${firstRow}-01</strong> s/d <strong>${lastRow}-${String(effectiveCols).padStart(2, '0')}</strong>.
+      `;
     }
 
     const miniGrid = document.getElementById('devSeatMiniGridPreview');
     if (miniGrid) {
+      const previewRowsCount = Math.min(3, rows);
+      let rowsHtml = '';
+      for (let r = 0; r < previewRowsCount; r++) {
+        const rCode = getRowCode(r);
+        let leftPills = '';
+        for (let c = 1; c <= colsLeft; c++) {
+          leftPills += `<span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">${rCode}-${String(c).padStart(2, '0')}</span>`;
+        }
+        let rightPills = '';
+        for (let c = colsLeft + 1; c <= effectiveCols; c++) {
+          rightPills += `<span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">${rCode}-${String(c).padStart(2, '0')}</span>`;
+        }
+        rowsHtml += `
+          <div style="display: flex; gap: 0.25rem; align-items: center; justify-content: center; flex-wrap: wrap;">
+            ${leftPills}
+            <span style="color: #94a3b8; padding: 0 0.3rem; font-size: 0.58rem; letter-spacing: 0.5px;">LORONG</span>
+            ${rightPills}
+          </div>
+        `;
+      }
       miniGrid.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-family: monospace; font-size: 0.68rem; font-weight: 700; color: #38bdf8;">
-          <div style="display: flex; gap: 0.25rem; align-items: center;">
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-01</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-02</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-03</span>
-            <span style="color: #94a3b8; padding: 0 0.35rem; font-size: 0.6rem;">LORONG</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-04</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-05</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">A-06</span>
-          </div>
-          <div style="display: flex; gap: 0.25rem; align-items: center;">
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-01</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-02</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-03</span>
-            <span style="color: #94a3b8; padding: 0 0.35rem; font-size: 0.6rem;">LORONG</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-04</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-05</span>
-            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">B-06</span>
-          </div>
-          <div style="text-align: center; color: #94a3b8; font-size: 0.65rem; padding-top: 0.15rem;">
-            ... berlanjut hingga baris <strong>${lastRow}</strong> (${totalRows} baris kursi) ...
-          </div>
+        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-family: monospace; font-size: 0.68rem; font-weight: 700; color: #38bdf8; width: 100%;">
+          ${rowsHtml}
+          ${rows > previewRowsCount ? `
+            <div style="text-align: center; color: #94a3b8; font-size: 0.65rem; padding-top: 0.15rem;">
+              ... berlanjut hingga baris <strong>${lastRow}</strong> (Total ${rows} baris vertikal, ${effectiveCols} kolom horizontal) ...
+            </div>
+          ` : ''}
         </div>
       `;
     }
