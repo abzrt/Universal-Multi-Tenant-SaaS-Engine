@@ -3217,15 +3217,6 @@
             <button type="button" id="btnDevOpenAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.5); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
               <span>➕ Tambah Perusahaan</span>
             </button>
-            <button type="button" id="btnDevOpenAddVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);">
-              <span>⛴️ Tambah Armada</span>
-            </button>
-            <button type="button" id="btnDevOpenAddSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1px solid rgba(129, 140, 248, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
-              <span>📅 Tambah Jadwal</span>
-            </button>
-            <button type="button" id="btnDevOpenConfigSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: 1px solid rgba(167, 139, 250, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
-              <span>💺 Tambah Seat</span>
-            </button>
 
           </div>
         </div>
@@ -5461,76 +5452,269 @@
     </div>
   </div>
 
-  <!-- Modal Tambah Perusahaan Baru (Developer Mode) -->
+  <!-- Modal Tambah Perusahaan Baru (Developer Mode: Terpadu dengan Fitur Armada, Jadwal & Seat) -->
   <div class="modal-layer" id="modalDevAddCompany">
-    <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
+    <div class="modal-window" style="max-width: 780px; max-height: 90vh; overflow-y: auto; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
       <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
         <div style="display: flex; align-items: center; gap: 0.65rem;">
           <span style="font-size: 1.4rem;">🏢</span>
           <div>
             <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Tambah Perusahaan Mitra Baru</h4>
-            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Daftarkan perusahaan langsung berstatus Disetujui (Approved) &amp; siap login portal.</p>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Pengaturan terpadu pendaftaran perusahaan lengkap dengan armada kapal, jadwal keberangkatan &amp; konfigurasi seat.</p>
           </div>
         </div>
         <button type="button" class="btn-close-x" id="btnCloseDevAddCompany" style="color: #94a3b8;">&times;</button>
       </div>
-      <form id="formDevAddCompany" class="modal-content-form" style="padding-top: 1rem;">
-        <div class="input-block">
-          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Resmi Perusahaan / Operator *</label>
-          <input type="text" id="devAddCompName" class="form-input" placeholder="Contoh: PT. Pelayaran Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-        </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Singkat / Brand *</label>
-            <input type="text" id="devAddCompShortName" class="form-input" placeholder="Contoh: Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+
+      <!-- Navigasi 3 Fitur Terpadu (Armada, Jadwal & Seat yang dipindahkan ke Tambah Perusahaan) -->
+      <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.85rem; padding-bottom: 0.85rem; border-bottom: 1px solid #1e293b;">
+        <button type="button" class="btn-dev-comp-nav-pill active" data-tab="devCompTabProfile" style="background: #0284c7; color: #ffffff; border: 1px solid #38bdf8; padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;">
+          <span>🏢 1. Profil Perusahaan</span>
+        </button>
+        <button type="button" id="btnDevOpenAddVessel" class="btn-dev-comp-nav-pill" data-tab="devCompTabVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); transition: all 0.15s ease;">
+          <span>⛴️ Tambah Armada</span>
+        </button>
+        <button type="button" id="btnDevOpenConfigSeats" class="btn-dev-comp-nav-pill" data-tab="devCompTabSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: 1px solid rgba(167, 139, 250, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: all 0.15s ease;">
+          <span>💺 Tambah Seat</span>
+        </button>
+        <button type="button" id="btnDevOpenAddSchedule" class="btn-dev-comp-nav-pill" data-tab="devCompTabSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1px solid rgba(129, 140, 248, 0.4); padding: 0.42rem 0.85rem; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: all 0.15s ease;">
+          <span>📅 Tambah Jadwal</span>
+        </button>
+      </div>
+
+      <form id="formDevAddCompany" class="modal-content-form" style="padding-top: 0.75rem;">
+        
+        <!-- ================= TAB 1: PROFIL & AKUN PERUSAHAAN ================= -->
+        <div id="devCompTabProfile" class="dev-comp-tab-content">
+          <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.85rem; font-size: 0.74rem; color: #38bdf8; font-weight: 600;">
+            🏢 Masukkan identitas legal perusahaan &amp; kredensial login portal mitra.
           </div>
           <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kode Maskapai / Operator (2-4 Huruf)</label>
-            <input type="text" id="devAddCompCode" class="form-input" placeholder="Contoh: AB" maxlength="5" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-family: monospace; font-weight: 700;">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Resmi Perusahaan / Operator *</label>
+            <input type="text" id="devAddCompName" class="form-input" placeholder="Contoh: PT. Pelayaran Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
           </div>
-        </div>
-        <div class="input-block">
-          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Jalur Rute Pelayaran *</label>
-          <select id="devAddCompCategory" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-            <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">🌏 Internasional: Nunukan ➔ Tawau</option>
-            <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">🇮🇩 Domestik: Nunukan ➔ Parepare</option>
-            <option value="Keduanya (Internasional & Domestik)">🌐 Keduanya: Internasional &amp; Domestik</option>
-          </select>
-        </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Email Resmi (Username Login Portal) *</label>
-            <input type="email" id="devAddCompEmail" class="form-input" placeholder="operator@perusahaan.com" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Singkat / Brand *</label>
+              <input type="text" id="devAddCompShortName" class="form-input" placeholder="Contoh: Antara Benua" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kode Maskapai / Operator (2-4 Huruf)</label>
+              <input type="text" id="devAddCompCode" class="form-input" placeholder="Contoh: AB" maxlength="5" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-family: monospace; font-weight: 700;">
+            </div>
           </div>
           <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Password Login Portal *</label>
-            <input type="password" id="devAddCompPassword" class="form-input" placeholder="Minimal 6 karakter" required minlength="4" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-          </div>
-        </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Telepon / WhatsApp Kantor *</label>
-            <input type="text" id="devAddCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-          </div>
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Warna Brand Utama</label>
-            <select id="devAddCompColor" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-              <option value="#0284c7">Biru Samudera (#0284c7)</option>
-              <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
-              <option value="#0d9488">Teal Bahari (#0d9488)</option>
-              <option value="#10b981">Hijau Zamrud (#10b981)</option>
-              <option value="#e11d48">Merah Ruby (#e11d48)</option>
-              <option value="#f59e0b">Kuning Emas (#f59e0b)</option>
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Jalur Rute Pelayaran *</label>
+            <select id="devAddCompCategory" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+              <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">🌏 Internasional: Nunukan ➔ Tawau</option>
+              <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">🇮🇩 Domestik: Nunukan ➔ Parepare</option>
+              <option value="Keduanya (Internasional & Domestik)">🌐 Keduanya: Internasional &amp; Domestik</option>
             </select>
           </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Email Resmi (Username Login Portal) *</label>
+              <input type="email" id="devAddCompEmail" class="form-input" placeholder="operator@perusahaan.com" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Password Login Portal *</label>
+              <input type="password" id="devAddCompPassword" class="form-input" placeholder="Minimal 6 karakter" required minlength="4" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Telepon / WhatsApp Kantor *</label>
+              <input type="text" id="devAddCompPhone" class="form-input" placeholder="08xxxxxxxxxx" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Warna Brand Utama</label>
+              <select id="devAddCompColor" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+                <option value="#0284c7">Biru Samudera (#0284c7)</option>
+                <option value="#7c3aed">Ungu Ticky (#7c3aed)</option>
+                <option value="#0d9488">Teal Bahari (#0d9488)</option>
+                <option value="#10b981">Hijau Zamrud (#10b981)</option>
+                <option value="#e11d48">Merah Ruby (#e11d48)</option>
+                <option value="#f59e0b">Kuning Emas (#f59e0b)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; margin-top: 0.85rem;">
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabVessel" style="background: #0284c7; color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>Lanjut ke Pengaturan Armada ➔</span>
+            </button>
+          </div>
         </div>
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.74rem; color: #6ee7b7; margin-top: 0.25rem;">
-          ⚡ Perusahaan yang dibuat di Developer Mode otomatis berstatus <strong>APPROVED (Disetujui)</strong> &amp; akun kredensial tersimpan langsung sehingga siap digunakan untuk login.
+
+        <!-- ================= TAB 2: FITUR TAMBAH ARMADA ================= -->
+        <div id="devCompTabVessel" class="dev-comp-tab-content" style="display: none;">
+          <div style="background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.85rem; font-size: 0.74rem; color: #5eead4; font-weight: 600;">
+            ⛴️ <strong>Fitur Tambah Armada Kapal:</strong> Daftarkan armada utama perusahaan ini. Otomatis disinkronkan dari data profil.
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Kapal / Armada *</label>
+            <input type="text" id="devAddCompVesselName" class="form-input" placeholder="Contoh: MV. LABUAN EXPRESS LIMA" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nomor Registrasi / IMO</label>
+              <input type="text" id="devAddCompVesselReg" class="form-input" placeholder="Contoh: IMO-9821940" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kategori Layanan / Tipe Kapal</label>
+              <select id="devAddCompVesselType" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+                <option value="Kapal Penumpang Internasional (Nunukan - Tawau)">Kapal Penumpang Internasional (Nunukan - Tawau)</option>
+                <option value="Kapal Penumpang Domestik (Nunukan - Parepare)">Kapal Penumpang Domestik (Nunukan - Parepare)</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-block">
+            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Fasilitas Kapal (Pisahkan Koma)</label>
+            <input type="text" id="devAddCompVesselFacilities" class="form-input" placeholder="AC, Toilet, Kafetaria, Bagasi" value="AC, Toilet, Kafetaria, Bagasi" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem;">
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabProfile" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+              ⬅️ Kembali ke Profil
+            </button>
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabSeats" style="background: #0d9488; color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>Lanjut ke Pengaturan Seat ➔</span>
+            </button>
+          </div>
         </div>
-        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
+
+        <!-- ================= TAB 3: FITUR TAMBAH SEAT ================= -->
+        <div id="devCompTabSeats" class="dev-comp-tab-content" style="display: none;">
+          <div style="background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.85rem; font-size: 0.74rem; color: #c4b5fd; font-weight: 600;">
+            💺 <strong>Fitur Tambah Seat &amp; Konfigurasi Baris-Kolom:</strong> Atur arsitektur baris vertikal, kolom horizontal, lorong dan kapasitas dek armada.
+          </div>
+          
+          <div style="background: #162032; border: 1.5px solid #334155; border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+              <span style="font-size: 0.82rem; font-weight: 800; color: #c4b5fd;">📐 Konfigurasi Baris Vertikal &amp; Kolom Horizontal</span>
+              <span id="devAddCompSeatSummaryBadge" style="font-size: 0.72rem; color: #34d399; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 800;">31 Baris × 6 Kolom = 185 Kursi</span>
+            </div>
+
+            <div class="form-row-2" style="margin-bottom: 0.6rem;">
+              <div class="input-block">
+                <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">↕️ Jumlah Baris Vertikal (Depan ke Belakang) *</label>
+                <input type="number" id="devAddCompSeatRows" class="form-input" value="31" min="1" max="150" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
+                <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Baris vertikal (A, B, C s/d baris akhir)</span>
+              </div>
+              <div class="input-block">
+                <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">↔️ Total Kolom Horizontal (Lebar Kursi Samping) *</label>
+                <input type="number" id="devAddCompSeatCols" class="form-input" value="6" min="2" max="24" style="background: #1e293b !important; color: #34d399 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
+                <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Total kursi ke samping per baris</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="input-block">
+                <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">🪑 Kolom Sisi Kiri (Sebelum Lorong)</label>
+                <input type="number" id="devAddCompSeatLeftCols" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+              </div>
+              <div class="input-block">
+                <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">🪑 Kolom Sisi Kanan (Setelah Lorong)</label>
+                <input type="number" id="devAddCompSeatRightCols" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kapasitas Total Kursi Kapal *</label>
+              <input type="number" id="devAddCompSeatCapacity" class="form-input" value="185" min="10" max="3000" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 1rem;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Dek Utama Kapal</label>
+              <input type="text" id="devAddCompSeatDeckName" class="form-input" value="Main Deck" placeholder="Contoh: Main Deck / DECK 2A" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem;">
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabVessel" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+              ⬅️ Kembali ke Armada
+            </button>
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabSchedule" style="background: #7c3aed; color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>Lanjut ke Tambah Jadwal ➔</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= TAB 4: FITUR TAMBAH JADWAL ================= -->
+        <div id="devCompTabSchedule" class="dev-comp-tab-content" style="display: none;">
+          <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.85rem; font-size: 0.74rem; color: #a5b4fc; font-weight: 600;">
+            📅 <strong>Fitur Tambah Jadwal Pelayaran:</strong> Tetapkan rute, jadwal keberangkatan harian/berulang, dermaga, serta tarif resmi &amp; pas pelabuhan.
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pelabuhan Asal *</label>
+              <select id="devAddCompOriginSelect" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+                <option value="NNK" selected>Nunukan (Indonesia)</option>
+                <option value="TWU">Tawau (Malaysia)</option>
+                <option value="PRE">Parepare (Sulawesi)</option>
+              </select>
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pelabuhan Tujuan *</label>
+              <select id="devAddCompDestSelect" class="form-input" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+                <option value="TWU" selected>Tawau (Malaysia) - Internasional</option>
+                <option value="PRE">Parepare (Sulawesi) - Domestik</option>
+                <option value="NNK">Nunukan (Indonesia)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Tanggal Pelayaran Mulai *</label>
+              <input type="date" id="devAddCompDateInput" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Pola Keberangkatan</label>
+              <select id="devAddCompRecurrence" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+                <option value="DAILY_MONTH" selected>Harian Penuh s/d Akhir Bulan Ini</option>
+                <option value="DAILY_WEEK">Harian Selama 1 Minggu (7 Hari)</option>
+                <option value="ONCE">1 Kali Saja (Sesuai Tanggal)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Jam Berangkat *</label>
+              <input type="time" id="devAddCompDepartTime" class="form-input" value="09:00" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Estimasi Jam Tiba</label>
+              <input type="time" id="devAddCompArrivalTime" class="form-input" value="10:30" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+          </div>
+          <div class="form-row-3" style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 0.65rem;">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Dermaga / Sub-Place</label>
+              <input type="text" id="devAddCompPierInput" class="form-input" value="Pelabuhan Tunon Taka International" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Harga Tiket (Rp) *</label>
+              <input type="number" id="devAddCompPriceEko" class="form-input" value="430000" style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.75rem; font-weight: 700;">Pas Pelabuhan (Rp) *</label>
+              <input type="number" id="devAddCompPortPassPrice" class="form-input" value="50000" style="background: #1e293b !important; color: #f59e0b !important; border-color: #334155 !important; font-weight: 700;">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-start; margin-top: 0.85rem;">
+            <button type="button" class="btn-dev-next-tab" data-next="devCompTabSeats" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+              ⬅️ Kembali ke Pengaturan Seat
+            </button>
+          </div>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.74rem; color: #6ee7b7; margin-top: 0.85rem;">
+          ⚡ Pendaftaran perusahaan di Developer Mode otomatis menyetel armada kapal, jadwal keberangkatan, dan arsitektur seat sehingga perusahaan langsung siap operasional &amp; siap melayani tiket.
+        </div>
+
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
           <button type="button" class="btn-cancel" id="btnCancelDevAddCompany" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
-          <button type="submit" class="btn-submit-action" id="btnSubmitDevAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-            <span>💾 Simpan &amp; Daftarkan Perusahaan</span>
+          <button type="submit" class="btn-submit-action" id="btnSubmitDevAddCompany" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 0.52rem 1.25rem; font-size: 0.82rem; font-weight: 800;">
+            <span>💾 Simpan &amp; Daftarkan Perusahaan (Lengkap Armada, Jadwal &amp; Seat)</span>
           </button>
         </div>
       </form>

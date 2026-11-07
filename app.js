@@ -1810,7 +1810,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('devFilterVessel')?.addEventListener('change', () => this.renderDevAdminDashboard());
     document.getElementById('devFilterSearch')?.addEventListener('input', () => this.renderDevAdminDashboard());
 
-    // ----------------- DEVELOPER MODE: TAMBAH PERUSAHAAN -----------------
+    // ----------------- DEVELOPER MODE: TAMBAH PERUSAHAAN (TERPADU: ARMADA, JADWAL & SEAT) -----------------
     document.getElementById('btnDevOpenAddCompany')?.addEventListener('click', () => {
       this.openDevAddCompanyModal();
     });
@@ -1819,6 +1819,78 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     };
     document.getElementById('btnCloseDevAddCompany')?.addEventListener('click', closeDevAddComp);
     document.getElementById('btnCancelDevAddCompany')?.addEventListener('click', closeDevAddComp);
+
+    // Navigasi tab terpadu di dalam modal Tambah Perusahaan
+    document.querySelectorAll('#modalDevAddCompany .btn-dev-comp-nav-pill').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tab = btn.getAttribute('data-tab');
+        if (tab && typeof this.switchDevAddCompanyTab === 'function') {
+          this.switchDevAddCompanyTab(tab);
+        }
+      });
+    });
+
+    document.querySelectorAll('#modalDevAddCompany .btn-dev-next-tab').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const nextTab = btn.getAttribute('data-next');
+        if (nextTab && typeof this.switchDevAddCompanyTab === 'function') {
+          this.switchDevAddCompanyTab(nextTab);
+        }
+      });
+    });
+
+    // Auto-sync defaults saat kategori rute atau nama perusahaan berubah
+    document.getElementById('devAddCompCategory')?.addEventListener('change', () => {
+      if (typeof this.syncDevAddCompanyCategoryDefaults === 'function') {
+        this.syncDevAddCompanyCategoryDefaults();
+      }
+    });
+
+    document.getElementById('devAddCompShortName')?.addEventListener('input', () => {
+      if (typeof this.syncDevAddCompanyCategoryDefaults === 'function') {
+        this.syncDevAddCompanyCategoryDefaults();
+      }
+    });
+
+    document.getElementById('devAddCompName')?.addEventListener('input', () => {
+      if (typeof this.syncDevAddCompanyCategoryDefaults === 'function') {
+        this.syncDevAddCompanyCategoryDefaults();
+      }
+    });
+
+    // Kalkulasi live baris dan kolom seat di tab Tambah Seat
+    const updateDevAddCompSeatCalc = () => {
+      const rows = parseInt(document.getElementById('devAddCompSeatRows')?.value, 10) || 0;
+      const cols = parseInt(document.getElementById('devAddCompSeatCols')?.value, 10) || 0;
+      const left = Math.floor(cols / 2);
+      const right = cols - left;
+      const leftEl = document.getElementById('devAddCompSeatLeftCols');
+      const rightEl = document.getElementById('devAddCompSeatRightCols');
+      if (leftEl) leftEl.value = left;
+      if (rightEl) rightEl.value = right;
+      const capEl = document.getElementById('devAddCompSeatCapacity');
+      if (capEl) capEl.value = rows * cols;
+      const badge = document.getElementById('devAddCompSeatSummaryBadge');
+      if (badge) badge.innerText = `${rows} Baris × ${cols} Kolom = ${rows * cols} Kursi`;
+    };
+    document.getElementById('devAddCompSeatRows')?.addEventListener('input', updateDevAddCompSeatCalc);
+    document.getElementById('devAddCompSeatCols')?.addEventListener('input', updateDevAddCompSeatCalc);
+
+    // Auto update tarif & dermaga saat pelabuhan tujuan jadwal berubah
+    document.getElementById('devAddCompDestSelect')?.addEventListener('change', (e) => {
+      const dest = e.target.value;
+      const isPRE = dest === 'PRE';
+      const pier = document.getElementById('devAddCompPierInput');
+      if (pier) pier.value = isPRE ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International';
+      const pEko = document.getElementById('devAddCompPriceEko');
+      if (pEko) pEko.value = isPRE ? 690000 : 430000;
+      const pPass = document.getElementById('devAddCompPortPassPrice');
+      if (pPass) pPass.value = isPRE ? 30000 : 50000;
+      const arr = document.getElementById('devAddCompArrivalTime');
+      if (arr) arr.value = isPRE ? '17:30' : '10:30';
+    });
 
     document.getElementById('formDevAddCompany')?.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -1846,6 +1918,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         return;
       }
 
+      // 1. Simpan Perusahaan Baru
       const newComp = {
         id: `COMP-${Date.now().toString(36).toUpperCase()}`,
         name,
@@ -1865,15 +1938,121 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         bankAccount: { bank: '', number: '', holder: '' },
         description: ''
       };
-
       Store.addCompany(newComp);
       this.saveMitraCredential(email, password, newComp);
+
+      // 2. Simpan Armada Kapal (Fitur 1)
+      const vName = (document.getElementById('devAddCompVesselName')?.value || `${shortName} 01`).trim();
+      const vReg = (document.getElementById('devAddCompVesselReg')?.value || `IMO-${code}-01`).trim();
+      const vType = document.getElementById('devAddCompVesselType')?.value || category;
+      const vCap = parseInt(document.getElementById('devAddCompSeatCapacity')?.value, 10) || (vType.toLowerCase().includes('parepare') ? 1084 : 185);
+      const vRows = parseInt(document.getElementById('devAddCompSeatRows')?.value, 10) || 31;
+      const vCols = parseInt(document.getElementById('devAddCompSeatCols')?.value, 10) || 6;
+      const vLeftCols = parseInt(document.getElementById('devAddCompSeatLeftCols')?.value, 10) || Math.floor(vCols / 2);
+      const vRightCols = parseInt(document.getElementById('devAddCompSeatRightCols')?.value, 10) || (vCols - vLeftCols);
+      const vDeckName = (document.getElementById('devAddCompSeatDeckName')?.value || (vType.toLowerCase().includes('parepare') ? 'DECK 2A' : 'Main Deck')).trim();
+      const vFac = (document.getElementById('devAddCompVesselFacilities')?.value || '-').split(',').map(s => s.trim()).filter(Boolean);
+
+      const initialDecks = [{
+        code: vDeckName.toUpperCase().replace(/\s+/g, '_'),
+        name: vDeckName,
+        carriage: vDeckName.toUpperCase(),
+        capacity: vCap,
+        percent: '100%',
+        range: `Kursi 1 s/d ${vCap}`,
+        desc: `${vDeckName} (${vCap} Kursi)`
+      }];
+
+      const newVessel = {
+        id: `VESSEL-${Date.now().toString(36).toUpperCase()}`,
+        companyId: newComp.id,
+        name: vName,
+        regNumber: vReg,
+        type: vType,
+        capacity: vCap,
+        seatRows: vRows,
+        seatCols: vCols,
+        seatLeftCols: vLeftCols,
+        seatRightCols: vRightCols,
+        deckName: vDeckName,
+        decks: initialDecks,
+        facilities: vFac.length > 0 ? vFac : ['-'],
+        status: 'ACTIVE',
+        isDefault: true
+      };
+      Store.addVessel(newVessel);
+
+      // 3. Simpan Jadwal Pelayaran (Fitur 2 & 3)
+      const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
+      const origId = document.getElementById('devAddCompOriginSelect')?.value || 'NNK';
+      const destId = document.getElementById('devAddCompDestSelect')?.value || (isDom ? 'PRE' : 'TWU');
+      const origCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === origId)?.city) || 'Nunukan';
+      const destCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === destId)?.city) || (destId === 'PRE' ? 'Parepare' : 'Tawau');
+      const depTime = document.getElementById('devAddCompDepartTime')?.value || '09:00';
+      const arrTime = document.getElementById('devAddCompArrivalTime')?.value || (destId === 'PRE' ? '17:30' : '10:30');
+      const pier = document.getElementById('devAddCompPierInput')?.value || (destId === 'PRE' ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International');
+      const priceEko = parseInt(document.getElementById('devAddCompPriceEko')?.value, 10) || (destId === 'PRE' ? 690000 : 430000);
+      const portPassFee = parseInt(document.getElementById('devAddCompPortPassPrice')?.value, 10) || (destId === 'PRE' ? 30000 : 50000);
+      const startDate = document.getElementById('devAddCompDateInput')?.value || new Date().toISOString().split('T')[0];
+      const recurrence = document.getElementById('devAddCompRecurrence')?.value || 'DAILY_MONTH';
+
+      const createSchedObj = (dStr) => ({
+        id: `SCH-${code}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`,
+        companyId: newComp.id,
+        vesselId: newVessel.id,
+        vesselNameCustom: newVessel.name,
+        originId,
+        destinationId: destId,
+        originCity,
+        destinationCity: destCity,
+        departDate: dStr,
+        date: dStr,
+        departTime: depTime,
+        arrivalTime: arrTime,
+        pier,
+        priceEconomy: priceEko,
+        portPassFee,
+        quotaTotal: vCap,
+        quotaBooked: 0,
+        categoryType: destId === 'PRE' ? 'DOMESTIC' : 'INTERNATIONAL',
+        classes: [
+          { id: 'cls-eko', name: 'Tiket Reguler', price: priceEko, quota: vCap, available: vCap, booked: 0 }
+        ],
+        status: 'ACTIVE',
+        isDefault: true
+      });
+
+      if (recurrence === 'ONCE') {
+        Store.addSchedule(createSchedObj(startDate));
+      } else if (recurrence === 'DAILY_WEEK') {
+        const start = new Date(startDate);
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(start);
+          d.setDate(d.getDate() + i);
+          const dStr = d.toISOString().split('T')[0];
+          Store.addSchedule(createSchedObj(dStr));
+        }
+      } else {
+        const start = new Date(startDate);
+        const y = start.getFullYear();
+        const m = start.getMonth();
+        const endDay = new Date(y, m + 1, 0).getDate();
+        for (let d = start.getDate(); d <= endDay; d++) {
+          const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          Store.addSchedule(createSchedObj(dStr));
+        }
+      }
+
+      Store.updateCompany(newComp.id, {
+        defaultVesselId: newVessel.id,
+        defaultCapacity: vCap
+      });
 
       closeDevAddComp();
       document.getElementById('formDevAddCompany')?.reset();
       this.renderCompanyFilterChips();
       this.renderDevAdminDashboard();
-      this.showToast('Perusahaan Terdaftar', `"${name}" berhasil didaftarkan dan langsung Aktif (Approved). Siap digunakan untuk login.`);
+      this.showToast('Perusahaan Terdaftar Lengkap', `"${name}" berhasil didaftarkan lengkap dengan armada "${vName}" (${vCap} Kursi) & jadwal aktif.`);
     });
 
     // ----------------- DEVELOPER MODE: EDIT DATA PERUSAHAAN -----------------
@@ -9985,6 +10164,106 @@ ${area.innerHTML}
     setTimeout(() => nameInput?.focus(), 80);
   },
 
+  switchDevAddCompanyTab(tabId) {
+    const modal = document.getElementById('modalDevAddCompany');
+    if (!modal) return;
+    modal.querySelectorAll('.dev-comp-tab-content').forEach(el => {
+      el.style.display = el.id === tabId ? 'block' : 'none';
+    });
+    modal.querySelectorAll('.btn-dev-comp-nav-pill').forEach(btn => {
+      const isAct = btn.getAttribute('data-tab') === tabId;
+      btn.classList.toggle('active', isAct);
+      if (isAct) {
+        btn.style.boxShadow = '0 0 0 2px #38bdf8, 0 4px 12px rgba(2, 132, 199, 0.4)';
+      } else {
+        btn.style.boxShadow = 'none';
+      }
+    });
+  },
+
+  syncDevAddCompanyCategoryDefaults() {
+    const cat = document.getElementById('devAddCompCategory')?.value || '';
+    const isDom = cat.toLowerCase().includes('parepare') || cat.toLowerCase().includes('domestik');
+    const compName = (document.getElementById('devAddCompName')?.value || '').trim();
+    const shortName = (document.getElementById('devAddCompShortName')?.value || compName || 'Armada').trim();
+    const code = (document.getElementById('devAddCompCode')?.value || shortName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X') || 'CO');
+
+    // 1. Armada Defaults
+    const vNameInput = document.getElementById('devAddCompVesselName');
+    if (vNameInput && (!vNameInput.value || vNameInput.dataset.autofilled === 'true')) {
+      vNameInput.value = `${isDom ? 'KM' : 'MV'}. ${shortName ? shortName.toUpperCase() : 'ARMADA'} 01`;
+      vNameInput.dataset.autofilled = 'true';
+    }
+    const vRegInput = document.getElementById('devAddCompVesselReg');
+    if (vRegInput && (!vRegInput.value || vRegInput.dataset.autofilled === 'true')) {
+      vRegInput.value = `IMO-${code}-01`;
+      vRegInput.dataset.autofilled = 'true';
+    }
+    const vTypeSelect = document.getElementById('devAddCompVesselType');
+    if (vTypeSelect && (!vTypeSelect.dataset.manual)) {
+      vTypeSelect.value = isDom
+        ? 'Kapal Penumpang Domestik (Nunukan - Parepare)'
+        : 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    }
+
+    // 2. Seat Defaults
+    const capInput = document.getElementById('devAddCompSeatCapacity');
+    const rowsInput = document.getElementById('devAddCompSeatRows');
+    const colsInput = document.getElementById('devAddCompSeatCols');
+    const leftColsInput = document.getElementById('devAddCompSeatLeftCols');
+    const rightColsInput = document.getElementById('devAddCompSeatRightCols');
+    const deckNameInput = document.getElementById('devAddCompSeatDeckName');
+    const badgeEl = document.getElementById('devAddCompSeatSummaryBadge');
+
+    if (rowsInput && !rowsInput.dataset.manual) {
+      rowsInput.value = isDom ? 40 : 31;
+    }
+    if (colsInput && !colsInput.dataset.manual) {
+      colsInput.value = isDom ? 8 : 6;
+    }
+    const rVal = parseInt(rowsInput ? rowsInput.value : (isDom ? 40 : 31), 10) || 31;
+    const cVal = parseInt(colsInput ? colsInput.value : (isDom ? 8 : 6), 10) || 6;
+    const computedCap = isDom ? 1084 : (rVal * cVal);
+
+    if (leftColsInput && !leftColsInput.dataset.manual) {
+      leftColsInput.value = Math.floor(cVal / 2);
+    }
+    if (rightColsInput && !rightColsInput.dataset.manual) {
+      rightColsInput.value = cVal - Math.floor(cVal / 2);
+    }
+    if (capInput && !capInput.dataset.manual) {
+      capInput.value = computedCap;
+    }
+    if (deckNameInput && !deckNameInput.dataset.manual) {
+      deckNameInput.value = isDom ? 'DECK 2A' : 'Main Deck';
+    }
+    if (badgeEl) {
+      badgeEl.innerText = `${rVal} Baris × ${cVal} Kolom = ${computedCap} Kursi`;
+    }
+
+    // 3. Schedule Defaults
+    const destSelect = document.getElementById('devAddCompDestSelect');
+    if (destSelect && !destSelect.dataset.manual) {
+      destSelect.value = isDom ? 'PRE' : 'TWU';
+    }
+    const arrTimeInput = document.getElementById('devAddCompArrivalTime');
+    if (arrTimeInput && !arrTimeInput.dataset.manual) {
+      arrTimeInput.value = isDom ? '17:30' : '10:30';
+    }
+    const pierInput = document.getElementById('devAddCompPierInput');
+    if (pierInput && !pierInput.dataset.manual) {
+      pierInput.value = isDom ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International';
+    }
+    const priceInput = document.getElementById('devAddCompPriceEko');
+    if (priceInput && !priceInput.dataset.manual) {
+      priceInput.value = isDom ? 690000 : 430000;
+    }
+    const passInput = document.getElementById('devAddCompPortPassPrice');
+    if (passInput && !passInput.dataset.manual) {
+      passInput.value = isDom ? 30000 : 50000;
+    }
+  },
+
   openDevAddCompanyModal() {
     if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
       this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
@@ -9995,6 +10274,13 @@ ${area.innerHTML}
     if (codeEl) codeEl.value = '';
     const colEl = document.getElementById('devAddCompColor');
     if (colEl) colEl.value = '#0284c7';
+    const dateInput = document.getElementById('devAddCompDateInput');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+    // Reset tab ke tab 1 (Profil Perusahaan)
+    this.switchDevAddCompanyTab('devCompTabProfile');
+    this.syncDevAddCompanyCategoryDefaults();
+
     document.getElementById('modalDevAddCompany')?.classList.add('show');
     setTimeout(() => document.getElementById('devAddCompName')?.focus(), 80);
   },
