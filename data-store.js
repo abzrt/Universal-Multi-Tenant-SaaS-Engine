@@ -393,6 +393,15 @@ const Store = {
       if (!Array.isArray(v.facilities)) {
         v.facilities = [];
       }
+      if (!Array.isArray(v.decks) || v.decks.length === 0) {
+        const vType = (v.type || '').toLowerCase();
+        const vName = (v.name || '').toLowerCase();
+        const isSul = vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
+        v.decks = isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
+        if (!v.capacity || (isSul && v.capacity === 150)) {
+          v.capacity = v.decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+        }
+      }
       return v;
     });
   },
@@ -404,6 +413,15 @@ const Store = {
   addVessel(vessel) {
     if (!Array.isArray(vessel.facilities)) {
       vessel.facilities = [];
+    }
+    if (!Array.isArray(vessel.decks) || vessel.decks.length === 0) {
+      const vType = (vessel.type || '').toLowerCase();
+      const vName = (vessel.name || '').toLowerCase();
+      const isSul = vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
+      vessel.decks = isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
+      if (!vessel.capacity || (isSul && vessel.capacity === 150)) {
+        vessel.capacity = vessel.decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+      }
     }
     const list = this.getVessels();
     list.push(vessel);
@@ -420,6 +438,37 @@ const Store = {
       return list[idx];
     }
     return null;
+  },
+
+  getVesselDecks(vesselIdOrObj) {
+    const v = typeof vesselIdOrObj === 'object' && vesselIdOrObj !== null
+      ? vesselIdOrObj
+      : this.getVessels().find(item => item.id === vesselIdOrObj);
+    if (v && Array.isArray(v.decks) && v.decks.length > 0) {
+      return v.decks;
+    }
+    const vType = (v ? (v.type || '') : '').toLowerCase();
+    const isSul = vType.includes('parepare') || vType.includes('domestik') || (v && (v.name || '').toLowerCase().includes('pantokrator'));
+    return isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
+  },
+
+  saveVesselDecks(vesselId, decks = []) {
+    const totalCap = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
+    const updated = decks.map(d => {
+      const cap = parseInt(d.capacity, 10) || 0;
+      const pct = totalCap > 0 ? ((cap / totalCap) * 100).toFixed(1) + '%' : '0%';
+      return {
+        code: d.code || 'DECK',
+        name: d.name || 'Dek Kapal',
+        carriage: (d.carriage || d.name || 'DECK').toUpperCase(),
+        capacity: cap,
+        percent: pct,
+        range: d.range || ('Kursi 1 s/d ' + cap),
+        desc: d.desc || ((d.name || d.carriage) + ' (' + cap + ' Kursi)')
+      };
+    });
+    this.updateVessel(vesselId, { decks: updated, capacity: totalCap });
+    return updated;
   },
 
   getVesselsByCompany(companyId) {

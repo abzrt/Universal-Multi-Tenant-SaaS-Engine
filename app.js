@@ -2045,6 +2045,34 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     });
 
+    // Listeners for Deck Editor buttons in modalDevEditVessel
+    document.getElementById('btnDevEditVesselAddDeckRow')?.addEventListener('click', () => {
+      const tbody = document.getElementById('tbodyDevEditVesselDecks');
+      if (!tbody) return;
+      const count = tbody.querySelectorAll('tr').length + 1;
+      const currentDecks = this.getDevEditVesselDecksFromTable();
+      currentDecks.push({
+        code: `DECK ${count}`,
+        carriage: `DECK ${count}`,
+        name: `Deck ${count}`,
+        capacity: 100,
+        desc: `Dek Penumpang Tambahan (${count})`
+      });
+      this.renderDevEditVesselDecks(currentDecks);
+    });
+
+    document.getElementById('btnDevEditVesselLoadSulawesiPreset')?.addEventListener('click', () => {
+      const presets = Store.getDefaultSulawesiDecks ? Store.getDefaultSulawesiDecks() : [];
+      this.renderDevEditVesselDecks(presets);
+      this.showToast('Preset Sulawesi Dimuat', 'Format standar 6 dek (1.084 Kursi) berhasil dimuat. Klik Simpan untuk menerapkan.');
+    });
+
+    document.getElementById('btnDevEditVesselLoadTawauPreset')?.addEventListener('click', () => {
+      const presets = Store.getDefaultTawauDecks ? Store.getDefaultTawauDecks() : [];
+      this.renderDevEditVesselDecks(presets);
+      this.showToast('Preset Tawau Dimuat', 'Format standar 2 dek (150 Kursi) berhasil dimuat. Klik Simpan untuk menerapkan.');
+    });
+
     document.getElementById('formDevEditVessel')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const vId = document.getElementById('devEditVesselId')?.value;
@@ -2052,7 +2080,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const vName = (document.getElementById('devEditVesselName')?.value || '').trim();
       const reg = (document.getElementById('devEditVesselReg')?.value || '').trim();
       const vType = document.getElementById('devEditVesselType')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
-      const capacity = parseInt(document.getElementById('devEditVesselCapacity')?.value, 10) || 150;
       const facStr = (document.getElementById('devEditVesselFacilities')?.value || '').trim();
       const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['-'];
 
@@ -2060,6 +2087,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         this.showToast('Data Tidak Lengkap', 'Pilih perusahaan, isi nama armada dan nomor registrasi kapal.', 'warning');
         return;
       }
+
+      // Ambil seluruh dek yang telah diedit di tabel modal
+      const decks = this.getDevEditVesselDecksFromTable();
+      const capacity = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0) || (parseInt(document.getElementById('devEditVesselCapacity')?.value, 10) || 150);
 
       const oldVessel = Store.getVessels().find(v => v.id === vId);
       const oldName = oldVessel ? oldVessel.name : '';
@@ -2070,7 +2101,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         regNumber: reg,
         type: vType,
         capacity: capacity,
-        facilities: facilities
+        facilities: facilities,
+        decks: decks
       });
 
       const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
@@ -2139,9 +2171,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         Store.saveSchedules(schedules);
       }
 
+      this.devSectionSelectedVesselId = vId;
       closeDevEditVes();
       this.renderDevAdminDashboard();
-      this.showToast('Armada Diperbarui', `Perubahan data armada "${vName}" berhasil disimpan.`);
+      this.renderDevSulawesiDeckSection();
+      this.showToast('Armada & Dek Diperbarui', `Perubahan data armada & ${decks.length} dek kapal "${vName}" (${capacity.toLocaleString('id-ID')} Kursi) berhasil disimpan.`);
     });
 
     // ----------------- DEVELOPER MODE: PENGATURAN SEAT -----------------
@@ -2302,7 +2336,36 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     document.getElementById('btnDevEditRouteDecks')?.addEventListener('click', () => {
-      this.openDevEditRouteDecksModal(this.devSeatActiveRoute || 'sulawesi');
+      const vId = this.devSectionSelectedVesselId;
+      const vessel = vId && vId !== '__ROUTE_DEFAULT__' ? Store.getVessels().find(v => v.id === vId) : null;
+      if (vessel) {
+        this.openDevEditVesselModal(vessel.id);
+      } else {
+        const isSul = (this.devSeatActiveRoute || 'sulawesi') === 'sulawesi';
+        const matchingVessel = Store.getVessels().find(v => {
+          const vType = (v.type || '').toLowerCase();
+          const vIsSul = vType.includes('parepare') || vType.includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+          return isSul ? vIsSul : !vIsSul;
+        });
+        if (matchingVessel) {
+          this.openDevEditVesselModal(matchingVessel.id);
+        } else {
+          this.openDevEditRouteDecksModal(this.devSeatActiveRoute || 'sulawesi');
+        }
+      }
+    });
+
+    document.getElementById('devSectionVesselSelect')?.addEventListener('change', (e) => {
+      this.devSectionSelectedVesselId = e.target.value;
+      if (e.target.value !== '__ROUTE_DEFAULT__') {
+        const v = Store.getVessels().find(item => item.id === e.target.value);
+        if (v) {
+          const vType = (v.type || '').toLowerCase();
+          const vIsSul = vType.includes('parepare') || vType.includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+          this.devSeatActiveRoute = vIsSul ? 'sulawesi' : 'tawau';
+        }
+      }
+      this.renderDevSulawesiDeckSection();
     });
 
     const closeEditRouteDecksModal = () => {
@@ -2625,7 +2688,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           }
 
           const vesselNamesStr = compVessels.length > 0
-            ? compVessels.map(v => `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.18rem 0.52rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.1rem; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(56, 189, 248, 0.4); text-underline-offset:2px; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada ${v.name}">⛴️ ${v.name}</span>`).join(' ')
+            ? compVessels.map(v => {
+                const isSul = (v.type || '').toLowerCase().includes('parepare') || (v.type || '').toLowerCase().includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+                const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
+                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> ✏️</span>`;
+              }).join(' ')
             : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
           return `
@@ -3228,13 +3295,66 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   devSeatActiveRoute: 'sulawesi',
   devSulawesiActiveDeck: '2A',
   devTawauActiveDeck: 'MAIN',
+  devSectionSelectedVesselId: null,
 
   renderDevSulawesiDeckSection() {
     const routeKey = this.devSeatActiveRoute || 'sulawesi';
     const isSulawesi = routeKey === 'sulawesi';
-    const decks = (typeof Store !== 'undefined' && Store.getRouteDecks)
-      ? Store.getRouteDecks(routeKey)
-      : (isSulawesi ? (Store.getSulawesiDecks ? Store.getSulawesiDecks() : []) : (Store.getTawauDecks ? Store.getTawauDecks() : []));
+    const vessels = typeof Store !== 'undefined' && Store.getVessels ? Store.getVessels() : [];
+    const companies = typeof Store !== 'undefined' && Store.getCompanies ? Store.getCompanies() : [];
+
+    // Sinkronkan Dropdown Pemilihan Armada di Section 1C
+    const vesselSel = document.getElementById('devSectionVesselSelect');
+    if (vesselSel) {
+      vesselSel.innerHTML = '';
+
+      const optStd = document.createElement('option');
+      optStd.value = '__ROUTE_DEFAULT__';
+      optStd.textContent = isSulawesi
+        ? '⭐ Standar Rute Nunukan – Sulawesi (1.084 Kursi)'
+        : '⭐ Standar Rute Nunukan – Tawau (150 Kursi)';
+      vesselSel.appendChild(optStd);
+
+      vessels.forEach(v => {
+        const comp = companies.find(c => c.id === v.companyId);
+        const compName = comp ? comp.name : 'Perusahaan';
+        const vType = (v.type || '').toLowerCase();
+        const vIsSul = vType.includes('parepare') || vType.includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+        const vDeckCount = (v.decks && v.decks.length > 0) ? v.decks.length : (vIsSul ? 6 : 2);
+
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = `⛴️ ${v.name} (${compName}) – ${v.capacity || 150} Pax [${vDeckCount} Dek]`;
+        vesselSel.appendChild(opt);
+      });
+
+      if (this.devSectionSelectedVesselId && [...vesselSel.options].some(o => o.value === this.devSectionSelectedVesselId)) {
+        vesselSel.value = this.devSectionSelectedVesselId;
+      } else {
+        const matching = vessels.find(v => {
+          const vType = (v.type || '').toLowerCase();
+          const vIsSul = vType.includes('parepare') || vType.includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+          return isSulawesi ? vIsSul : !vIsSul;
+        });
+        if (matching) {
+          this.devSectionSelectedVesselId = matching.id;
+          vesselSel.value = matching.id;
+        } else {
+          vesselSel.value = '__ROUTE_DEFAULT__';
+        }
+      }
+    }
+
+    let targetVessel = null;
+    if (this.devSectionSelectedVesselId && this.devSectionSelectedVesselId !== '__ROUTE_DEFAULT__') {
+      targetVessel = vessels.find(v => v.id === this.devSectionSelectedVesselId);
+    }
+
+    const decks = targetVessel
+      ? (Store.getVesselDecks ? Store.getVesselDecks(targetVessel) : (targetVessel.decks || []))
+      : ((typeof Store !== 'undefined' && Store.getRouteDecks)
+          ? Store.getRouteDecks(routeKey)
+          : (isSulawesi ? (Store.getSulawesiDecks ? Store.getSulawesiDecks() : []) : (Store.getTawauDecks ? Store.getTawauDecks() : [])));
     
     const totalCap = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
 
@@ -3291,7 +3411,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
     const titleEl = document.getElementById('devRouteSectionTitle');
     if (titleEl) {
-      titleEl.innerHTML = `<span>${isSulawesi ? '🛳️' : '🚢'} Rincian Jumlah Penumpang &amp; Deck Rute Nunukan – ${isSulawesi ? 'Sulawesi (Parepare)' : 'Tawau (Internasional)'}</span>`;
+      if (targetVessel) {
+        titleEl.innerHTML = `<span>🛳️ Pengaturan Dek Armada: <strong>${targetVessel.name}</strong> (${isSulawesi ? 'Rute Sulawesi' : 'Rute Tawau'})</span>`;
+      } else {
+        titleEl.innerHTML = `<span>${isSulawesi ? '🛳️' : '🚢'} Rincian Jumlah Penumpang &amp; Deck Rute Nunukan – ${isSulawesi ? 'Sulawesi (Parepare)' : 'Tawau (Internasional)'}</span>`;
+      }
     }
     const subtitleEl = document.getElementById('devRouteSectionSubtitle');
     if (subtitleEl) {
@@ -3380,7 +3504,21 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       tbody.querySelectorAll('.btn-dev-edit-single-deck').forEach(btn => {
         btn.addEventListener('click', () => {
-          this.openDevEditRouteDecksModal(this.devSeatActiveRoute);
+          if (targetVessel) {
+            this.openDevEditVesselModal(targetVessel.id);
+          } else {
+            const isSul = (this.devSeatActiveRoute || 'sulawesi') === 'sulawesi';
+            const matchingVessel = Store.getVessels().find(v => {
+              const vType = (v.type || '').toLowerCase();
+              const vIsSul = vType.includes('parepare') || vType.includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+              return isSul ? vIsSul : !vIsSul;
+            });
+            if (matchingVessel) {
+              this.openDevEditVesselModal(matchingVessel.id);
+            } else {
+              this.openDevEditRouteDecksModal(this.devSeatActiveRoute);
+            }
+          }
         });
       });
     }
@@ -7632,9 +7770,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (elTripFare) elTripFare.innerText = `${formatRupiah(totalFare)} (${formatRupiah(minPrice)} + Pas ${formatRupiah(passFee)})`;
 
     // 4. PILIH SEAT PENUMPANG (CHOOSE SEATS)
-    const vesselDecks = (isSulawesi && Store.getSulawesiDecks)
-      ? Store.getSulawesiDecks()
-      : (vessel && vessel.decks && vessel.decks.length > 0 ? vessel.decks : null);
+    const vesselDecks = (vessel && Array.isArray(vessel.decks) && vessel.decks.length > 0)
+      ? vessel.decks
+      : ((isSulawesi && Store.getSulawesiDecks)
+          ? Store.getSulawesiDecks()
+          : (Store.getRouteDecks ? Store.getRouteDecks(isSulawesi ? 'sulawesi' : 'tawau') : null));
 
     let deckName = 'Main Deck';
     let capacity = 150;
@@ -9827,10 +9967,106 @@ ${area.innerHTML}
         ? vessel.facilities.join(', ')
         : '-';
     }
-    if (titleLabel) titleLabel.textContent = `Edit Data Armada: ${vessel.name}`;
+    if (titleLabel) titleLabel.textContent = `Pengaturan Data & Dek Armada: ${vessel.name}`;
+
+    // Muat daftar dek kapal untuk diedit langsung di modal ini
+    const vesselDecks = (typeof Store !== 'undefined' && Store.getVesselDecks)
+      ? Store.getVesselDecks(vessel)
+      : (vessel.decks || (isVesselSulawesi ? Store.getDefaultSulawesiDecks() : Store.getDefaultTawauDecks()));
+    this.renderDevEditVesselDecks(vesselDecks);
 
     document.getElementById('modalDevEditVessel')?.classList.add('show');
     setTimeout(() => nameInput?.focus(), 80);
+  },
+
+  renderDevEditVesselDecks(decks = []) {
+    const tbody = document.getElementById('tbodyDevEditVesselDecks');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const safeDecks = (Array.isArray(decks) && decks.length > 0)
+      ? decks
+      : [{ code: 'MAIN', carriage: 'MAIN DECK', name: 'Main Deck', capacity: 150, desc: 'Dek Utama Kapal' }];
+
+    safeDecks.forEach((d, idx) => {
+      const tr = document.createElement('tr');
+      tr.style.background = '#162032';
+      tr.innerHTML = `
+        <td><input type="text" class="form-input dev-vessel-deck-code" value="${d.code || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%;"></td>
+        <td><input type="text" class="form-input dev-vessel-deck-carriage" value="${d.carriage || d.name || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%;"></td>
+        <td><input type="text" class="form-input dev-vessel-deck-name" value="${d.name || 'Dek Kapal'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 600; width: 100%;"></td>
+        <td><input type="number" class="form-input dev-vessel-deck-capacity" value="${d.capacity || 100}" min="1" max="3000" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%;"></td>
+        <td><input type="text" class="form-input dev-vessel-deck-desc" value="${d.desc || ''}" placeholder="Keterangan area dek..." style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #cbd5e1; width: 100%;"></td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-dev-vessel-remove-deck" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.25rem 0.45rem; font-size: 0.72rem; cursor: pointer;" title="Hapus Dek Ini">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      tr.querySelector('.dev-vessel-deck-capacity')?.addEventListener('input', () => {
+        this.updateDevEditVesselCapacitySummary();
+      });
+      tr.querySelector('.btn-dev-vessel-remove-deck')?.addEventListener('click', () => {
+        if (tbody.querySelectorAll('tr').length <= 1) {
+          this.showToast('Minimal 1 Dek', 'Armada kapal wajib memiliki minimal 1 dek penumpang.', 'warning');
+          return;
+        }
+        tr.remove();
+        this.updateDevEditVesselCapacitySummary();
+      });
+    });
+
+    this.updateDevEditVesselCapacitySummary();
+  },
+
+  updateDevEditVesselCapacitySummary() {
+    const tbody = document.getElementById('tbodyDevEditVesselDecks');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    let totalSeats = 0;
+    rows.forEach(tr => {
+      const capInput = tr.querySelector('.dev-vessel-deck-capacity');
+      if (capInput) {
+        totalSeats += parseInt(capInput.value, 10) || 0;
+      }
+    });
+
+    const totalSeatsLabel = document.getElementById('devEditVesselTotalSeatsLabel');
+    const totalDecksLabel = document.getElementById('devEditVesselDecksCountLabel');
+    const badgeLabel = document.getElementById('devEditVesselDeckCountBadge');
+    const vesselCapInput = document.getElementById('devEditVesselCapacity');
+
+    if (totalSeatsLabel) totalSeatsLabel.textContent = `${totalSeats.toLocaleString('id-ID')} Pax`;
+    if (totalDecksLabel) totalDecksLabel.textContent = `(${rows.length} Dek)`;
+    if (badgeLabel) badgeLabel.textContent = `${rows.length} Dek`;
+    if (vesselCapInput) vesselCapInput.value = totalSeats;
+  },
+
+  getDevEditVesselDecksFromTable() {
+    const tbody = document.getElementById('tbodyDevEditVesselDecks');
+    if (!tbody) return [];
+    const rows = tbody.querySelectorAll('tr');
+    const decks = [];
+    const totalCap = Array.from(rows).reduce((acc, tr) => acc + (parseInt(tr.querySelector('.dev-vessel-deck-capacity')?.value, 10) || 0), 0);
+
+    rows.forEach(tr => {
+      const code = (tr.querySelector('.dev-vessel-deck-code')?.value || 'DECK').trim();
+      const carriage = (tr.querySelector('.dev-vessel-deck-carriage')?.value || code).trim().toUpperCase();
+      const name = (tr.querySelector('.dev-vessel-deck-name')?.value || code).trim();
+      const cap = parseInt(tr.querySelector('.dev-vessel-deck-capacity')?.value, 10) || 100;
+      const desc = (tr.querySelector('.dev-vessel-deck-desc')?.value || `${name} (${cap} Kursi)`).trim();
+      const pct = totalCap > 0 ? ((cap / totalCap) * 100).toFixed(1) + '%' : '0%';
+      decks.push({
+        code,
+        carriage,
+        name,
+        capacity: cap,
+        percent: pct,
+        range: `Kursi 1 s/d ${cap}`,
+        desc
+      });
+    });
+    return decks;
   },
 
   openDevConfigSeatsModal(preselectedCompanyId = null, preselectedVesselId = null) {
