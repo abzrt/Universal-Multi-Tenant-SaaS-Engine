@@ -1997,6 +1997,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
         departTime: '09:00',
         arrivalTime: isDom ? '17:30' : '10:30',
+        departDate: new Date().toISOString().split('T')[0],
         date: new Date().toISOString().split('T')[0],
         pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
         priceEconomy: ticketPrice,
@@ -2154,6 +2155,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
           departTime: '09:00',
           arrivalTime: isDom ? '17:30' : '10:30',
+          departDate: new Date().toISOString().split('T')[0],
           date: new Date().toISOString().split('T')[0],
           pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
           priceEconomy: targetTicketPrice,
@@ -7674,14 +7676,36 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     let destSchedules = schedules.filter(s => (s.destinationId || 'TWU') === this.tixConsoleState.selectedDestinationId);
     if (destSchedules.length === 0) destSchedules = schedules;
 
-    const daySchedules = destSchedules.filter(s => !s.departDate || s.departDate === this.tixConsoleState.selectedDate);
-    const activeScheduleList = daySchedules.length > 0 ? daySchedules : destSchedules;
+    const daySchedules = destSchedules.filter(s => {
+      const sDate = s.departDate || s.date;
+      return !sDate || sDate === this.tixConsoleState.selectedDate;
+    });
+    const rawScheduleList = daySchedules.length > 0 ? daySchedules : destSchedules;
+
+    // Prioritaskan jadwal yang memiliki tanggal spesifik hari ini daripada generic
+    rawScheduleList.sort((a, b) => {
+      const aExact = (a.departDate || a.date) === this.tixConsoleState.selectedDate ? 1 : 0;
+      const bExact = (b.departDate || b.date) === this.tixConsoleState.selectedDate ? 1 : 0;
+      return bExact - aExact;
+    });
+
+    // Deduplikasi ketat: jangan munculkan nama armada yang sama di tanggal yang sama
+    const activeScheduleList = [];
+    const seenVesselNamesOnDate = new Set();
+    rawScheduleList.forEach(sch => {
+      const v = fleet.find(f => f.id === sch.vesselId);
+      const vName = (v ? v.name : (sch.vesselNameCustom || sch.vesselId || 'Armada')).trim().toLowerCase();
+      if (!seenVesselNamesOnDate.has(vName)) {
+        seenVesselNamesOnDate.add(vName);
+        activeScheduleList.push(sch);
+      }
+    });
 
     const elSchedCount = document.getElementById('tixDepartSummaryCount');
     if (elSchedCount) elSchedCount.innerText = `${activeScheduleList.length} Jadwal`;
 
     if (!this.tixConsoleState.selectedScheduleId || !activeScheduleList.some(s => s.id === this.tixConsoleState.selectedScheduleId)) {
-      this.tixConsoleState.selectedScheduleId = activeScheduleList[0].id;
+      this.tixConsoleState.selectedScheduleId = activeScheduleList[0] ? activeScheduleList[0].id : null;
     }
 
     // Render Kartu Jam & Kapal (#tixDepartureTimeCardsList)
@@ -8955,6 +8979,16 @@ ${area.innerHTML}
       }
 
       datesToAssign.forEach(dStr => {
+        if (!dayVoyagesMap[dStr]) dayVoyagesMap[dStr] = [];
+
+        // Jangan munculkan nama armada yang sama di tanggal yang sama di kalender pelayaran
+        const vNameKey = (vessel.name || sch.vesselNameCustom || '').trim().toLowerCase();
+        const alreadyExistsOnDate = dayVoyagesMap[dStr].some(existing => {
+          const exName = (existing.vessel?.name || existing.vesselNameCustom || '').trim().toLowerCase();
+          return exName === vNameKey;
+        });
+        if (alreadyExistsOnDate) return;
+
         // Calculate booked passengers on this schedule for this date
         const voyBookings = bookings.filter(b => 
           (b.scheduleId === sch.id || (b.originId === sch.originId && b.destinationId === sch.destinationId && b.vesselName === vessel.name)) &&

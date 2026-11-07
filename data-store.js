@@ -483,8 +483,22 @@ const Store = {
     }
     const list = JSON.parse(raw) || [];
     const vessels = this.getVessels ? this.getVessels() : [];
-    return list.map(s => {
+    const uniqueList = [];
+    const seenSchedKeys = new Set();
+    let hasDuplicates = false;
+
+    list.forEach(s => {
+      s.departDate = s.departDate || s.date;
       const v = vessels.find(item => item.id === s.vesselId || item.name === s.vesselNameCustom);
+      const vName = (v ? v.name : (s.vesselNameCustom || s.vesselId || '')).trim().toLowerCase();
+      const sDate = s.departDate || '';
+      const key = `${s.companyId || ''}_${vName}_${sDate}`;
+      if (sDate && seenSchedKeys.has(key)) {
+        hasDuplicates = true;
+        return; // Jangan munculkan nama armada yang sama di tanggal yang sama
+      }
+      if (sDate) seenSchedKeys.add(key);
+
       const vType = (v ? (v.type || '') : (s.vesselType || '')).toLowerCase();
       const isDom = vType.includes('parepare') || vType.includes('domestik') || (s.destinationId === 'PRE' || s.destinationCity === 'Parepare');
       if (isDom) {
@@ -513,8 +527,16 @@ const Store = {
         const eko = s.classes[0];
         s.classes = [{ ...eko, id: eko.id || 'cls-eko', name: eko.name || 'Tiket Reguler', price: targetPrice }];
       }
-      return s;
+      uniqueList.push(s);
     });
+
+    if (hasDuplicates) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify(uniqueList));
+      } catch (e) {}
+    }
+
+    return uniqueList;
   },
 
   saveSchedules(schedules) {
@@ -522,6 +544,9 @@ const Store = {
   },
 
   addSchedule(schedule) {
+    if (!schedule.departDate && schedule.date) {
+      schedule.departDate = schedule.date;
+    }
     if (!Array.isArray(schedule.classes) || schedule.classes.length === 0) {
       const isTwu = schedule.originId === 'TWU' || schedule.destinationId === 'TWU';
       const defaultPrice = isTwu ? 430000 : (schedule.priceEconomy || 690000);
@@ -530,6 +555,25 @@ const Store = {
       ];
     }
     const list = this.getSchedules();
+    const sDate = schedule.departDate || schedule.date;
+    const vId = schedule.vesselId;
+    const vName = (schedule.vesselNameCustom || '').trim().toLowerCase();
+
+    // Jangan buat jadwal ganda untuk armada yang sama di tanggal yang sama
+    const existingIdx = list.findIndex(s => {
+      const existingDate = s.departDate || s.date;
+      const isSameDate = sDate && existingDate && sDate === existingDate;
+      const isSameVessel = (vId && s.vesselId === vId) ||
+        (vName && (s.vesselNameCustom || '').trim().toLowerCase() === vName);
+      return isSameDate && isSameVessel;
+    });
+
+    if (existingIdx !== -1) {
+      list[existingIdx] = { ...list[existingIdx], ...schedule, id: list[existingIdx].id };
+      this.saveSchedules(list);
+      return list[existingIdx];
+    }
+
     list.push(schedule);
     this.saveSchedules(list);
     return schedule;
