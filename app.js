@@ -2121,8 +2121,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // ----------------- DEVELOPER MODE: TAMBAH ARMADA -----------------
-    document.getElementById('btnDevOpenAddVessel')?.addEventListener('click', () => {
-      this.openDevAddVesselModal();
+    document.getElementById('btnDevOpenAddVessel')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof this.switchDevAddCompanyTab === 'function') {
+        this.switchDevAddCompanyTab('devCompTabVessel');
+      }
     });
     const closeDevAddVes = () => {
       document.getElementById('modalDevAddVessel')?.classList.remove('show');
@@ -2416,8 +2419,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // ----------------- DEVELOPER MODE: PENGATURAN SEAT -----------------
-    document.getElementById('btnDevOpenConfigSeats')?.addEventListener('click', () => {
-      this.openDevConfigSeatsModal();
+    document.getElementById('btnDevOpenConfigSeats')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof this.switchDevAddCompanyTab === 'function') {
+        this.switchDevAddCompanyTab('devCompTabSeats');
+      }
     });
     const closeDevSeats = () => {
       document.getElementById('modalDevConfigSeats')?.classList.remove('show');
@@ -2775,8 +2781,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // ----------------- DEVELOPER MODE: TAMBAH JADWAL -----------------
-    document.getElementById('btnDevOpenAddSchedule')?.addEventListener('click', () => {
-      this.openDevAddScheduleModal();
+    document.getElementById('btnDevOpenAddSchedule')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof this.switchDevAddCompanyTab === 'function') {
+        this.switchDevAddCompanyTab('devCompTabSchedule');
+      }
     });
     const closeDevAddSched = () => {
       document.getElementById('modalDevAddSchedule')?.classList.remove('show');
@@ -10173,10 +10182,14 @@ ${area.innerHTML}
     modal.querySelectorAll('.btn-dev-comp-nav-pill').forEach(btn => {
       const isAct = btn.getAttribute('data-tab') === tabId;
       btn.classList.toggle('active', isAct);
+      btn.style.boxShadow = 'none';
+      btn.style.transform = 'none';
       if (isAct) {
-        btn.style.boxShadow = '0 0 0 2px #38bdf8, 0 4px 12px rgba(2, 132, 199, 0.4)';
+        btn.style.border = '1.5px solid #38bdf8';
+        btn.style.opacity = '1';
       } else {
-        btn.style.boxShadow = 'none';
+        btn.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        btn.style.opacity = '0.78';
       }
     });
   },
