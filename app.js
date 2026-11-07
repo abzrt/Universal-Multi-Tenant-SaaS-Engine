@@ -2199,9 +2199,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         const capInput = document.getElementById('devSeatCapacityInput');
         const isVesselSulawesi = (vessel.type || '').toLowerCase().includes('parepare') || (vessel.type || '').toLowerCase().includes('domestik') || (vessel.name || '').toLowerCase().includes('pantokrator');
     if (capInput) {
-      capInput.value = (isVesselSulawesi && (!vessel.capacity || vessel.capacity === 150))
-        ? 1084
-        : (vessel.capacity || 150);
+      capInput.value = vessel.capacity || 0;
     }
         const deckInput = document.getElementById('devSeatDeckNameInput');
         if (deckInput) deckInput.value = vessel.deckName || 'Main Deck';
@@ -3298,6 +3296,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   devSectionSelectedVesselId: null,
 
   renderDevSulawesiDeckSection() {
+    const sec = document.getElementById('sectionDevSulawesiDecks');
+    if (!sec) return;
     const routeKey = this.devSeatActiveRoute || 'sulawesi';
     const isSulawesi = routeKey === 'sulawesi';
     const vessels = typeof Store !== 'undefined' && Store.getVessels ? Store.getVessels() : [];
@@ -9958,9 +9958,7 @@ ${area.innerHTML}
     }
     const isVesselSulawesi = (vessel.type || '').toLowerCase().includes('parepare') || (vessel.type || '').toLowerCase().includes('domestik') || (vessel.name || '').toLowerCase().includes('pantokrator');
     if (capInput) {
-      capInput.value = (isVesselSulawesi && (!vessel.capacity || vessel.capacity === 150))
-        ? 1084
-        : (vessel.capacity || 150);
+      capInput.value = vessel.capacity || 0;
     }
     if (facInput) {
       facInput.value = (Array.isArray(vessel.facilities) && vessel.facilities.length > 0)
@@ -9972,7 +9970,7 @@ ${area.innerHTML}
     // Muat daftar dek kapal untuk diedit langsung di modal ini
     const vesselDecks = (typeof Store !== 'undefined' && Store.getVesselDecks)
       ? Store.getVesselDecks(vessel)
-      : (vessel.decks || (isVesselSulawesi ? Store.getDefaultSulawesiDecks() : Store.getDefaultTawauDecks()));
+      : (vessel.decks || []);
     this.renderDevEditVesselDecks(vesselDecks);
 
     document.getElementById('modalDevEditVessel')?.classList.add('show');
@@ -9984,11 +9982,19 @@ ${area.innerHTML}
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const safeDecks = (Array.isArray(decks) && decks.length > 0)
-      ? decks
-      : [{ code: 'MAIN', carriage: 'MAIN DECK', name: 'Main Deck', capacity: 150, desc: 'Dek Utama Kapal' }];
+    if (!Array.isArray(decks) || decks.length === 0) {
+      tbody.innerHTML = `
+        <tr id="rowDevEditVesselEmptyDecks">
+          <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem; font-size: 0.76rem;">
+            Belum ada dek ditambahkan untuk armada ini. Klik tombol <strong>➕ Tambah Dek</strong> di atas untuk mengatur nama dek dan jumlah kursi.
+          </td>
+        </tr>
+      `;
+      this.updateDevEditVesselCapacitySummary();
+      return;
+    }
 
-    safeDecks.forEach((d, idx) => {
+    decks.forEach((d, idx) => {
       const tr = document.createElement('tr');
       tr.style.background = '#162032';
       tr.innerHTML = `
@@ -10007,11 +10013,16 @@ ${area.innerHTML}
         this.updateDevEditVesselCapacitySummary();
       });
       tr.querySelector('.btn-dev-vessel-remove-deck')?.addEventListener('click', () => {
-        if (tbody.querySelectorAll('tr').length <= 1) {
-          this.showToast('Minimal 1 Dek', 'Armada kapal wajib memiliki minimal 1 dek penumpang.', 'warning');
-          return;
-        }
         tr.remove();
+        if (tbody.querySelectorAll('tr').length === 0) {
+          tbody.innerHTML = `
+            <tr id="rowDevEditVesselEmptyDecks">
+              <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem; font-size: 0.76rem;">
+                Belum ada dek ditambahkan untuk armada ini. Klik tombol <strong>➕ Tambah Dek</strong> di atas untuk mengatur nama dek dan jumlah kursi.
+              </td>
+            </tr>
+          `;
+        }
         this.updateDevEditVesselCapacitySummary();
       });
     });
@@ -10022,7 +10033,7 @@ ${area.innerHTML}
   updateDevEditVesselCapacitySummary() {
     const tbody = document.getElementById('tbodyDevEditVesselDecks');
     if (!tbody) return;
-    const rows = tbody.querySelectorAll('tr');
+    const rows = tbody.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)');
     let totalSeats = 0;
     rows.forEach(tr => {
       const capInput = tr.querySelector('.dev-vessel-deck-capacity');
@@ -10045,15 +10056,17 @@ ${area.innerHTML}
   getDevEditVesselDecksFromTable() {
     const tbody = document.getElementById('tbodyDevEditVesselDecks');
     if (!tbody) return [];
-    const rows = tbody.querySelectorAll('tr');
+    const rows = tbody.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)');
     const decks = [];
     const totalCap = Array.from(rows).reduce((acc, tr) => acc + (parseInt(tr.querySelector('.dev-vessel-deck-capacity')?.value, 10) || 0), 0);
 
     rows.forEach(tr => {
-      const code = (tr.querySelector('.dev-vessel-deck-code')?.value || 'DECK').trim();
+      const codeInput = tr.querySelector('.dev-vessel-deck-code');
+      if (!codeInput) return;
+      const code = (codeInput.value || 'DECK').trim();
       const carriage = (tr.querySelector('.dev-vessel-deck-carriage')?.value || code).trim().toUpperCase();
       const name = (tr.querySelector('.dev-vessel-deck-name')?.value || code).trim();
-      const cap = parseInt(tr.querySelector('.dev-vessel-deck-capacity')?.value, 10) || 100;
+      const cap = parseInt(tr.querySelector('.dev-vessel-deck-capacity')?.value, 10) || 0;
       const desc = (tr.querySelector('.dev-vessel-deck-desc')?.value || `${name} (${cap} Kursi)`).trim();
       const pct = totalCap > 0 ? ((cap / totalCap) * 100).toFixed(1) + '%' : '0%';
       decks.push({

@@ -17,22 +17,27 @@ const STORAGE_KEYS = {
   PORT_PASS: 'tech_port_pass_v6'
 };
 
-// Pembersihan total seluruh data lama saat inisialisasi versi bersih
+// Pembersihan total seluruh data lama saat inisialisasi versi bersih (Tanpa Data Default Seat)
 try {
-  if (typeof localStorage !== 'undefined' && localStorage.getItem('tech_app_clean_reset_v7') !== 'true') {
-    [
-      'tech_companies_v5_live', 'tech_vessels_v5_live', 'tech_schedules_v5_live', 'tech_bookings_v5_live', 'tech_current_tenant_v5',
-      STORAGE_KEYS.COMPANIES, STORAGE_KEYS.VESSELS, STORAGE_KEYS.SCHEDULES, STORAGE_KEYS.BOOKINGS, STORAGE_KEYS.CURRENT_USER_COMPANY,
-      STORAGE_KEYS.KSOP_SETTINGS, STORAGE_KEYS.AGENTS, STORAGE_KEYS.CARGO_RECORDS, STORAGE_KEYS.PEAK_SEASON, STORAGE_KEYS.IMMIGRATION_WATCHLIST, STORAGE_KEYS.PORT_PASS
-    ].forEach(k => {
-      localStorage.removeItem(k);
-    });
-    localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify([]));
-    localStorage.setItem('tech_app_clean_reset_v7', 'true');
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('tech_route_decks_sulawesi_v1');
+    localStorage.removeItem('tech_route_decks_tawau_v1');
+    if (localStorage.getItem('tech_app_clean_reset_v8') !== 'true') {
+      [
+        'tech_companies_v5_live', 'tech_vessels_v5_live', 'tech_schedules_v5_live', 'tech_bookings_v5_live', 'tech_current_tenant_v5',
+        STORAGE_KEYS.COMPANIES, STORAGE_KEYS.VESSELS, STORAGE_KEYS.SCHEDULES, STORAGE_KEYS.BOOKINGS, STORAGE_KEYS.CURRENT_USER_COMPANY,
+        STORAGE_KEYS.KSOP_SETTINGS, STORAGE_KEYS.AGENTS, STORAGE_KEYS.CARGO_RECORDS, STORAGE_KEYS.PEAK_SEASON, STORAGE_KEYS.IMMIGRATION_WATCHLIST, STORAGE_KEYS.PORT_PASS,
+        'tech_route_decks_sulawesi_v1', 'tech_route_decks_tawau_v1', 'tech_master_route_tariffs_v1'
+      ].forEach(k => {
+        localStorage.removeItem(k);
+      });
+      localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify([]));
+      localStorage.setItem('tech_app_clean_reset_v8', 'true');
+    }
   }
 } catch (e) {}
 
@@ -393,14 +398,8 @@ const Store = {
       if (!Array.isArray(v.facilities)) {
         v.facilities = [];
       }
-      if (!Array.isArray(v.decks) || v.decks.length === 0) {
-        const vType = (v.type || '').toLowerCase();
-        const vName = (v.name || '').toLowerCase();
-        const isSul = vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
-        v.decks = isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
-        if (!v.capacity || (isSul && v.capacity === 150)) {
-          v.capacity = v.decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
-        }
+      if (!Array.isArray(v.decks)) {
+        v.decks = [];
       }
       return v;
     });
@@ -414,14 +413,8 @@ const Store = {
     if (!Array.isArray(vessel.facilities)) {
       vessel.facilities = [];
     }
-    if (!Array.isArray(vessel.decks) || vessel.decks.length === 0) {
-      const vType = (vessel.type || '').toLowerCase();
-      const vName = (vessel.name || '').toLowerCase();
-      const isSul = vType.includes('parepare') || vType.includes('domestik') || vName.includes('pantokrator');
-      vessel.decks = isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
-      if (!vessel.capacity || (isSul && vessel.capacity === 150)) {
-        vessel.capacity = vessel.decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0);
-      }
+    if (!Array.isArray(vessel.decks)) {
+      vessel.decks = [];
     }
     const list = this.getVessels();
     list.push(vessel);
@@ -444,12 +437,10 @@ const Store = {
     const v = typeof vesselIdOrObj === 'object' && vesselIdOrObj !== null
       ? vesselIdOrObj
       : this.getVessels().find(item => item.id === vesselIdOrObj);
-    if (v && Array.isArray(v.decks) && v.decks.length > 0) {
+    if (v && Array.isArray(v.decks)) {
       return v.decks;
     }
-    const vType = (v ? (v.type || '') : '').toLowerCase();
-    const isSul = vType.includes('parepare') || vType.includes('domestik') || (v && (v.name || '').toLowerCase().includes('pantokrator'));
-    return isSul ? this.getDefaultSulawesiDecks() : this.getDefaultTawauDecks();
+    return [];
   },
 
   saveVesselDecks(vesselId, decks = []) {
@@ -1009,23 +1000,13 @@ const Store = {
     return null;
   },
 
-  // Standar Alokasi Dek & Kapasitas Penumpang (Bisa Diedit untuk Nunukan - Sulawesi & Nunukan - Tawau)
+  // Standar Alokasi Dek & Kapasitas Penumpang (Bersih / Tanpa Data Default Seat)
   getDefaultSulawesiDecks() {
-    return [
-      { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
-      { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
-      { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
-      { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
-      { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
-      { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
-    ];
+    return [];
   },
 
   getDefaultTawauDecks() {
-    return [
-      { code: 'MAIN', name: 'Main Deck', carriage: 'MAIN DECK', capacity: 110, range: 'Kursi 1 s/d 110', percent: '73.3%', desc: 'Dek Utama Bawah (110 Kursi)' },
-      { code: 'VIP', name: 'VIP Deck', carriage: 'VIP UPPER', capacity: 40, range: 'Kursi 1 s/d 40', percent: '26.7%', desc: 'Dek Atas VIP (40 Kursi)' }
-    ];
+    return [];
   },
 
   getRouteDecks(routeKey = 'sulawesi') {
@@ -1038,11 +1019,7 @@ const Store = {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {}
-    const defaults = isTawau ? this.getDefaultTawauDecks() : this.getDefaultSulawesiDecks();
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(defaults));
-    } catch (e) {}
-    return defaults;
+    return [];
   },
 
   saveRouteDecks(routeKey = 'sulawesi', decks = []) {
@@ -1124,15 +1101,8 @@ const Store = {
         category: 'Domestik',
         ticketPrice: 690000,
         portPassFee: 30000,
-        totalCapacity: 1084,
-        decks: [
-          { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
-          { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
-          { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
-          { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
-          { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
-          { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
-        ],
+        totalCapacity: 0,
+        decks: [],
         notes: 'Rute Antar Pulau Domestik (Sulawesi)'
       }
     ];
@@ -1155,18 +1125,14 @@ const Store = {
         let updatedStorage = filtered.length !== parsed.length;
         filtered.forEach(r => {
           if (r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) {
-            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000 || !r.decks || r.totalCapacity !== 1084) {
+            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000) {
               r.ticketPrice = 690000;
               r.portPassFee = 30000;
-              r.totalCapacity = 1084;
-              r.decks = [
-                { code: '2A', name: 'Deck 2A', carriage: 'DECK 2A', capacity: 274, range: 'Kursi 1 s/d 274', percent: '25.3%', desc: 'Dek Bawah Utama Depan (274 Kursi)' },
-                { code: '2B', name: 'Deck 2B', carriage: 'DECK 2B', capacity: 446, range: 'Kursi 1 s/d 446', percent: '41.1%', desc: 'Dek Bawah Utama Belakang (446 Kursi)' },
-                { code: '3A', name: 'Deck 3A', carriage: 'DECK 3A', capacity: 122, range: 'Kursi 1 s/d 122', percent: '11.3%', desc: 'Dek Atas Depan / Sayap (122 Kursi)' },
-                { code: '3B', name: 'Deck 3B', carriage: 'DECK 3B', capacity: 133, range: 'Kursi 1 s/d 133', percent: '12.3%', desc: 'Dek Atas Tengah (133 Kursi)' },
-                { code: '3C', name: 'Deck 3C', carriage: 'DECK 3C', capacity: 45, range: 'Kursi 1 s/d 45', percent: '4.2%', desc: 'Dek Atas Buritan (45 Kursi)' },
-                { code: '3 Depan', name: 'Deck 3 Depan', carriage: 'DECK 3 DEPAN', capacity: 64, range: 'Kursi 1 s/d 64', percent: '5.9%', desc: 'Dek Atas Haluan (64 Kursi)' }
-              ];
+              updatedStorage = true;
+            }
+            if (!Array.isArray(r.decks)) {
+              r.decks = [];
+              r.totalCapacity = 0;
               updatedStorage = true;
             }
           }
