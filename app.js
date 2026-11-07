@@ -2080,6 +2080,43 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Preset Tawau Dimuat', 'Format standar 2 dek (150 Kursi) berhasil dimuat. Klik Simpan untuk menerapkan.');
     });
 
+    // Listeners for unified Seat Layout (Rows & Columns) inside modalDevEditVessel
+    document.getElementById('devEditVesselRowsInput')?.addEventListener('input', () => {
+      this.updateDevEditVesselSeatPreview();
+    });
+
+    document.getElementById('devEditVesselColsInput')?.addEventListener('input', () => {
+      const cols = Math.max(2, parseInt(document.getElementById('devEditVesselColsInput').value, 10) || 6);
+      const leftInput = document.getElementById('devEditVesselColsLeftInput');
+      const rightInput = document.getElementById('devEditVesselColsRightInput');
+      if (leftInput && rightInput) {
+        const half = Math.ceil(cols / 2);
+        leftInput.value = half;
+        rightInput.value = cols - half;
+      }
+      this.updateDevEditVesselSeatPreview();
+    });
+
+    document.getElementById('devEditVesselColsLeftInput')?.addEventListener('input', () => {
+      const left = parseInt(document.getElementById('devEditVesselColsLeftInput').value, 10) || 1;
+      const right = parseInt(document.getElementById('devEditVesselColsRightInput')?.value, 10) || 1;
+      const colsInput = document.getElementById('devEditVesselColsInput');
+      if (colsInput) {
+        colsInput.value = left + right;
+      }
+      this.updateDevEditVesselSeatPreview();
+    });
+
+    document.getElementById('devEditVesselColsRightInput')?.addEventListener('input', () => {
+      const left = parseInt(document.getElementById('devEditVesselColsLeftInput')?.value, 10) || 1;
+      const right = parseInt(document.getElementById('devEditVesselColsRightInput').value, 10) || 1;
+      const colsInput = document.getElementById('devEditVesselColsInput');
+      if (colsInput) {
+        colsInput.value = left + right;
+      }
+      this.updateDevEditVesselSeatPreview();
+    });
+
     document.getElementById('formDevEditVessel')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const vId = document.getElementById('devEditVesselId')?.value;
@@ -2102,6 +2139,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const oldVessel = Store.getVessels().find(v => v.id === vId);
       const oldName = oldVessel ? oldVessel.name : '';
 
+      const seatRows = parseInt(document.getElementById('devEditVesselRowsInput')?.value, 10) || 25;
+      const seatCols = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 6;
+      const seatColsLeft = parseInt(document.getElementById('devEditVesselColsLeftInput')?.value, 10) || Math.ceil(seatCols / 2);
+      const seatColsRight = parseInt(document.getElementById('devEditVesselColsRightInput')?.value, 10) || (seatCols - seatColsLeft);
+
       Store.updateVessel(vId, {
         companyId: compId,
         name: vName,
@@ -2109,7 +2151,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         type: vType,
         capacity: capacity,
         facilities: facilities,
-        decks: decks
+        decks: decks,
+        seatRows: seatRows,
+        seatCols: seatCols,
+        seatColsLeft: seatColsLeft,
+        seatColsRight: seatColsRight
       });
 
       const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
@@ -2129,6 +2175,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           s.companyId = compId;
           s.capacity = capacity;
           s.quotaTotal = capacity;
+          s.seatRows = seatRows;
+          s.seatCols = seatCols;
+          s.seatColsLeft = seatColsLeft;
+          s.seatColsRight = seatColsRight;
           s.originId = 'NNK';
           s.originCity = 'Nunukan';
           s.destinationId = targetDestId;
@@ -10085,6 +10135,25 @@ ${area.innerHTML}
     }
     if (titleLabel) titleLabel.textContent = `Pengaturan Data & Dek Armada: ${vessel.name}`;
 
+    // Muat konfigurasi baris vertikal & kolom horizontal terpadu
+    const capVal = vessel.capacity || 150;
+    const vCols = vessel.seatCols || 6;
+    const vRows = vessel.seatRows || Math.max(1, Math.ceil(capVal / vCols));
+    const vColsLeft = vessel.seatColsLeft || Math.ceil(vCols / 2);
+    const vColsRight = vessel.seatColsRight || (vCols - vColsLeft);
+
+    const rowsInput = document.getElementById('devEditVesselRowsInput');
+    const colsInput = document.getElementById('devEditVesselColsInput');
+    const colsLeftInput = document.getElementById('devEditVesselColsLeftInput');
+    const colsRightInput = document.getElementById('devEditVesselColsRightInput');
+
+    if (rowsInput) rowsInput.value = vRows;
+    if (colsInput) colsInput.value = vCols;
+    if (colsLeftInput) colsLeftInput.value = vColsLeft;
+    if (colsRightInput) colsRightInput.value = vColsRight;
+
+    this.updateDevEditVesselSeatPreview();
+
     // Muat daftar dek kapal untuk diedit langsung di modal ini
     const vesselDecks = (typeof Store !== 'undefined' && Store.getVesselDecks)
       ? Store.getVesselDecks(vessel)
@@ -10169,6 +10238,92 @@ ${area.innerHTML}
     if (totalDecksLabel) totalDecksLabel.textContent = `(${rows.length} Dek)`;
     if (badgeLabel) badgeLabel.textContent = `${rows.length} Dek`;
     if (vesselCapInput) vesselCapInput.value = totalSeats;
+
+    // Sinkronkan baris vertikal otomatis jika total kursi terakumulasi
+    const colsInput = document.getElementById('devEditVesselColsInput');
+    const rowsInput = document.getElementById('devEditVesselRowsInput');
+    if (colsInput && rowsInput && totalSeats > 0) {
+      const cols = Math.max(2, parseInt(colsInput.value, 10) || 6);
+      rowsInput.value = Math.max(1, Math.ceil(totalSeats / cols));
+    }
+    this.updateDevEditVesselSeatPreview();
+  },
+
+  updateDevEditVesselSeatPreview() {
+    const rowsInput = document.getElementById('devEditVesselRowsInput');
+    const colsInput = document.getElementById('devEditVesselColsInput');
+    const colsLeftInput = document.getElementById('devEditVesselColsLeftInput');
+    const colsRightInput = document.getElementById('devEditVesselColsRightInput');
+    const capInput = document.getElementById('devEditVesselCapacity');
+
+    const cols = Math.max(2, parseInt(colsInput ? colsInput.value : 6, 10) || 6);
+    const colsLeft = Math.max(1, parseInt(colsLeftInput ? colsLeftInput.value : Math.ceil(cols / 2), 10) || Math.ceil(cols / 2));
+    const colsRight = Math.max(1, parseInt(colsRightInput ? colsRightInput.value : (cols - colsLeft), 10) || (cols - colsLeft));
+    const effectiveCols = colsLeft + colsRight;
+
+    let rows = Math.max(1, parseInt(rowsInput ? rowsInput.value : 25, 10) || 25);
+    let cap = parseInt(capInput ? capInput.value : (rows * effectiveCols), 10) || (rows * effectiveCols);
+
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const getRowCode = (rIdx) => {
+      if (rIdx < letters.length) return letters[rIdx];
+      const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+      const p2 = letters[rIdx % letters.length];
+      return `${p1}${p2}`;
+    };
+
+    const firstRow = 'A';
+    const lastRow = getRowCode(Math.max(0, rows - 1));
+
+    const badge = document.getElementById('devEditVesselSeatSummaryBadge');
+    if (badge) {
+      badge.textContent = `${rows} Baris Vertikal × ${effectiveCols} Kolom Horizontal`;
+    }
+
+    const details = document.getElementById('devEditVesselPreviewDetails');
+    if (details) {
+      const leftRange = colsLeft === 1 ? '01' : `01 s/d ${String(colsLeft).padStart(2, '0')}`;
+      const rightStart = colsLeft + 1;
+      const rightRange = rightStart === effectiveCols ? String(effectiveCols).padStart(2, '0') : `${String(rightStart).padStart(2, '0')} s/d ${String(effectiveCols).padStart(2, '0')}`;
+      details.innerHTML = `
+        Format Horizontal: <strong>${colsLeft} Kursi Kiri (${leftRange})</strong> — <span style="color: #38bdf8; font-weight: 700;">Lorong Tengah</span> — <strong>${colsRight} Kursi Kanan (${rightRange})</strong><br>
+        Format Vertikal: Baris <strong>${firstRow}</strong> hingga Baris <strong>${lastRow}</strong> (${rows} baris ke belakang). Penomoran: <strong>${firstRow}-01</strong> s/d <strong>${lastRow}-${String(effectiveCols).padStart(2, '0')}</strong>.
+      `;
+    }
+
+    const miniGrid = document.getElementById('devEditVesselMiniGridPreview');
+    if (miniGrid) {
+      const previewRowsCount = Math.min(3, rows);
+      let rowsHtml = '';
+      for (let r = 0; r < previewRowsCount; r++) {
+        const rCode = getRowCode(r);
+        let leftPills = '';
+        for (let c = 1; c <= colsLeft; c++) {
+          leftPills += `<span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">${rCode}-${String(c).padStart(2, '0')}</span>`;
+        }
+        let rightPills = '';
+        for (let c = colsLeft + 1; c <= effectiveCols; c++) {
+          rightPills += `<span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; border-radius: 4px; padding: 0.15rem 0.35rem;">${rCode}-${String(c).padStart(2, '0')}</span>`;
+        }
+        rowsHtml += `
+          <div style="display: flex; gap: 0.25rem; align-items: center; justify-content: center; flex-wrap: wrap;">
+            ${leftPills}
+            <span style="color: #94a3b8; padding: 0 0.3rem; font-size: 0.58rem; letter-spacing: 0.5px;">LORONG</span>
+            ${rightPills}
+          </div>
+        `;
+      }
+      miniGrid.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.25rem; font-family: monospace; font-size: 0.68rem; font-weight: 700; color: #38bdf8; width: 100%;">
+          ${rowsHtml}
+          ${rows > previewRowsCount ? `
+            <div style="text-align: center; color: #94a3b8; font-size: 0.65rem; padding-top: 0.15rem;">
+              ... berlanjut hingga baris <strong>${lastRow}</strong> (${rows} baris vertikal, ${effectiveCols} kolom horizontal) ...
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
   },
 
   getDevEditVesselDecksFromTable() {
@@ -10205,33 +10360,26 @@ ${area.innerHTML}
       this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
       return;
     }
-    const companies = Store.getCompanies();
-    if (companies.length === 0) {
-      this.showToast('Perusahaan Kosong', 'Daftarkan perusahaan dan armada terlebih dahulu.', 'warning');
-      this.openDevAddCompanyModal();
+    const vessels = Store.getVessels();
+    if (vessels.length === 0) {
+      this.showToast('Armada Kosong', 'Daftarkan armada kapal terlebih dahulu untuk mengatur baris, kolom & dek.', 'warning');
+      this.openDevAddVesselModal(preselectedCompanyId);
       return;
     }
 
-    const compSel = document.getElementById('devSeatCompanySelect');
-    if (compSel) {
-      compSel.innerHTML = '';
-      companies.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = `${c.name} (${c.code || c.id})`;
-        if (preselectedCompanyId && c.id === preselectedCompanyId) opt.selected = true;
-        compSel.appendChild(opt);
-      });
-      if (preselectedCompanyId && [...compSel.options].some(o => o.value === preselectedCompanyId)) {
-        compSel.value = preselectedCompanyId;
-      }
+    let targetVessel = null;
+    if (preselectedVesselId) {
+      targetVessel = vessels.find(v => v.id === preselectedVesselId);
+    }
+    if (!targetVessel && preselectedCompanyId) {
+      targetVessel = vessels.find(v => v.companyId === preselectedCompanyId);
+    }
+    if (!targetVessel) {
+      targetVessel = vessels[0];
     }
 
-    const targetCompId = compSel ? compSel.value : companies[0].id;
-    this.syncDevSeatModalVessels(targetCompId, preselectedVesselId);
-    this.updateDevSeatModalPreview();
-
-    document.getElementById('modalDevConfigSeats')?.classList.add('show');
+    // Terpusat satu tempat di Pengaturan Data & Dek Armada
+    this.openDevEditVesselModal(targetVessel.id);
   },
 
   syncDevSeatModalVessels(companyId, preselectedVesselId = null) {

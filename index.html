@@ -5725,6 +5725,56 @@
           </div>
         </div>
 
+        <!-- KONFIGURASI BARIS VERTIKAL & KOLOM HORIZONTAL (TERPADU DI PENGATURAN DATA & DEK ARMADA) -->
+        <div style="background: #162032; border: 1.5px solid #334155; border-radius: 12px; padding: 0.9rem 1rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+            <div style="font-size: 0.84rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📐</span>
+              <span>Konfigurasi Baris Vertikal &amp; Kolom Horizontal</span>
+            </div>
+            <span id="devEditVesselSeatSummaryBadge" style="font-size: 0.68rem; color: #c4b5fd; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(167, 139, 250, 0.4); padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700;">Denah Kursi Fleksibel</span>
+          </div>
+
+          <div class="form-row-2" style="margin-bottom: 0.6rem;">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">
+                ↕️ Jumlah Baris Vertikal (Depan ke Belakang) *
+              </label>
+              <input type="number" id="devEditVesselRowsInput" class="form-input" value="25" min="1" max="150" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
+              <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Baris vertikal (A, B, C s/d baris akhir)</span>
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">
+                ↔️ Total Kolom Horizontal (Lebar Kursi Samping) *
+              </label>
+              <input type="number" id="devEditVesselColsInput" class="form-input" value="6" min="2" max="24" required style="background: #1e293b !important; color: #34d399 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
+              <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Total kursi ke samping per baris</span>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.73rem; font-weight: 600;">
+                🪑 Kolom Sisi Kiri (Sebelum Lorong)
+              </label>
+              <input type="number" id="devEditVesselColsLeftInput" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.73rem; font-weight: 600;">
+                🪑 Kolom Sisi Kanan (Setelah Lorong)
+              </label>
+              <input type="number" id="devEditVesselColsRightInput" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+          </div>
+
+          <!-- Live Mini Preview Format Kursi -->
+          <div id="devEditVesselPreviewDetails" style="font-size: 0.73rem; color: #cbd5e1; line-height: 1.45; margin-top: 0.5rem; background: #0f172a; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #334155;">
+            Format Horizontal: <strong>3 Kursi Kiri (01 s/d 03)</strong> — <span style="color: #38bdf8; font-weight: 700;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04 s/d 06)</strong>
+          </div>
+          <div id="devEditVesselMiniGridPreview" style="display: flex; gap: 0.35rem; justify-content: center; align-items: center; margin-top: 0.5rem; padding: 0.5rem; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
+          </div>
+        </div>
+
         <!-- PENGATURAN DECK TIAP ARMADA KAPAL (SATU TEMPAT TERPUSAT) -->
         <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
@@ -5965,146 +6015,8 @@
     </div>
   </div>
 
-  <div class="modal-layer" id="modalDevConfigSeats">
-    <div class="modal-window" style="max-width: 580px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
-      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
-        <div style="display: flex; align-items: center; gap: 0.65rem;">
-          <span style="font-size: 1.4rem;">💺</span>
-          <div>
-            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Pengaturan Seat &amp; Denah Kursi Armada</h4>
-            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Konfigurasi kapasitas kursi, denah dek, dan jadikan default saat perusahaan login.</p>
-          </div>
-        </div>
-        <button type="button" class="btn-close-x" id="btnCloseDevConfigSeats" style="color: #94a3b8;">&times;</button>
-      </div>
-      <form id="formDevConfigSeats" class="modal-content-form" style="padding-top: 1rem;">
-        <div class="form-row-2">
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">1. Pilih Perusahaan *</label>
-            <select id="devSeatCompanySelect" class="form-input" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 700;">
-              <!-- Populated dynamically -->
-            </select>
-          </div>
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">2. Pilih Armada Kapal *</label>
-            <select id="devSeatVesselSelect" class="form-input" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-weight: 700;">
-              <!-- Populated dynamically based on company -->
-            </select>
-          </div>
-        </div>
 
-        <!-- Preset Rute Nunukan - Sulawesi (1.084 Kursi) -->
-        <div id="devSeatSulawesiPresetBanner" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.85rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <div>
-              <div style="font-size: 0.76rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
-                <span>🚢 Armada Rute Nunukan – Sulawesi</span>
-                <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 999px;">Standar 1.084 Kursi (6 Dek)</span>
-              </div>
-              <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 0.2rem;">
-                Rincian Dek: <strong>2A (274)</strong> • <strong>2B (446)</strong> • <strong>3A (122)</strong> • <strong>3B (133)</strong> • <strong>3C (45)</strong> • <strong>3 Depan (64)</strong>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-              <button type="button" id="btnDevApplySulawesiPresetInModal" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
-                ⚡ Preset Sulawesi
-              </button>
-              <button type="button" id="btnDevApplyTawauPresetInModal" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
-                ⚡ Preset Tawau
-              </button>
-            </div>
-          </div>
-        </div>
 
-        <!-- Konfigurasi Baris (Vertikal) & Kolom (Horizontal) -->
-        <div style="background: #162032; border: 1.5px solid #334155; border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 0.85rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
-            <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 0.35rem;">
-              <span>📐</span>
-              <span>Konfigurasi Baris Vertikal &amp; Kolom Horizontal</span>
-            </div>
-            <span style="font-size: 0.68rem; color: #94a3b8; background: #0f172a; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid #334155;">Denah Kursi Fleksibel</span>
-          </div>
-
-          <div class="form-row-2" style="margin-bottom: 0.6rem;">
-            <div class="input-block">
-              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">
-                ↕️ Jumlah Baris Vertikal (Depan ke Belakang) *
-              </label>
-              <input type="number" id="devSeatRowsInput" class="form-input" value="25" min="1" max="150" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
-              <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Baris vertikal (A, B, C s/d baris akhir)</span>
-            </div>
-            <div class="input-block">
-              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">
-                ↔️ Total Kolom Horizontal (Lebar Kursi Samping) *
-              </label>
-              <input type="number" id="devSeatColsInput" class="form-input" value="6" min="2" max="24" required style="background: #1e293b !important; color: #34d399 !important; border-color: #334155 !important; font-weight: 800; font-size: 0.95rem;">
-              <span style="font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; display: block;">Total kursi ke samping per baris</span>
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="input-block">
-              <label style="color: #cbd5e1; font-size: 0.73rem; font-weight: 600;">
-                🪑 Kolom Sisi Kiri (Sebelum Lorong)
-              </label>
-              <input type="number" id="devSeatColsLeftInput" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
-            </div>
-            <div class="input-block">
-              <label style="color: #cbd5e1; font-size: 0.73rem; font-weight: 600;">
-                🪑 Kolom Sisi Kanan (Setelah Lorong)
-              </label>
-              <input type="number" id="devSeatColsRightInput" class="form-input" value="3" min="1" max="12" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row-2">
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Kapasitas Total Kursi *</label>
-            <input type="number" id="devSeatCapacityInput" class="form-input" value="150" min="10" max="3000" required style="background: #1e293b !important; color: #38bdf8 !important; border-color: #334155 !important; font-weight: 800; font-size: 1rem;">
-          </div>
-          <div class="input-block">
-            <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Dek Kapal</label>
-            <input type="text" id="devSeatDeckNameInput" class="form-input" value="Main Deck" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-          </div>
-        </div>
-        <div class="input-block">
-          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">Nama Kelas Kursi</label>
-          <input type="text" id="devSeatClassNameInput" class="form-input" value="Tiket Reguler" required style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
-        </div>
-
-        <!-- Live Layout Preview Card -->
-        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 0.85rem 1rem; margin-top: 0.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.78rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.5px;">💺 Rincian Susunan Denah Kursi</span>
-            <span id="devSeatSummaryBadge" style="background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.4); font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px;">150 Kursi (25 Baris)</span>
-          </div>
-          <div id="devSeatPreviewDetails" style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.45;">
-            Format: <strong>3 Kursi Kiri (01-03)</strong> — <span style="color: #94a3b8;">Lorong Tengah</span> — <strong>3 Kursi Kanan (04-06)</strong><br>
-            Penomoran Baris: <strong>A-01 s/d A-06</strong> hingga <strong>Y-01 s/d Y-06</strong>
-          </div>
-          <div id="devSeatMiniGridPreview" style="display: flex; gap: 0.35rem; justify-content: center; align-items: center; margin-top: 0.75rem; padding: 0.5rem; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-
-        <div style="background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.75rem; color: #ddd6fe; margin-top: 0.75rem;">
-          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; margin: 0;">
-            <input type="checkbox" id="devSeatMakeDefaultCheck" checked style="accent-color: #7c3aed; margin-top: 0.15rem;">
-            <span><strong>Otomatis Jadi Default Saat Login:</strong> Konfigurasi kursi ini akan langsung tampil di menu <em>Denah Kursi &amp; Seat</em> dan rincian alokasi penumpang saat operator perusahaan login.</span>
-          </label>
-        </div>
-
-        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem;">
-          <button type="button" class="btn-cancel" id="btnCancelDevConfigSeats" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
-          <button type="submit" class="btn-submit-action" id="btnSubmitDevConfigSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
-            <span>💾 Simpan Pengaturan Seat</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Modal Input & Edit Daftar Crew Masing-Masing Armada (CREW LIST) -->
   <div class="modal-layer" id="modalVesselCrewList">
