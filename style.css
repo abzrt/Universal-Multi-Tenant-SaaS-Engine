@@ -101,17 +101,52 @@ body {
 
 /* Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(148, 163, 184, 0.45);
   border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.75);
+}
+
+/* Dark Modals & Components Scrollbar (hilangkan garis putih scrollbar track) */
+#modalDevAddCompany,
+#modalDevAddCompany *,
+.modal-layer [style*="#0f172a"],
+.modal-layer [style*="#0f172a"] * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+#modalDevAddCompany ::-webkit-scrollbar-track,
+#modalDevAddCompany::-webkit-scrollbar-track,
+.modal-layer [style*="#0f172a"] ::-webkit-scrollbar-track,
+.modal-layer [style*="#0f172a"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+#modalDevAddCompany ::-webkit-scrollbar-thumb,
+#modalDevAddCompany::-webkit-scrollbar-thumb,
+.modal-layer [style*="#0f172a"] ::-webkit-scrollbar-thumb,
+.modal-layer [style*="#0f172a"]::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35) !important;
+  border-radius: 9999px;
+}
+
+#modalDevAddCompany ::-webkit-scrollbar-thumb:hover,
+#modalDevAddCompany::-webkit-scrollbar-thumb:hover,
+.modal-layer [style*="#0f172a"] ::-webkit-scrollbar-thumb:hover,
+.modal-layer [style*="#0f172a"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6) !important;
 }
 
 /* ================= TOP BAR ================= */
