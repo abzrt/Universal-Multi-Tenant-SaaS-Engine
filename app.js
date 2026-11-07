@@ -2685,50 +2685,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.renderDevSulawesiDeckSection();
     });
 
-    const closeEditRouteDecksModal = () => {
-      document.getElementById('modalDevEditRouteDecks')?.classList.remove('show');
-    };
-    document.getElementById('btnCloseDevEditRouteDecks')?.addEventListener('click', closeEditRouteDecksModal);
-    document.getElementById('btnCancelDevEditRouteDecks')?.addEventListener('click', closeEditRouteDecksModal);
 
-    document.getElementById('btnDevAddNewDeckRow')?.addEventListener('click', () => {
-      const tbody = document.getElementById('tbodyModalEditRouteDecks');
-      if (!tbody) return;
-      const count = tbody.querySelectorAll('tr').length + 1;
-      const newTr = document.createElement('tr');
-      newTr.innerHTML = `
-        <td><input type="text" class="form-input deck-code-input" value="DECK ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%;"></td>
-        <td><input type="text" class="form-input deck-carriage-input" value="DECK ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%;"></td>
-        <td><input type="text" class="form-input deck-name-input" value="Deck ${count}" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #ffffff; width: 100%;"></td>
-        <td><input type="number" class="form-input deck-capacity-input" value="100" min="1" max="2500" required style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%;"></td>
-        <td><input type="text" class="form-input deck-desc-input" value="Dek Penumpang Tambahan (${count})" style="padding: 0.35rem 0.5rem; font-size: 0.78rem; background: #1e293b; color: #cbd5e1; width: 100%;"></td>
-        <td style="text-align: center;">
-          <button type="button" class="btn-remove-deck-row" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.74rem; cursor: pointer;" title="Hapus Dek">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(newTr);
-      newTr.querySelector('.deck-capacity-input')?.addEventListener('input', () => this.updateEditRouteDecksModalSummary());
-      newTr.querySelector('.btn-remove-deck-row')?.addEventListener('click', () => {
-        newTr.remove();
-        this.updateEditRouteDecksModalSummary();
-      });
-      this.updateEditRouteDecksModalSummary();
-    });
-
-    document.getElementById('btnDevResetRouteDecksDefault')?.addEventListener('click', () => {
-      const isSul = (this.devSeatActiveRoute || 'sulawesi') === 'sulawesi';
-      const defaults = isSul ? Store.getDefaultSulawesiDecks() : Store.getDefaultTawauDecks();
-      this.renderEditRouteDecksTable(defaults);
-      this.showToast('Reset Standar', `Daftar dek dikembalikan ke format standar rute ${isSul ? 'Sulawesi' : 'Tawau'}.`);
-    });
-
-    document.getElementById('btnSaveDevEditRouteDecks')?.addEventListener('click', () => {
-      this.saveEditedRouteDecks();
-    });
-
-    document.getElementById('btnDevApplySulawesiDecks')?.addEventListener('click', () => {
-      this.applyRouteDecksToFleets(this.devSeatActiveRoute || 'sulawesi');
-    });
 
     document.getElementById('btnDevOpenSulawesiSeatModal')?.addEventListener('click', () => {
       const companies = Store.getCompanies();
@@ -2893,7 +2850,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Jadwal Berhasil Dibuka', `${addedCount} jadwal pelayaran untuk ${vName} (${comp.name}) berhasil ditetapkan.`);
     });
 
-    ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevEditVessel', 'modalDevConfigSeats', 'modalDevAddSchedule'].forEach(mId => {
+    ['modalDevAddCompany', 'modalDevEditCompany', 'modalDevAddVessel', 'modalDevEditVessel', 'modalDevAddSchedule'].forEach(mId => {
       const el = document.getElementById(mId);
       if (el) {
         el.addEventListener('click', (e) => {
@@ -6342,65 +6299,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Tarif & Pas Pelabuhan Diperbarui', `Jadwal ${schedId}: Tiket ${formatRupiah(newEko)} • Pas Pelabuhan ${formatRupiah(newPortPass)}.`);
     });
 
-    // Port Pass Modal Listeners (Developer Only)
-    document.getElementById('btnDevOpenAddPortPass')?.addEventListener('click', () => this.openEditPortPassModal(null));
-    document.getElementById('btnCloseEditPortPass')?.addEventListener('click', () => {
-      document.getElementById('modalEditPortPass')?.classList.remove('show');
-    });
-    document.getElementById('btnCancelEditPortPass')?.addEventListener('click', () => {
-      document.getElementById('modalEditPortPass')?.classList.remove('show');
-    });
-    document.getElementById('formEditPortPass')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
-        this.showToast('Akses Dibatasi', 'Pengaturan pas pelabuhan hanya dapat diubah melalui menu Login Developer.', 'warning');
-        return;
-      }
-      const tenant = Store.getCurrentTenant();
-      const editId = document.getElementById('portPassEditId')?.value?.trim();
-      const name = document.getElementById('portPassNameInput')?.value?.trim() || 'Pas Pelabuhan';
-      const portId = document.getElementById('portPassPortSelect')?.value || 'NNK';
-      const routeType = document.getElementById('portPassRouteType')?.value || 'Internasional';
-      const operator = document.getElementById('portPassOperatorInput')?.value?.trim() || 'KSOP / Otoritas Pelabuhan';
-      const priceAdult = parseFloat(document.getElementById('portPassAdultInput')?.value) || 0;
-      const priceChild = priceAdult; // Hanya 1 kategori tarif pas pelabuhan
-      const billingMode = document.getElementById('portPassBillingMode')?.value || 'INCLUDED';
-      const status = document.getElementById('portPassStatusSelect')?.value || 'Aktif';
 
-      if (editId) {
-        Store.updatePortPass(editId, { name, portId, routeType, operator, priceAdult, priceChild, billingMode, status });
-        this.showToast('Pas Pelabuhan Diperbarui', `Tarif "${name}" berhasil disimpan (Tarif Pas: ${formatRupiah(priceAdult)}).`);
-      } else {
-        const newItem = {
-          id: `PP-${portId}-${Date.now().toString(36).toUpperCase().slice(-4)}`,
-          companyId: tenant ? tenant.id : '',
-          portId,
-          name,
-          operator,
-          routeType,
-          priceAdult,
-          priceChild,
-          billingMode,
-          status
-        };
-        Store.addPortPass(newItem);
-        this.showToast('Pas Pelabuhan Ditambahkan', `Tarif pas pelabuhan baru "${name}" berhasil ditambahkan.`);
-      }
-
-      // Sinkronkan tarif pas pelabuhan ke seluruh jadwal yang sesuai dengan rute & pelabuhan ini
-      const allScheds = Store.getSchedules ? Store.getSchedules() : [];
-      allScheds.forEach(s => {
-        const sIsIntl = s.originId === 'TWU' || s.destinationId === 'TWU' || s.categoryType === 'INTERNATIONAL';
-        const sRType = sIsIntl ? 'Internasional' : 'Domestik';
-        if ((s.originId || 'NNK') === portId && sRType === routeType) {
-          s.portPassFee = priceAdult;
-          Store.updateSchedule(s.id, s);
-        }
-      });
-      document.getElementById('modalEditPortPass')?.classList.remove('show');
-      if (Store.getCurrentTenant()) this.refreshCompanyDashboard();
-      if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
-    });
 
     // Master Route Tariffs Modal Listeners (Developer Only)
     document.getElementById('btnDevOpenAddMasterRoute')?.addEventListener('click', () => this.openAddMasterRouteModal());
@@ -7479,15 +7378,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // 1. Sub-tab toggle between Company Profile, KSOP Settings, and Peak Season
     const btnCompany = document.getElementById('tabBtnSettingsCompany');
     const btnKsop = document.getElementById('tabBtnSettingsKsop');
-    const btnPeak = document.getElementById('tabBtnSettingsPeakSeason');
-    const btnPortPass = document.getElementById('tabBtnSettingsPortPass');
     const subCompany = document.getElementById('subPaneSettingsCompany');
     const subKsop = document.getElementById('subPaneSettingsKsop');
-    const subPeak = document.getElementById('subPaneSettingsPeakSeason');
-    const subPortPass = document.getElementById('subPaneSettingsPortPass');
 
     const resetSubTabButtons = () => {
-      [btnCompany, btnKsop, btnPeak, btnPortPass].forEach(b => {
+      [btnCompany, btnKsop].forEach(b => {
         if (!b) return;
         b.classList.remove('active');
         b.style.background = '#ffffff';
@@ -7497,20 +7392,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       });
       if (subCompany) subCompany.style.display = 'none';
       if (subKsop) subKsop.style.display = 'none';
-      if (subPeak) subPeak.style.display = 'none';
-      if (subPortPass) subPortPass.style.display = 'none';
     };
-
-    btnPortPass?.addEventListener('click', () => {
-      resetSubTabButtons();
-      btnPortPass.classList.add('active');
-      btnPortPass.style.background = '#0d9488';
-      btnPortPass.style.color = '#ffffff';
-      btnPortPass.style.border = 'none';
-      btnPortPass.style.boxShadow = '0 2px 6px rgba(13, 148, 136, 0.25)';
-      if (subPortPass) subPortPass.style.display = 'block';
-      this.renderPortPassTables();
-    });
 
     btnCompany?.addEventListener('click', () => {
       resetSubTabButtons();
@@ -11224,46 +11106,7 @@ ${area.innerHTML}
     });
   },
 
-  openEditPortPassModal(portPassId = null) {
-    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
-      this.showToast('Akses Dibatasi', 'Pengaturan pas pelabuhan hanya dapat diubah melalui menu Login Developer.', 'warning');
-      return;
-    }
-    const passes = Store.getPortPasses ? Store.getPortPasses() : [];
-    const item = portPassId ? passes.find(p => p.id === portPassId) : null;
-    const isIntl = item ? (item.routeType === 'Internasional' || item.portId === 'TWU') : true;
-    const titleEl = document.getElementById('modalPortPassTitle');
-    if (titleEl) {
-      titleEl.innerText = item ? `Edit Tarif Pas Pelabuhan (${item.id})` : 'Tambah Tarif Pas Pelabuhan Baru';
-    }
 
-    const portSel = document.getElementById('portPassPortSelect');
-    if (portSel) {
-      portSel.innerHTML = `<option value="NNK">Pelabuhan Tunon Taka (Nunukan)</option><option value="TWU">Tawau Ferry Terminal (Malaysia)</option><option value="PRE">Pelabuhan Nusantara (Parepare)</option>`;
-    }
-    const routeTypeSel = document.getElementById('portPassRouteType');
-    if (routeTypeSel) {
-      routeTypeSel.innerHTML = `<option value="Internasional">Internasional (Luar Negeri)</option><option value="Domestik">Domestik (Dalam Negeri)</option>`;
-    }
-
-    const setVal = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
-    };
-
-    setVal('portPassEditId', item ? item.id : '');
-    setVal('portPassNameInput', item ? item.name : (isIntl ? 'Pas Pelabuhan Internasional Tunon Taka (Nunukan ➔ Tawau)' : 'Pas Pelabuhan Domestik Tunon Taka (Nunukan ➔ Parepare)'));
-    setVal('portPassPortSelect', item ? (item.portId || 'NNK') : 'NNK');
-    setVal('portPassRouteType', item ? (item.routeType || (isIntl ? 'Internasional' : 'Domestik')) : (isIntl ? 'Internasional' : 'Domestik'));
-    setVal('portPassOperatorInput', item ? (item.operator || 'KSOP / Pelindo Tunon Taka Nunukan') : 'KSOP / Pelindo Tunon Taka Nunukan');
-    setVal('portPassAdultInput', item ? (item.priceAdult ?? (isIntl ? 50000 : 10000)) : (isIntl ? 50000 : 10000));
-    setVal('portPassChildInput', item ? (item.priceChild ?? (isIntl ? 15000 : 5000)) : (isIntl ? 15000 : 5000));
-    setVal('portPassBillingMode', item ? (item.billingMode || 'INCLUDED') : 'INCLUDED');
-    setVal('portPassStatusSelect', item ? (item.status || 'Aktif') : 'Aktif');
-    setVal('portPassAuthPassword', '');
-
-    document.getElementById('modalEditPortPass')?.classList.add('show');
-  },
 
   openAddScheduleModal(defaultDate = null) {
     if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {

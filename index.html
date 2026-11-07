@@ -3251,11 +3251,7 @@
             <h3 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #f8fafc;">🏷️ Pengaturan Harga Tiket & Tarif Pas Pelabuhan (Seluruh Perusahaan & Armada)</h3>
             <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Kelola dan ubah harga tiket resmi serta tarif pas pelabuhan untuk setiap perusahaan dan armada kapal. Perusahaan hanya dapat melihat tarif yang Anda tetapkan di sini.</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <button type="button" id="btnDevOpenAddPortPass" style="display: none !important; background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1px solid rgba(45, 212, 191, 0.4); padding: 0.5rem 0.95rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-              <span>🎫 + Tambah Pas Pelabuhan Baru</span>
-            </button>
-          </div>
+
         </div>
 
         <!-- MASTER TABEL TARIF: PENGATURAN HARGA TIKET SEMUA RUTE KAPAL (DEVELOPER) -->
@@ -3566,78 +3562,6 @@
         <div class="modal-bottom-actions">
           <button type="button" class="btn-cancel" id="btnCancelEditSchedulePrice">Batal</button>
           <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;">Simpan Perubahan Tarif</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal Tambah / Edit Pengaturan Pas Pelabuhan -->
-  <div class="modal-layer" id="modalEditPortPass">
-    <div class="modal-window" style="max-width: 540px;">
-      <div class="modal-top">
-        <div>
-          <h4 id="modalPortPassTitle">Edit Pengaturan Pas Pelabuhan</h4>
-          <p class="text-dim">Atur besaran tarif pas masuk pelabuhan (Dewasa & Anak) serta otoritas terminal.</p>
-        </div>
-        <button type="button" class="btn-close-x" id="btnCloseEditPortPass">&times;</button>
-      </div>
-      <form id="formEditPortPass" class="modal-content-form">
-        <input type="hidden" id="portPassEditId">
-        <div class="input-block">
-          <label>Nama Pas Pelabuhan / Terminal *</label>
-          <input type="text" id="portPassNameInput" class="form-input" placeholder="Contoh: Pas Pelabuhan Internasional Tunon Taka" required>
-        </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label>Pelabuhan Keberangkatan *</label>
-            <select id="portPassPortSelect" class="form-input" required>
-              <option value="NNK">Pelabuhan Tunon Taka (Nunukan)</option>
-              <option value="TWU">Tawau Ferry Terminal (Malaysia)</option>
-              <option value="PRE">Pelabuhan Nusantara (Parepare)</option>
-            </select>
-          </div>
-          <div class="input-block">
-            <label>Kategori Rute *</label>
-            <select id="portPassRouteType" class="form-input" required>
-              <option value="Internasional">Internasional (Luar Negeri)</option>
-              <option value="Domestik">Domestik (Dalam Negeri)</option>
-            </select>
-          </div>
-        </div>
-        <div class="input-block">
-          <label>Pengelola / Otoritas Pelabuhan *</label>
-          <input type="text" id="portPassOperatorInput" class="form-input" placeholder="Contoh: KSOP / Pelindo Tunon Taka Nunukan" required>
-        </div>
-        <div class="input-block">
-          <label>Tarif Pas Pelabuhan (Rp) *</label>
-          <input type="number" id="portPassAdultInput" class="form-input" min="0" step="1000" value="50000" required>
-          <input type="hidden" id="portPassChildInput" value="0">
-        </div>
-        <div class="form-row-2">
-          <div class="input-block">
-            <label>Metode Pemungutan di Tiket</label>
-            <select id="portPassBillingMode" class="form-input">
-              <option value="INCLUDED">Termasuk Harga Tiket (Bundling)</option>
-              <option value="ADDON">Ditambahkan Otomatis ke Harga Tiket</option>
-              <option value="COUNTER">Dibayar Terpisah di Loket Pelabuhan</option>
-            </select>
-          </div>
-          <div class="input-block">
-            <label>Status Pas Pelabuhan</label>
-            <select id="portPassStatusSelect" class="form-input">
-              <option value="Aktif">Aktif</option>
-              <option value="Nonaktif">Nonaktif</option>
-            </select>
-          </div>
-        </div>
-        <div class="input-block" id="editPortPassDevPassWrap" style="display: none;">
-          <label>🔒 Otorisasi Admin Developer</label>
-          <input type="password" id="portPassAuthPassword" class="form-input" placeholder="Otomatis terotorisasi di Sesi Developer" autocomplete="current-password">
-          <small class="text-dim">Hanya Admin Developer yang dapat menyimpan perubahan pas pelabuhan.</small>
-        </div>
-        <div class="modal-bottom-actions">
-          <button type="button" class="btn-cancel" id="btnCancelEditPortPass">Batal</button>
-          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;">Simpan Pas Pelabuhan</button>
         </div>
       </form>
     </div>
@@ -6120,87 +6044,6 @@
       </form>
     </div>
   </div>
-
-  <!-- Modal Pengaturan Seat & Denah Kursi Armada (Developer Mode) -->
-  <!-- Modal Edit Konfigurasi Seat & Dek Rute (Developer Mode) -->
-  <div class="modal-layer" id="modalDevEditRouteDecks" style="z-index: 1050;">
-    <div class="modal-window" style="max-width: 840px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
-        <div style="display: flex; align-items: center; gap: 0.65rem;">
-          <span style="font-size: 1.4rem;">✏️</span>
-          <div>
-            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;">Edit Konfigurasi Seat &amp; Dek Kapal</h4>
-            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">
-              Ubah kapasitas kursi, nama gerbong/carriage, dan penataan dek untuk <strong id="modalEditRouteTargetName" style="color: #38bdf8;">Rute Nunukan – Sulawesi (Parepare)</strong>.
-            </p>
-          </div>
-        </div>
-        <button type="button" class="btn-close-x" id="btnCloseDevEditRouteDecks" style="color: #94a3b8;">&times;</button>
-      </div>
-
-      <div style="padding: 1rem 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 0.4rem;">
-            <span>Daftar Dek / Carriage Penumpang</span>
-            <span id="modalEditRouteDeckCountPill" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.68rem; font-weight: 800; padding: 0.1rem 0.45rem; border-radius: 999px;">6 Dek</span>
-          </div>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <button type="button" id="btnDevResetRouteDecksDefault" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 0.38rem 0.75rem; border-radius: 7px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
-              ↺ Reset Standar
-            </button>
-            <button type="button" id="btnDevAddNewDeckRow" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.38rem 0.85rem; border-radius: 7px; font-size: 0.74rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);">
-              ➕ Tambah Dek Baru
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive" style="max-height: 320px; overflow-y: auto; border: 1px solid #334155; border-radius: 10px; margin-bottom: 1rem;">
-          <table class="dash-table dev-dark-table" style="width: 100%; font-size: 0.78rem;">
-            <thead>
-              <tr style="background: #1e293b;">
-                <th style="width: 90px;">Kode Dek</th>
-                <th style="width: 130px;">Label Carriage</th>
-                <th style="width: 130px;">Nama Dek</th>
-                <th style="width: 115px;">Kapasitas (Pax)</th>
-                <th>Posisi Area / Keterangan</th>
-                <th style="width: 55px; text-align: center;">Hapus</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyModalEditRouteDecks">
-              <!-- Dynamically populated rows -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Live Summary & Auto-Apply -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 0.75rem 1rem; flex-wrap: wrap; gap: 0.6rem;">
-          <div>
-            <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">TOTAL AKUMULASI KAPASITAS:</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #34d399; display: flex; align-items: baseline; gap: 0.4rem;">
-              <span id="modalEditTotalSeatsCount">1.084</span> <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Kursi</span>
-              <span id="modalEditTotalDecksCount" style="font-size: 0.74rem; color: #38bdf8; font-weight: 700;">(6 Dek)</span>
-            </div>
-          </div>
-          <div>
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0; font-size: 0.76rem; color: #cbd5e1;">
-              <input type="checkbox" id="modalEditAutoApplyFleets" checked style="accent-color: #0284c7; width: 16px; height: 16px;">
-              <span><strong>Otomatis Terapkan:</strong> Perbarui kapasitas seluruh armada kapal &amp; jadwal pada rute ini</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.5rem; display: flex; justify-content: flex-end; gap: 0.6rem;">
-        <button type="button" class="btn-cancel" id="btnCancelDevEditRouteDecks" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.45rem 1rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Batal</button>
-        <button type="button" id="btnSaveDevEditRouteDecks" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border: 1px solid rgba(52, 211, 153, 0.4); padding: 0.45rem 1.35rem; border-radius: 7px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);">
-          <span>💾 Simpan Konfigurasi Seat</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-
 
   <!-- Modal Input & Edit Daftar Crew Masing-Masing Armada (CREW LIST) -->
   <div class="modal-layer" id="modalVesselCrewList">
