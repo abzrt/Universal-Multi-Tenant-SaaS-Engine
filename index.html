@@ -5466,23 +5466,23 @@
         <button type="button" class="btn-close-x" id="btnCloseDevAddCompany" style="color: #94a3b8;">&times;</button>
       </div>
 
-      <!-- Navigasi 3 Fitur Terpadu (Armada, Jadwal & Seat yang dipindahkan ke Tambah Perusahaan) -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; padding: 0.6rem 1.4rem; border-bottom: 1px solid #1e293b; width: 100%; box-sizing: border-box;">
-        <button type="button" class="btn-dev-comp-nav-pill active" data-tab="devCompTabProfile" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 1;">
-          <span>🏢 Profil Perusahaan</span>
-        </button>
-        <button type="button" id="btnDevOpenAddVessel" class="btn-dev-comp-nav-pill" data-tab="devCompTabVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
-          <span>⛴️ Tambah Armada</span>
-        </button>
-        <button type="button" id="btnDevOpenConfigSeats" class="btn-dev-comp-nav-pill" data-tab="devCompTabSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
-          <span>💺 Tambah Seat</span>
-        </button>
-        <button type="button" id="btnDevOpenAddSchedule" class="btn-dev-comp-nav-pill" data-tab="devCompTabSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
-          <span>📅 Tambah Jadwal</span>
-        </button>
-      </div>
-
-      <form id="formDevAddCompany" class="modal-content-form" style="padding-top: 0.75rem; scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.35) transparent;">
+      <form id="formDevAddCompany" class="modal-content-form" style="padding-top: 0.85rem; scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.35) transparent;">
+        
+        <!-- Navigasi 3 Fitur Terpadu (Armada, Jadwal & Seat yang dipindahkan ke Tambah Perusahaan) -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; padding-bottom: 0.85rem; margin-bottom: 0.85rem; border-bottom: 1px solid #1e293b; width: 100%; box-sizing: border-box;">
+          <button type="button" class="btn-dev-comp-nav-pill active" data-tab="devCompTabProfile" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1.5px solid #38bdf8; height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 1;">
+            <span>🏢 Profil Perusahaan</span>
+          </button>
+          <button type="button" id="btnDevOpenAddVessel" class="btn-dev-comp-nav-pill" data-tab="devCompTabVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
+            <span>⛴️ Tambah Armada</span>
+          </button>
+          <button type="button" id="btnDevOpenConfigSeats" class="btn-dev-comp-nav-pill" data-tab="devCompTabSeats" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
+            <span>💺 Tambah Seat</span>
+          </button>
+          <button type="button" id="btnDevOpenAddSchedule" class="btn-dev-comp-nav-pill" data-tab="devCompTabSchedule" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.12); height: 28px; width: 100%; box-sizing: border-box; border-radius: 6px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none !important; transform: none !important; opacity: 0.75;">
+            <span>📅 Tambah Jadwal</span>
+          </button>
+        </div>
         
         <!-- ================= TAB 1: PROFIL & AKUN PERUSAHAAN ================= -->
         <div id="devCompTabProfile" class="dev-comp-tab-content">
