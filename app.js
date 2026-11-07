@@ -8006,7 +8006,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       const totalCols = (vessel && vessel.seatCols) ? vessel.seatCols : 6;
       const totalRows = (vessel && vessel.seatRows) ? vessel.seatRows : Math.ceil(capacity / totalCols);
-      seatGrid.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
+      const colWidth = totalCols > 8 ? 28 : (totalCols > 6 ? 32 : 36);
+      seatGrid.style.gridTemplateColumns = `repeat(${totalCols}, ${colWidth}px)`;
+      seatGrid.style.justifyContent = 'center';
+      seatGrid.style.alignContent = 'start';
       let count = 0;
       for (let r = 0; r < totalRows; r++) {
         if (count >= capacity) break;
