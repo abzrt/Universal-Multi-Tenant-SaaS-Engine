@@ -10185,12 +10185,12 @@ ${area.innerHTML}
       const tr = document.createElement('tr');
       tr.style.background = '#162032';
       tr.innerHTML = `
-        <td><input type="text" class="form-input dev-vessel-deck-code" value="${d.code || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%;"></td>
-        <td><input type="text" class="form-input dev-vessel-deck-carriage" value="${d.carriage || d.name || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%;"></td>
-        <td><input type="text" class="form-input dev-vessel-deck-name" value="${d.name || 'Dek Kapal'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 600; width: 100%;"></td>
-        <td><input type="number" class="form-input dev-vessel-deck-capacity" value="${d.capacity || 100}" min="1" max="3000" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%;"></td>
-        <td><input type="text" class="form-input dev-vessel-deck-desc" value="${d.desc || ''}" placeholder="Keterangan area dek..." style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #cbd5e1; width: 100%;"></td>
-        <td style="text-align: center;">
+        <td style="background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;"><input type="text" class="form-input dev-vessel-deck-code" value="${d.code || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #38bdf8; font-weight: 700; width: 100%; border: 1px solid #334155;"></td>
+        <td style="background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;"><input type="text" class="form-input dev-vessel-deck-carriage" value="${d.carriage || d.name || 'DECK'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 700; width: 100%; border: 1px solid #334155;"></td>
+        <td style="background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;"><input type="text" class="form-input dev-vessel-deck-name" value="${d.name || 'Dek Kapal'}" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #ffffff; font-weight: 600; width: 100%; border: 1px solid #334155;"></td>
+        <td style="background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;"><input type="number" class="form-input dev-vessel-deck-capacity" value="${d.capacity || 100}" min="1" max="3000" required style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #34d399; font-weight: 800; width: 100%; border: 1px solid #334155;"></td>
+        <td style="background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;"><input type="text" class="form-input dev-vessel-deck-desc" value="${d.desc || ''}" placeholder="Keterangan area dek..." style="padding: 0.35rem 0.5rem; font-size: 0.76rem; background: #1e293b; color: #cbd5e1; width: 100%; border: 1px solid #334155;"></td>
+        <td style="text-align: center; background: #162032 !important; border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;">
           <button type="button" class="btn-dev-vessel-remove-deck" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.25rem 0.45rem; font-size: 0.72rem; cursor: pointer;" title="Hapus Dek Ini">🗑️</button>
         </td>
       `;

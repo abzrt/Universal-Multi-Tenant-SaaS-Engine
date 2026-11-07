@@ -5548,33 +5548,64 @@ body.theme-ops-portal .ticky-nav-item.active .ticky-nav-icon svg {
 }
 
 
-/* Scoped Dark Slate Theme for Admin Developer Portal */
-#viewDevAdminDashboard .dev-dark-table {
+/* Scoped Dark Slate Theme for Admin Developer Portal and Modals */
+.dev-dark-table,
+#viewDevAdminDashboard .dev-dark-table,
+.modal-layer .dev-dark-table,
+table.dash-table.dev-dark-table {
   background: #0f172a !important;
   border: 1px solid #334155 !important;
   border-radius: 10px;
   overflow: hidden;
 }
+.dev-dark-table thead tr,
+.dev-dark-table thead th,
+.dev-dark-table th,
 #viewDevAdminDashboard .dev-dark-table thead tr,
-#viewDevAdminDashboard .dev-dark-table thead th {
+#viewDevAdminDashboard .dev-dark-table thead th,
+.modal-layer .dev-dark-table thead tr,
+.modal-layer .dev-dark-table thead th,
+table.dash-table.dev-dark-table th {
   background: #090f1d !important;
   color: #94a3b8 !important;
   border-bottom: 1px solid #334155 !important;
 }
-#viewDevAdminDashboard .dev-dark-table tbody tr {
+.dev-dark-table tbody tr,
+#viewDevAdminDashboard .dev-dark-table tbody tr,
+.modal-layer .dev-dark-table tbody tr,
+table.dash-table.dev-dark-table tbody tr {
   background: #162032 !important;
   border-bottom: 1px solid rgba(51, 65, 85, 0.65) !important;
   color: #e2e8f0 !important;
 }
-#viewDevAdminDashboard .dev-dark-table tbody td {
+.dev-dark-table tbody td,
+.dev-dark-table td,
+#viewDevAdminDashboard .dev-dark-table tbody td,
+.modal-layer .dev-dark-table tbody td,
+table.dash-table.dev-dark-table td {
   background: #162032 !important;
   color: #e2e8f0 !important;
   border-bottom: 1px solid rgba(51, 65, 85, 0.55) !important;
 }
+.dev-dark-table tbody tr:hover,
+.dev-dark-table tbody tr:hover td,
+.dev-dark-table tr:hover td,
 #viewDevAdminDashboard .dev-dark-table tbody tr:hover,
-#viewDevAdminDashboard .dev-dark-table tbody tr:hover td {
+#viewDevAdminDashboard .dev-dark-table tbody tr:hover td,
+.modal-layer .dev-dark-table tbody tr:hover,
+.modal-layer .dev-dark-table tbody tr:hover td,
+table.dash-table.dev-dark-table tbody tr:hover td {
   background: #1e293b !important;
   color: #f8fafc !important;
+}
+.dev-dark-table .form-input {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #ffffff !important;
+}
+.dev-dark-table .form-input:focus {
+  border-color: #38bdf8 !important;
+  outline: none;
 }
 
 
