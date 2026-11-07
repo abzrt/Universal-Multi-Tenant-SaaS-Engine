@@ -6224,6 +6224,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const newNotes = document.getElementById('editRouteNotes')?.value?.trim() || '';
 
       const updated = Store.saveMasterRouteTariff(routeId, {
+        originId: origId,
+        destinationId: destId,
         ticketPrice: newPrice,
         portPassFee: newPass,
         notes: newNotes
@@ -6232,7 +6234,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       if (updated) {
         // Sinkronkan seluruh jadwal aktif pada lintasan rute ini
         const allScheds = Store.getSchedules ? Store.getSchedules() : [];
-        let schedUpdatedCount = 0;
         allScheds.forEach(s => {
           if (s.originId === origId && s.destinationId === destId) {
             s.priceEconomy = newPrice;
@@ -6242,10 +6243,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             s.classes = [
               { id: 'cls-eko', name: 'Tiket Reguler', price: newPrice, quota: quotaVal, available: availVal }
             ];
-            Store.updateSchedule(s.id, s);
-            schedUpdatedCount++;
           }
         });
+        if (Store.saveSchedules) Store.saveSchedules(allScheds);
 
         // Sinkronkan ke master pas pelabuhan resmi jika sesuai
         if (Store.getPortPasses && Store.updatePortPass) {
@@ -6260,6 +6260,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         document.getElementById('modalEditRouteTariff')?.classList.remove('show');
         if (Store.getCurrentTenant()) this.refreshCompanyDashboard();
         if (typeof this.renderDevAdminDashboard === 'function') this.renderDevAdminDashboard();
+        if (typeof this.renderTicketEntriesTable === 'function') this.renderTicketEntriesTable();
         this.showToast('Tarif Resmi Diperbarui', `Rute ${updated.originName || origId} ➔ ${updated.destinationName || destId}: Tiket ${formatRupiah(newPrice)} • Pas Pelabuhan ${formatRupiah(newPass)}.`);
       }
     });

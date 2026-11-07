@@ -507,18 +507,40 @@ const Store = {
         s.originCity = 'Nunukan';
         s.destinationCity = 'Parepare';
         s.categoryType = 'DOMESTIC';
-        s.priceEconomy = 690000;
-        s.portPassFee = 30000;
       } else {
         s.originId = 'NNK';
         s.destinationId = 'TWU';
         s.originCity = 'Nunukan';
         s.destinationCity = 'Tawau';
         s.categoryType = 'INTERNATIONAL';
-        s.priceEconomy = 430000;
-        s.portPassFee = 50000;
       }
-      const targetPrice = isDom ? 690000 : 430000;
+
+      // Gunakan tarif resmi dari master route tariff jika ada, atau tarif jadwal yang tersimpan
+      let routeTariff = null;
+      try {
+        const rawTariffs = localStorage.getItem('tech_master_route_tariffs_v1');
+        if (rawTariffs) {
+          const parsedTariffs = JSON.parse(rawTariffs);
+          if (Array.isArray(parsedTariffs)) {
+            routeTariff = parsedTariffs.find(r => r.originId === s.originId && r.destinationId === s.destinationId);
+          }
+        }
+      } catch (e) {}
+
+      const defaultPrice = isDom ? 690000 : 430000;
+      const defaultPass = isDom ? 30000 : 50000;
+
+      const targetPrice = (routeTariff && routeTariff.ticketPrice !== undefined)
+        ? Number(routeTariff.ticketPrice)
+        : (s.priceEconomy !== undefined && s.priceEconomy !== null ? Number(s.priceEconomy) : defaultPrice);
+
+      const targetPass = (routeTariff && routeTariff.portPassFee !== undefined)
+        ? Number(routeTariff.portPassFee)
+        : (s.portPassFee !== undefined && s.portPassFee !== null ? Number(s.portPassFee) : defaultPass);
+
+      s.priceEconomy = targetPrice;
+      s.portPassFee = targetPass;
+
       if (!Array.isArray(s.classes) || s.classes.length === 0) {
         s.classes = [
           { id: 'cls-eko', name: 'Tiket Reguler', price: targetPrice, quota: s.quotaTotal || 150, available: s.quotaTotal || 150 }
@@ -1169,8 +1191,11 @@ const Store = {
         let updatedStorage = filtered.length !== parsed.length;
         filtered.forEach(r => {
           if (r.id === 'ROUTE-NNK-PRE' || (r.originId === 'NNK' && r.destinationId === 'PRE')) {
-            if (r.ticketPrice !== 690000 || r.portPassFee !== 30000) {
+            if (r.ticketPrice === undefined || r.ticketPrice === null) {
               r.ticketPrice = 690000;
+              updatedStorage = true;
+            }
+            if (r.portPassFee === undefined || r.portPassFee === null) {
               r.portPassFee = 30000;
               updatedStorage = true;
             }
@@ -1181,8 +1206,11 @@ const Store = {
             }
           }
           if (r.id === 'ROUTE-NNK-TWU' || (r.originId === 'NNK' && r.destinationId === 'TWU')) {
-            if (r.ticketPrice !== 430000 || r.portPassFee !== 50000) {
+            if (r.ticketPrice === undefined || r.ticketPrice === null) {
               r.ticketPrice = 430000;
+              updatedStorage = true;
+            }
+            if (r.portPassFee === undefined || r.portPassFee === null) {
               r.portPassFee = 50000;
               updatedStorage = true;
             }
@@ -1223,7 +1251,10 @@ const Store = {
 
   saveMasterRouteTariff(routeId, updatedFields) {
     const list = this.getMasterRouteTariffs();
-    const idx = list.findIndex(r => r.id === routeId);
+    let idx = list.findIndex(r => r.id === routeId);
+    if (idx === -1 && updatedFields && updatedFields.originId && updatedFields.destinationId) {
+      idx = list.findIndex(r => r.originId === updatedFields.originId && r.destinationId === updatedFields.destinationId);
+    }
     if (idx !== -1) {
       list[idx] = { ...list[idx], ...updatedFields };
       localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(list));
