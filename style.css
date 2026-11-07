@@ -5799,16 +5799,23 @@ table.dash-table.dev-dark-table tbody tr:hover td {
 }
 
 .tix-visual-seat-btn {
-  height: 36px;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  height: 24px;
+  min-height: 24px;
+  max-height: 26px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  font-size: 0.62rem;
   font-weight: 700;
+  letter-spacing: -0.2px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .tix-visual-seat-btn.available {

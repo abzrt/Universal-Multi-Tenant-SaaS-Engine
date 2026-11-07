@@ -8026,7 +8026,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           btn.title = isOcc ? `Kursi ${sCode} (Terisi/Booked)` : (isSel ? `Kursi ${sCode} (Dipilih)` : `Kursi ${sCode} (Klik untuk pilih)`);
           if (isOcc) btn.disabled = true;
 
-          btn.innerText = sCode;
+          btn.innerText = `${rCode}-${String(col).padStart(2, '0')}`;
 
           if (!isOcc) {
             btn.addEventListener('click', () => {
