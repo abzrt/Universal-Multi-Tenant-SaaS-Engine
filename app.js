@@ -4946,14 +4946,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // Populate Pilihan Armada Kapal di Loket Pemrosesan Tiket (#paneTicketing)
     const tixVesselSelect = document.getElementById('ticketingVesselFilterSelect');
     const tixVesselPills = document.getElementById('ticketingVesselFilterPills');
-    const activeTixVid = this.selectedTicketingVessel || 'ALL';
-    if (activeTixVid !== 'ALL' && !fleet.some(v => v.id === activeTixVid)) {
-      this.selectedTicketingVessel = 'ALL';
+    if ((!this.selectedTicketingVessel || this.selectedTicketingVessel === 'ALL' || !fleet.some(v => v.id === this.selectedTicketingVessel)) && fleet.length > 0) {
+      this.selectedTicketingVessel = fleet[0].id;
     }
-    const curTixVid = this.selectedTicketingVessel || 'ALL';
+    const curTixVid = this.selectedTicketingVessel;
 
     if (tixVesselSelect) {
-      tixVesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada Perusahaan (${fleet.length} Kapal)</option>`;
+      tixVesselSelect.innerHTML = '';
       fleet.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v.id;
@@ -4963,7 +4962,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       });
       tixVesselSelect.onchange = () => {
         this.selectedTicketingVessel = tixVesselSelect.value;
+        if (this.tixConsoleState) {
+          this.tixConsoleState.selectedVesselId = tixVesselSelect.value;
+          this.tixConsoleState.selectedScheduleId = null;
+          this.tixConsoleState.selectedSeats = [];
+          this.tixConsoleState.passengerEntries = [];
+          this.tixConsoleState.selectedDeckCode = null;
+        }
         this.refreshCompanyDashboard();
+        if (typeof this.renderTicketingConsole === 'function') {
+          this.renderTicketingConsole();
+        }
       };
     }
 
@@ -4980,7 +4989,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         btn.addEventListener('click', () => {
           this.selectedTicketingVessel = id;
           if (this.tixConsoleState) {
-            this.tixConsoleState.selectedVesselId = (id !== 'ALL' ? id : null);
+            this.tixConsoleState.selectedVesselId = id;
+            this.tixConsoleState.selectedScheduleId = null;
+            this.tixConsoleState.selectedSeats = [];
+            this.tixConsoleState.passengerEntries = [];
+            this.tixConsoleState.selectedDeckCode = null;
           }
           this.refreshCompanyDashboard();
           if (typeof this.renderTicketingConsole === 'function') {
@@ -4989,7 +5002,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         });
         return btn;
       };
-      tixVesselPills.appendChild(makeTixPill('ALL', `Semua Armada (${fleet.length})`));
       fleet.forEach(v => {
         tixVesselPills.appendChild(makeTixPill(v.id, `🚢 ${v.name}`));
       });
@@ -7683,6 +7695,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.restoreSinglePassengerDraft();
     });
 
+    // From Sub Place change listener to update Trip Info
+    document.getElementById('tixFromSubPlaceSelect')?.addEventListener('change', (e) => {
+      const elTripPier = document.getElementById('tixTripPierName');
+      if (elTripPier) elTripPier.innerText = e.target.value;
+    });
+
     // Bulk / Single buttons
     document.getElementById('btnOpenBulkPassengerFromTicketing')?.addEventListener('click', () => {
       this.setTicketingEntryMode('BULK');
@@ -7700,8 +7718,49 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (!tenant) return;
 
     const fleet = Store.getVesselsByCompany(tenant.id);
-    const schedules = Store.getSchedulesByCompany(tenant.id);
     if (!fleet || fleet.length === 0) return;
+
+    // Pastikan armada aktif terpilih (default: armada pertama)
+    if (!this.selectedTicketingVessel || this.selectedTicketingVessel === 'ALL' || !fleet.some(v => v.id === this.selectedTicketingVessel)) {
+      this.selectedTicketingVessel = fleet[0].id;
+    }
+    const selectedVessel = fleet.find(v => v.id === this.selectedTicketingVessel) || fleet[0];
+    this.tixConsoleState.selectedVesselId = selectedVessel.id;
+
+    const isVesselSulawesi = (selectedVessel && (
+      (selectedVessel.type || '').toLowerCase().includes('parepare') || 
+      (selectedVessel.type || '').toLowerCase().includes('domestik') || 
+      (selectedVessel.type || '').toLowerCase().includes('sulawesi') || 
+      (selectedVessel.name || '').toLowerCase().includes('pantokrator')
+    ));
+
+    // Filter jadwal khusus armada yang terpilih saja
+    const allCompanySchedules = Store.getSchedulesByCompany(tenant.id);
+    let schedules = allCompanySchedules.filter(s => 
+      s.vesselId === selectedVessel.id || 
+      (s.vesselNameCustom && s.vesselNameCustom.trim().toLowerCase() === selectedVessel.name.trim().toLowerCase())
+    );
+
+    if (schedules.length === 0) {
+      schedules = [{
+        id: `SCH-${(selectedVessel.code || selectedVessel.id.substring(0, 6)).toUpperCase()}`,
+        companyId: tenant.id,
+        vesselId: selectedVessel.id,
+        vesselNameCustom: selectedVessel.name,
+        originId: 'NNK',
+        destinationId: isVesselSulawesi ? 'PRE' : 'TWU',
+        departTime: '09:00',
+        arrivalTime: isVesselSulawesi ? '14:00' : '10:30',
+        departDate: this.tixConsoleState.selectedDate || new Date().toISOString().split('T')[0],
+        date: this.tixConsoleState.selectedDate || new Date().toISOString().split('T')[0],
+        pier: isVesselSulawesi ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International',
+        priceEconomy: isVesselSulawesi ? 690000 : 430000,
+        portPassFee: isVesselSulawesi ? 30000 : 50000,
+        quotaTotal: selectedVessel.capacity || (isVesselSulawesi ? 1084 : 185),
+        quotaBooked: 0,
+        status: 'ACTIVE'
+      }];
+    }
 
     // 1. TANGGAL KEBERANGKATAN (DEPARTURE DATE)
     const monthNames = [
@@ -7762,12 +7821,31 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elDateBadge = document.getElementById('tixSelectedDateBadge');
     if (elDateBadge) elDateBadge.innerText = this.tixConsoleState.selectedDate;
 
-    // 2. TUJUAN RUTE (DESTINATIONS)
+    // (2) PICK UP POINT (SUB-PLACE) SESUAI ARMADA TERPILIH
+    const subPlaceSel = document.getElementById('tixFromSubPlaceSelect');
+    if (subPlaceSel) {
+      const curVal = subPlaceSel.value;
+      if (isVesselSulawesi) {
+        subPlaceSel.innerHTML = `
+          <option value="Pelabuhan Tunon Taka (Dermaga Nusantara)">Pelabuhan Tunon Taka (Dermaga Nusantara)</option>
+          <option value="Pelabuhan Tunon Taka (Dermaga Domestik)">Pelabuhan Tunon Taka (Dermaga Domestik)</option>
+        `;
+        subPlaceSel.value = (curVal && (curVal.includes('Nusantara') || curVal.includes('Domestik'))) ? curVal : 'Pelabuhan Tunon Taka (Dermaga Nusantara)';
+      } else {
+        subPlaceSel.innerHTML = `
+          <option value="Pelabuhan Tunon Taka International">Pelabuhan Tunon Taka International</option>
+          <option value="Dermaga PLBL Liem Hie Djung">Dermaga PLBL Liem Hie Djung</option>
+        `;
+        subPlaceSel.value = (curVal && (curVal.includes('International') || curVal.includes('Liem'))) ? curVal : 'Pelabuhan Tunon Taka International';
+      }
+    }
+
+    // (3) TUJUAN RUTE (DESTINATIONS)
     const destPillsWrap = document.getElementById('tixDestinationPillsContainer');
     const availableDests = [];
     const destSet = new Set();
     schedules.forEach(s => {
-      const dCode = s.destinationId || 'TWU';
+      const dCode = s.destinationId || (isVesselSulawesi ? 'PRE' : 'TWU');
       if (!destSet.has(dCode)) {
         destSet.add(dCode);
         const port = MASTER_PORTS.find(p => p.id === dCode) || { city: dCode === 'PRE' ? 'Parepare' : 'Tawau' };
@@ -7777,7 +7855,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     if (availableDests.length === 0) {
-      availableDests.push({ id: 'TWU', label: '🏝️ Nunukan ➔ Tawau (Internasional)' });
+      if (isVesselSulawesi) {
+        availableDests.push({ id: 'PRE', label: '🚢 Nunukan ➔ Parepare (Sulawesi)' });
+      } else {
+        availableDests.push({ id: 'TWU', label: '🏝️ Nunukan ➔ Tawau (Internasional)' });
+      }
     }
 
     if (!this.tixConsoleState.selectedDestinationId || !availableDests.some(d => d.id === this.tixConsoleState.selectedDestinationId)) {
@@ -7899,19 +7981,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
 
     // 3. TRIP INFO
-    const activeSched = activeScheduleList.find(s => s.id === this.tixConsoleState.selectedScheduleId) || activeScheduleList[0];
-    if (!activeSched) return;
-
-    const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
-    const isSulawesi = (activeSched.destinationId === 'PRE') || (vessel && ((vessel.type || '').toLowerCase().includes('parepare') || (vessel.name || '').toLowerCase().includes('pantokrator')));
-    const minPrice = (activeSched.classes && activeSched.classes.length > 0)
+    const activeSched = activeScheduleList.find(s => s.id === this.tixConsoleState.selectedScheduleId) || activeScheduleList[0] || null;
+    const vessel = selectedVessel;
+    const isSulawesi = (activeSched && activeSched.destinationId === 'PRE') || isVesselSulawesi;
+    const minPrice = (activeSched && activeSched.classes && activeSched.classes.length > 0)
       ? Math.min(...activeSched.classes.map(c => Number(c.price)))
-      : Number(activeSched.priceEconomy || (isSulawesi ? 690000 : 430000));
-    const passFee = this.getSchedulePortPassFee ? this.getSchedulePortPassFee(activeSched, tenant) : Number(activeSched.portPassFee || (isSulawesi ? 30000 : 50000));
+      : Number((activeSched && activeSched.priceEconomy) || (isSulawesi ? 690000 : 430000));
+    const passFee = (activeSched && this.getSchedulePortPassFee) ? this.getSchedulePortPassFee(activeSched, tenant) : Number((activeSched && activeSched.portPassFee) || (isSulawesi ? 30000 : 50000));
     const totalFare = minPrice + passFee;
 
-    const origPort = MASTER_PORTS.find(p => p.id === activeSched.originId) || { city: 'Nunukan' };
-    const destPort = MASTER_PORTS.find(p => p.id === activeSched.destinationId) || { city: isSulawesi ? 'Parepare' : 'Tawau' };
+    const origPort = MASTER_PORTS.find(p => p.id === (activeSched ? activeSched.originId : 'NNK')) || { city: 'Nunukan' };
+    const destPort = MASTER_PORTS.find(p => p.id === (activeSched ? activeSched.destinationId : (isSulawesi ? 'PRE' : 'TWU'))) || { city: isSulawesi ? 'Parepare' : 'Tawau' };
 
     const elTripCode = document.getElementById('tixTripScheduleCode');
     const elTripVessel = document.getElementById('tixTripVesselName');
@@ -7919,10 +7999,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const elTripRoute = document.getElementById('tixTripRouteLabel');
     const elTripFare = document.getElementById('tixTripFareLabel');
 
-    if (elTripCode) elTripCode.innerText = activeSched.id || 'SCH-REG';
-    if (elTripVessel) elTripVessel.innerText = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
-    const subPlaceSel = document.getElementById('tixFromSubPlaceSelect');
-    if (elTripPier) elTripPier.innerText = subPlaceSel ? subPlaceSel.value : (activeSched.pier || 'Tunon Taka');
+    if (elTripCode) elTripCode.innerText = activeSched ? (activeSched.id || 'SCH-REG') : '-';
+    if (elTripVessel) elTripVessel.innerText = vessel.name;
+    if (elTripPier) elTripPier.innerText = subPlaceSel ? subPlaceSel.value : ((activeSched && activeSched.pier) || (isSulawesi ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International'));
     if (elTripRoute) elTripRoute.innerText = `${origPort.city} ➔ ${destPort.city}`;
     if (elTripFare) elTripFare.innerText = `${formatRupiah(totalFare)} (${formatRupiah(minPrice)} + Pas ${formatRupiah(passFee)})`;
 
