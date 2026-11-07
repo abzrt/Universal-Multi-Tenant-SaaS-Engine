@@ -2600,15 +2600,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                       ❄️ Bekukan Akun
                     </button>
                   `}
-                  <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(13, 148, 136, 0.2); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Tambah Armada untuk Perusahaan Ini">
-                    ⛴️ + Armada
-                  </button>
-                  <button type="button" class="btn-dev-row-add-schedule" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Buka Jadwal Baru untuk Perusahaan Ini">
-                    📅 + Jadwal
-                  </button>
-                  <button type="button" class="btn-dev-row-config-seat" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.45); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Pengaturan Seat Armada Perusahaan Ini">
-                    💺 Seat
-                  </button>
                   <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
                     🔍 Transaksi
                   </button>

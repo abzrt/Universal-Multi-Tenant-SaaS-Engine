@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview 3 Konsep Desain UI Baru — Universal Ticketing SaaS</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .tab-active { background-color: #0284c7 !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); }
+    .tab-inactive { background-color: transparent; color: #64748b; }
+    .tab-inactive:hover { color: #0f172a; background-color: #f1f5f9; }
+    .seat-transition { transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1); }
+    /* Perforated ticket edge effect */
+    .ticket-rip-border {
+      background-image: radial-gradient(circle at 10px -5px, transparent 12px, #ffffff 13px);
+    }
+    .hud-glow {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased p-3 sm:p-6 min-h-screen">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-600 via-sky-600 to-cyan-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-sky-500/20">
+        ⚓
+      </div>
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-black text-slate-900 text-lg tracking-tight">TickyTECH UI Lab • Eksplorasi Desain Baru</h1>
+          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            INTERAKTIF LIVE PROTOTYPE
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Eksplorasi 3 Konsep Desain UI Baru (Alternatif Pengganti Konsep 1 & 2) khusus sistem loket maritim Pelabuhan Tunon Taka
+        </p>
+      </div>
+    </div>
+
+    <!-- TABS SWITCHER -->
+    <div class="flex items-center bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs font-bold gap-1 flex-wrap">
+      <button type="button" id="tabBtn3" onclick="switchConcept('c3')" class="px-3.5 py-2 rounded-lg tab-active transition flex items-center gap-1.5">
+        <span>⚡</span> Konsep 3: Nordic Linear POS
+      </button>
+      <button type="button" id="tabBtn4" onclick="switchConcept('c4')" class="px-3.5 py-2 rounded-lg tab-inactive transition flex items-center gap-1.5">
+        <span>🛰️</span> Konsep 4: Cyber-Port Command HUD
+      </button>
+      <button type="button" id="tabBtn5" onclick="switchConcept('c5')" class="px-3.5 py-2 rounded-lg tab-inactive transition flex items-center gap-1.5">
+        <span>🏖️</span> Konsep 5: Coastal Luxury Boarding Pass
+      </button>
+      <button type="button" id="tabBtnMatrix" onclick="switchConcept('matrix')" class="px-3.5 py-2 rounded-lg tab-inactive transition flex items-center gap-1.5">
+        <span>⚖️</span> Matriks Perbandingan
+      </button>
+    </div>
+
+    <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+      <span>🔒 Status: Mode Pratinjau (Belum Diterapkan ke Kode Utama)</span>
+    </div>
+  </header>
+
+
+  <!-- =========================================================================
+       KONSEP 3: NORDIC LINEAR POS (Fintech Sleek, Stripe & Linear Inspired)
+       ========================================================================= -->
+  <section id="secC3" class="space-y-5">
+    
+    <!-- Concept Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            Konsep 3 • Stripe & Linear Inspired
+          </span>
+          <span class="text-xs text-slate-400">Rekomendasi Utama untuk Kecepatan Kasir Loket</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">Nordic Linear Maritime POS</h2>
+        <p class="text-xs sm:text-sm text-slate-300 max-w-2xl mt-1">
+          Antarmuka modern super-bersih dengan kontras tajam, navigasi keyboard-first, denah kapal visual minimalis, dan bilah aksi kasir di kanan yang rapi tanpa distraksi.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="c3Reset()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-xs font-bold text-white transition">
+          🔄 Reset Kursi Demo
+        </button>
+        <span class="text-xs font-mono bg-indigo-600/30 text-indigo-200 px-3 py-1.5 rounded-lg border border-indigo-500/30">
+          Shortcut: [P] Cetak • [D] Draft
+        </span>
+      </div>
+    </div>
+
+    <!-- MAIN C3 WORKSPACE (3-COLUMN POS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      
+      <!-- LEFT 8 COLS: SCHEDULE, SEAT MAP & PASSENGER TABLE -->
+      <div class="lg:col-span-8 space-y-4">
+        
+        <!-- STEP 1 & 2: VOYAGE & ROUTE STRIP -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 flex items-center justify-center text-xl font-bold">
+              🚢
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-slate-900 text-sm">KM Francis Express (Cepat 45 Knot)</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">TERJADWAL</span>
+              </div>
+              <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                <span>📍 Nunukan (NNK) ➔ Tawau (TWU) Sabah</span>
+                <span>•</span>
+                <span class="font-bold text-slate-700">🕒 Hari Ini, 09:00 WITA</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 text-xs font-bold">
+            <div class="text-right">
+              <span class="text-slate-400 block text-[10px] uppercase">Tarif Reguler</span>
+              <span class="text-slate-900 font-black text-sm">Rp 430.000</span>
+            </div>
+            <div class="h-8 w-px bg-slate-200"></div>
+            <div class="text-right">
+              <span class="text-slate-400 block text-[10px] uppercase">Pas Pelabuhan</span>
+              <span class="text-slate-900 font-black text-sm">Rp 50.000</span>
+            </div>
+            <div class="h-8 w-px bg-slate-200"></div>
+            <div class="text-right">
+              <span class="text-slate-400 block text-[10px] uppercase">Sisa Kuota</span>
+              <span class="text-emerald-600 font-black text-sm">84 / 150 Seat</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: VISUAL VESSEL SEAT DECK -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">1</span>
+              <h3 class="font-extrabold text-slate-900 text-sm">Pilih Kursi Penumpang di Denah Kapal</h3>
+              <span class="text-xs text-slate-400">(Klik nomor kursi untuk memilih/membatalkan)</span>
+            </div>
+
+            <!-- Seat Legend -->
+            <div class="flex items-center gap-3 text-xs font-bold">
+              <div class="flex items-center gap-1.5 text-slate-600">
+                <span class="w-3.5 h-3.5 rounded border border-slate-300 bg-white inline-block"></span> Tersedia
+              </div>
+              <div class="flex items-center gap-1.5 text-indigo-700">
+                <span class="w-3.5 h-3.5 rounded bg-indigo-600 inline-block shadow-sm"></span> Terpilih
+              </div>
+              <div class="flex items-center gap-1.5 text-slate-400">
+                <span class="w-3.5 h-3.5 rounded bg-slate-200 inline-block"></span> Terisi
+              </div>
+            </div>
+          </div>
+
+          <!-- Vessel Layout Minimalist -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="text-center mb-3">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-3 py-1 rounded-full">
+                ▲ HALUAN KAPAL (DEPAN) ▲
+              </span>
+            </div>
+
+            <!-- Seat Rows Grid -->
+            <div id="c3SeatGrid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-w-2xl mx-auto">
+              <!-- Rendered via JS -->
+            </div>
+
+            <div class="text-center mt-3">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-3 py-1 rounded-full">
+                ▼ BURITAN / ENGINE DECK (BELAKANG) ▼
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: PASSENGER DATA TABLE -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">2</span>
+              <h3 class="font-extrabold text-slate-900 text-sm">Data Penumpang Sesuai Kursi Terpilih</h3>
+            </div>
+            <span id="c3PaxCountBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              0 Penumpang Terpilih
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-bold border-y border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3 w-12 text-center">No</th>
+                  <th class="py-2.5 px-3 w-28">Kursi</th>
+                  <th class="py-2.5 px-3">Nama Lengkap Penumpang *</th>
+                  <th class="py-2.5 px-3 w-44">Nomor NIK / Paspor *</th>
+                  <th class="py-2.5 px-3 w-24">L / P</th>
+                  <th class="py-2.5 px-3 w-16 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="c3PassengerTbody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="6" class="py-6 text-center text-slate-400">
+                    👆 Klik salah satu nomor kursi di atas untuk otomatis membuat entri penumpang
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT 4 COLS: STICKY FARE CHECKOUT RECEIPT -->
+      <div class="lg:col-span-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm sticky top-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-black text-slate-900 text-base">Ringkasan Kasir & Pembayaran</h3>
+            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              SIAP TERBIT
+            </span>
+          </div>
+
+          <!-- Payment Method -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Metode Pembayaran Loket:</label>
+            <select id="c3PayMethod" class="w-full text-xs font-bold p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="Tunai">💵 Tunai di Loket Pelabuhan</option>
+              <option value="Booked">⏳ Sistem Booked (Bayar Saat Check-In)</option>
+            </select>
+          </div>
+
+          <!-- Fare Breakdown Cards -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Tarif Tiket Kapal (<span id="c3SummaryPax">0</span> Pax)</span>
+              <span id="c3SubtotalTicket" class="font-bold text-slate-900">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Pas Pelabuhan Resmi (<span id="c3SummaryPass">0</span> Pax)</span>
+              <span id="c3SubtotalPortPass" class="font-bold text-slate-900">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Asuransi Jasa Raharja</span>
+              <span class="font-bold text-emerald-600">Termasuk</span>
+            </div>
+            <div class="border-t border-slate-200 pt-2 flex justify-between items-baseline">
+              <span class="font-bold text-slate-900 text-sm">TOTAL DIBAYAR:</span>
+              <span id="c3TotalFare" class="font-black text-xl text-orange-600 font-mono">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- Ticket Preview Mini Mockup -->
+          <div class="border border-dashed border-slate-300 rounded-xl p-3 bg-gradient-to-b from-indigo-50/50 to-white text-xs">
+            <div class="flex items-center justify-between font-bold text-indigo-900 mb-1">
+              <span>DOKUMEN BOARDING RESMI</span>
+              <span class="font-mono text-[11px]">PNR: TCK-DEMO</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Tiket dilengkapi QR Code terverifikasi KSOP & barcode manifest penumpang.</p>
+          </div>
+
+          <!-- ACTION BUTTONS: Positioned on the RIGHT as requested -->
+          <div class="pt-2 flex flex-col gap-2">
+            <button type="button" id="c3BtnPrint" onclick="c3SubmitBooking()" class="w-full py-3.5 px-4 rounded-xl font-black text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>🖨️</span>
+              <span id="c3BtnPrintText">Cetak Tiket (Pilih Kursi Terlebih Dahulu)</span>
+            </button>
+
+            <button type="button" onclick="c3SaveDraft()" class="w-full py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200 flex items-center justify-center gap-1.5">
+              <span>💾</span> Simpan Draft Penumpang
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       KONSEP 4: CYBER-PORT COMMAND HUD (Dark Mode, Maritime Dispatch Terminal)
+       ========================================================================= -->
+  <section id="secC4" class="hidden space-y-5">
+    
+    <!-- Concept Banner -->
+    <div class="bg-slate-950 border border-cyan-900/60 text-white rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="flex flex-wrap items-center justify-between gap-4 relative z-10">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-cyan-950 text-cyan-400 border border-cyan-800">
+              Konsep 4 • Cyber-Port HUD (Dark Dispatch)
+            </span>
+            <span class="text-xs text-slate-400">Terinspirasi dari FlightRadar24 & Tesla Marine Telemetry</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            Marine Vessel Radar & Dispatch HUD
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 max-w-2xl mt-1">
+            Mode gelap high-contrast dengan blueprint kapal bercahaya (neon cyan & emerald), status satelit AIS maritim, dan keyboard quick-dispatch untuk petugas pelabuhan yang bertugas intensif.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="c4Reset()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-cyan-800 rounded-lg text-xs font-bold text-cyan-300 transition">
+            🔄 Reset Radar Seat
+          </button>
+          <span class="text-xs font-mono bg-cyan-950 text-cyan-400 px-3 py-1.5 rounded-lg border border-cyan-800">
+            GPS: 04°08'12"N 117°39'40"E
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN C4 DARK WORKSPACE -->
+    <div class="bg-slate-950 border border-slate-800 text-slate-100 rounded-2xl p-5 shadow-2xl space-y-5">
+      
+      <!-- Top HUD Telemetry Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs border-b border-slate-800 pb-4">
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+          <span class="text-slate-400 block text-[10px] uppercase font-mono">VESSEL CALLSIGN</span>
+          <strong class="text-cyan-400 font-mono text-sm">KM-FRANCIS-NNK</strong>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+          <span class="text-slate-400 block text-[10px] uppercase font-mono">VOYAGE CORRIDOR</span>
+          <strong class="text-white font-mono text-sm">NNK ➔ TWU (INTL)</strong>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+          <span class="text-slate-400 block text-[10px] uppercase font-mono">SEAT OCCUPANCY</span>
+          <strong class="text-emerald-400 font-mono text-sm"><span id="c4Occupancy">66</span> / 150 (44%)</strong>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+          <span class="text-slate-400 block text-[10px] uppercase font-mono">KSOP CLEARANCE</span>
+          <strong class="text-emerald-400 font-mono text-sm">PERMIT #KSOP-2026-OK</strong>
+        </div>
+      </div>
+
+      <!-- Grid Blueprint + Live Ticket Ledger -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left 7 cols: Neon Seat Deck -->
+        <div class="lg:col-span-7 bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-extrabold text-xs text-cyan-400 uppercase tracking-wider font-mono">
+              [BLUEPRINT] CABIN SEAT MATRIX
+            </h4>
+            <div class="flex items-center gap-3 text-[11px] font-mono">
+              <span class="text-slate-400"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-slate-800 border border-slate-700"></span> AVAIL</span>
+              <span class="text-emerald-400"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> SELECT</span>
+              <span class="text-rose-400"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-rose-950 border border-rose-800"></span> OCCUPIED</span>
+            </div>
+          </div>
+
+          <div id="c4SeatGrid" class="grid grid-cols-6 sm:grid-cols-8 gap-2 p-3 bg-black/40 rounded-xl border border-slate-800">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Right 5 cols: Live Manifest Rows -->
+        <div class="lg:col-span-5 bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="font-extrabold text-xs text-emerald-400 uppercase tracking-wider font-mono">
+                [MANIFEST] PASSENGER QUEUE
+              </h4>
+              <span id="c4PaxBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                0 SEATS LOCKED
+              </span>
+            </div>
+
+            <div id="c4PaxList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <div class="text-slate-500 text-xs py-8 text-center font-mono">
+                [SYSTEM READY] Click any neon seat in blueprint to lock passenger.
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Total & Print (LOCKED TO THE RIGHT) -->
+          <div class="border-t border-slate-800 pt-4 mt-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <span class="text-slate-400 block text-[10px] font-mono uppercase">DISPATCH TOTAL:</span>
+              <div id="c4TotalFare" class="text-2xl font-black text-cyan-400 font-mono">Rp 0</div>
+            </div>
+
+            <button type="button" id="c4BtnPrint" onclick="c4SubmitBooking()" class="py-3 px-5 rounded-xl font-mono font-black text-xs uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 transition cursor-pointer">
+              🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       KONSEP 5: COASTAL LUXURY BOARDING PASS (Traveloka / Airbnb / Swiss Rail)
+       ========================================================================= -->
+  <section id="secC5" class="hidden space-y-5">
+    
+    <!-- Concept Banner -->
+    <div class="bg-gradient-to-r from-sky-800 via-blue-900 to-indigo-950 text-white rounded-2xl p-5 shadow-lg border border-sky-700 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+            Konsep 5 • Coastal Luxury & Real-Time Boarding Pass
+          </span>
+          <span class="text-xs text-sky-200">Terinspirasi dari Traveloka, Airbnb Luxe & Swiss Rail Pass</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">Coastal Travel Hub & Perforated Ticket</h2>
+        <p class="text-xs sm:text-sm text-sky-100 max-w-2xl mt-1">
+          Nuansa maritim hangat dan elegan. Begitu petugas mengklik kursi, pratinjau tiket fisik dengan efek sobekan kertas (*perforated paper*), barcode, stempel resmi, dan QR Code terbit seketika di sisi kanan.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="c5Reset()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-xs font-bold text-white transition">
+          🔄 Reset Kursi
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN C5 WORKSPACE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      
+      <!-- LEFT 7 COLS: SEAT SELECTOR & PASSENGER INPUT -->
+      <div class="lg:col-span-7 space-y-4">
+        
+        <!-- Trip Selector Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-2xl shadow-sm">
+              🎫
+            </div>
+            <div>
+              <div class="font-extrabold text-slate-900 text-sm">KM Francis Express • Tiket Resmi Pelabuhan</div>
+              <div class="text-xs text-slate-500">Rute Lintas Batas Nunukan (ID) ⇄ Tawau Sabah (MY)</div>
+            </div>
+          </div>
+          <div class="bg-amber-50 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200 text-xs font-extrabold">
+            Tarif Resmi: Rp 480.000 / Pax (All-In)
+          </div>
+        </div>
+
+        <!-- Visual Seat Deck -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-extrabold text-slate-900 text-sm">Denah Kabin Armada Kapal</h3>
+            <span class="text-xs text-slate-400">Pilih nomor kursi penumpang</span>
+          </div>
+
+          <div id="c5SeatGrid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Passenger Input Cards -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="font-extrabold text-slate-900 text-sm">Formulir Data Penumpang Terpilih</h3>
+            <span id="c5PaxBadge" class="text-xs font-extrabold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+              0 Penumpang
+            </span>
+          </div>
+
+          <div id="c5PaxInputs" class="space-y-2">
+            <div class="p-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              Silakan klik kursi di atas untuk mengisi data nama dan NIK penumpang
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT 5 COLS: LUXURY PHYSICAL TICKET PREVIEW -->
+      <div class="lg:col-span-5">
+        <div class="sticky top-6 space-y-4">
+          
+          <!-- Boarding Pass Mockup Card -->
+          <div class="bg-white border border-slate-300 rounded-2xl shadow-lg overflow-hidden relative">
+            
+            <!-- Top Ticket Header -->
+            <div class="bg-gradient-to-r from-sky-700 to-indigo-800 text-white p-4">
+              <div class="flex justify-between items-center text-xs mb-1">
+                <span class="font-bold tracking-wider uppercase text-sky-200">KANTOR KESYAHBANDARAN & OTORITAS PELABUHAN</span>
+                <span class="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px]">OFFICIAL PASS</span>
+              </div>
+              <h4 class="font-black text-lg">TIKET RESMI PENUMPANG KAPAL</h4>
+              <div class="flex justify-between text-xs text-sky-200 mt-2 font-mono">
+                <span>NUNUKAN (ID) ➔ TAWAU (MY)</span>
+                <span>09:00 WITA</span>
+              </div>
+            </div>
+
+            <!-- Perforated Tear Line -->
+            <div class="relative py-2 bg-slate-100 flex items-center justify-between border-y border-dashed border-slate-300 px-4">
+              <div class="w-4 h-4 rounded-full bg-slate-100 -ml-6 border-r border-slate-300"></div>
+              <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">--- POTONG DISINI SAAT BOARDING GATE ---</span>
+              <div class="w-4 h-4 rounded-full bg-slate-100 -mr-6 border-l border-slate-300"></div>
+            </div>
+
+            <!-- Ticket Body -->
+            <div class="p-4 space-y-3 bg-white text-xs">
+              <div class="grid grid-cols-2 gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <span class="text-slate-400 block text-[10px]">PENUMPANG UTAMA</span>
+                  <strong id="c5TicketPaxName" class="text-slate-900 text-sm block truncate">- (Pilih Kursi)</strong>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[10px]">NO. KURSI</span>
+                  <strong id="c5TicketSeatNum" class="text-indigo-700 text-sm font-mono">-</strong>
+                </div>
+              </div>
+
+              <!-- Barcode Mockup -->
+              <div class="text-center py-2 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="font-mono tracking-widest text-lg font-black text-slate-800">||| | |||| | ||||| || | ||||</div>
+                <div class="font-mono text-[10px] text-slate-400">PNR-77890-NNK-2026</div>
+              </div>
+
+              <div class="flex justify-between items-center text-xs pt-1">
+                <span class="text-slate-500 font-bold">TOTAL HARGA RESMI:</span>
+                <span id="c5TotalFare" class="font-black text-xl text-orange-600 font-mono">Rp 0</span>
+              </div>
+            </div>
+
+            <!-- Bottom Action Button: LOCKED TO THE RIGHT -->
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-end">
+              <button type="button" id="c5BtnPrint" onclick="c5SubmitBooking()" class="w-full py-3.5 px-4 rounded-xl font-black text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-600/25 transition cursor-pointer flex items-center justify-center gap-2">
+                <span>🖨️</span>
+                <span id="c5BtnPrintText">Cetak Tiket (Pilih Kursi Terlebih Dahulu)</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       MATRIKS PERBANDINGAN DESAIN
+       ========================================================================= -->
+  <section id="secMatrix" class="hidden space-y-5">
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+      <div>
+        <h2 class="text-xl font-extrabold text-slate-900">Perbandingan 3 Konsep Desain Baru</h2>
+        <p class="text-xs text-slate-500 mt-1">Evaluasi kelebihan, gaya visual, dan kecocokan terhadap alur loket Pelabuhan Nunukan.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- CARD 1 -->
+        <div class="border-2 border-indigo-500/50 rounded-2xl p-5 bg-gradient-to-b from-indigo-50/30 to-white space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+            ⚡
+          </div>
+          <h3 class="font-black text-slate-900 text-base">Konsep 3: Nordic Linear POS</h3>
+          <span class="inline-block text-[11px] font-extrabold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+            Sangat Direkomendasikan
+          </span>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Sangat efisien untuk petugas loket kasir harian. Bebas elemen rumit, kontras jelas, tombol cetak terkunci di kanan bawah, dan tabel penumpang dinamis otomatis.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-700 font-medium pt-2 border-t border-slate-200">
+            <li>✅ Kecepatan input tercepat</li>
+            <li>✅ Mudah disesuaikan ke kode produksi yang ada</li>
+            <li>✅ Desain ala Stripe & Linear yang profesional</li>
+          </ul>
+        </div>
+
+        <!-- CARD 2 -->
+        <div class="border border-slate-200 rounded-2xl p-5 bg-gradient-to-b from-slate-900 to-slate-950 text-white space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500 text-slate-950 flex items-center justify-center font-bold text-lg">
+            🛰️
+          </div>
+          <h3 class="font-black text-white text-base">Konsep 4: Cyber-Port Command HUD</h3>
+          <span class="inline-block text-[11px] font-extrabold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+            Dark Mode Dispatcher
+          </span>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Cocok untuk ruang kontrol syahbandar KSOP atau monitor loket malam hari. Tampilan radar visual memberikan kesan canggih bertaraf internasional.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-300 font-medium pt-2 border-t border-slate-800">
+            <li>✅ Tidak membuat mata lelah (Dark Mode)</li>
+            <li>✅ Efek visual futuristik & impresif</li>
+            <li>⚠️ Membutuhkan adaptasi kontras bagi operator lama</li>
+          </ul>
+        </div>
+
+        <!-- CARD 3 -->
+        <div class="border border-slate-200 rounded-2xl p-5 bg-gradient-to-b from-amber-50/40 to-white space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-700 text-white flex items-center justify-center font-bold text-lg">
+            🏖️
+          </div>
+          <h3 class="font-black text-slate-900 text-base">Konsep 5: Coastal Luxury Pass</h3>
+          <span class="inline-block text-[11px] font-extrabold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+            Ramah Penumpang & Wisatawan
+          </span>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Menampilkan tiket boarding pass interaktif dengan sobekan kertas di sebelah kanan. Pengguna langsung melihat wujud tiket sebelum tombol cetak diklik.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-700 font-medium pt-2 border-t border-slate-200">
+            <li>✅ Pratinjau tiket fisik langsung terlihat nyata</li>
+            <li>✅ Kesan maritim ramah dan elegan</li>
+            <li>✅ Mengurangi kesalahan cetak tiket penumpang</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       JAVASCRIPT LOGIC FOR PREVIEW INTERACTIVITY
+       ========================================================================= -->
+  <script>
+    const FARE_PER_PAX = 480000;
+    const PORT_PASS = 50000;
+    const TICKET_PRICE = 430000;
+
+    // --- TAB SWITCHER ---
+    function switchConcept(id) {
+      ['c3', 'c4', 'c5', 'matrix'].forEach(c => {
+        const sec = document.getElementById('sec' + (c === 'matrix' ? 'Matrix' : c.toUpperCase()));
+        const btn = document.getElementById('tabBtn' + (c === 'matrix' ? 'Matrix' : c.slice(1)));
+        if (sec && btn) {
+          if (c === id) {
+            sec.classList.remove('hidden');
+            btn.className = 'px-3.5 py-2 rounded-lg tab-active transition flex items-center gap-1.5';
+          } else {
+            sec.classList.add('hidden');
+            btn.className = 'px-3.5 py-2 rounded-lg tab-inactive transition flex items-center gap-1.5';
+          }
+        }
+      });
+    }
+
+    // --- KONSEP 3 DATA & LOGIC ---
+    const c3Seats = [
+      { code: 'A-01', status: 'available' }, { code: 'A-02', status: 'available' },
+      { code: 'A-03', status: 'occupied' },  { code: 'A-04', status: 'available' },
+      { code: 'A-05', status: 'available' }, { code: 'A-06', status: 'occupied' },
+      { code: 'A-07', status: 'available' }, { code: 'A-08', status: 'available' },
+      { code: 'B-01', status: 'available' }, { code: 'B-02', status: 'available' },
+      { code: 'B-03', status: 'available' }, { code: 'B-04', status: 'occupied' },
+      { code: 'B-05', status: 'available' }, { code: 'B-06', status: 'available' },
+      { code: 'B-07', status: 'available' }, { code: 'B-08', status: 'available' },
+      { code: 'C-01', status: 'occupied' },  { code: 'C-02', status: 'available' },
+      { code: 'C-03', status: 'available' }, { code: 'C-04', status: 'available' },
+      { code: 'C-05', status: 'occupied' },  { code: 'C-06', status: 'available' },
+      { code: 'C-07', status: 'available' }, { code: 'C-08', status: 'available' }
+    ];
+    let c3Selected = [];
+    let c3Passengers = {};
+
+    function renderC3Seats() {
+      const grid = document.getElementById('c3SeatGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      c3Seats.forEach(s => {
+        const isSel = c3Selected.includes(s.code);
+        const isOcc = s.status === 'occupied';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = isOcc;
+        btn.innerText = s.code;
+        btn.className = `py-2 text-xs font-mono font-black rounded-lg border seat-transition ${
+          isOcc
+            ? 'bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed'
+            : isSel
+            ? 'bg-indigo-600 border-indigo-700 text-white shadow-sm scale-105'
+            : 'bg-white border-slate-300 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer'
+        }`;
+        if (!isOcc) {
+          btn.onclick = () => toggleC3Seat(s.code);
+        }
+        grid.appendChild(btn);
+      });
+      renderC3Table();
+      updateC3Summary();
+    }
+
+    function toggleC3Seat(code) {
+      if (c3Selected.includes(code)) {
+        c3Selected = c3Selected.filter(c => c !== code);
+        delete c3Passengers[code];
+      } else {
+        c3Selected.push(code);
+        if (!c3Passengers[code]) {
+          c3Passengers[code] = { name: '', nik: '', gender: 'L' };
+        }
+      }
+      renderC3Seats();
+    }
+
+    function renderC3Table() {
+      const tbody = document.getElementById('c3PassengerTbody');
+      const badge = document.getElementById('c3PaxCountBadge');
+      if (!tbody) return;
+      badge.innerText = `${c3Selected.length} Penumpang Terpilih`;
+
+      if (c3Selected.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">👆 Klik salah satu nomor kursi di atas untuk otomatis membuat entri penumpang</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      c3Selected.forEach((seat, idx) => {
+        const p = c3Passengers[seat] || { name: '', nik: '', gender: 'L' };
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-center font-bold text-slate-400">${idx + 1}</td>
+          <td class="py-2.5 px-3">
+            <span class="font-mono font-black text-xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">${seat}</span>
+          </td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${p.name}" placeholder="Nama lengkap..." oninput="c3UpdatePax('${seat}', 'name', this.value)" class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-md focus:border-indigo-500 focus:outline-none">
+          </td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${p.nik}" placeholder="NIK / Paspor..." oninput="c3UpdatePax('${seat}', 'nik', this.value)" class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-md focus:border-indigo-500 focus:outline-none font-mono">
+          </td>
+          <td class="py-2.5 px-3">
+            <select onchange="c3UpdatePax('${seat}', 'gender', this.value)" class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-md">
+              <option value="L" ${p.gender === 'L' ? 'selected' : ''}>Laki-laki</option>
+              <option value="P" ${p.gender === 'P' ? 'selected' : ''}>Perempuan</option>
+            </select>
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <button type="button" onclick="toggleC3Seat('${seat}')" class="text-rose-500 hover:text-rose-700 font-bold text-sm">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function c3UpdatePax(seat, field, val) {
+      if (!c3Passengers[seat]) c3Passengers[seat] = {};
+      c3Passengers[seat][field] = val;
+    }
+
+    function updateC3Summary() {
+      const count = c3Selected.length;
+      document.getElementById('c3SummaryPax').innerText = count;
+      document.getElementById('c3SummaryPass').innerText = count;
+      document.getElementById('c3SubtotalTicket').innerText = 'Rp ' + (count * TICKET_PRICE).toLocaleString('id-ID');
+      document.getElementById('c3SubtotalPortPass').innerText = 'Rp ' + (count * PORT_PASS).toLocaleString('id-ID');
+      document.getElementById('c3TotalFare').innerText = 'Rp ' + (count * FARE_PER_PAX).toLocaleString('id-ID');
+
+      const btnPrintText = document.getElementById('c3BtnPrintText');
+      const btnPrint = document.getElementById('c3BtnPrint');
+      if (count > 0) {
+        btnPrintText.innerText = `Cetak Tiket (${count} Penumpang)`;
+        btnPrint.classList.remove('opacity-60');
+      } else {
+        btnPrintText.innerText = `Cetak Tiket (Pilih Kursi Terlebih Dahulu)`;
+        btnPrint.classList.add('opacity-60');
+      }
+    }
+
+    function c3Reset() {
+      c3Selected = [];
+      c3Passengers = {};
+      renderC3Seats();
+    }
+
+    function c3SubmitBooking() {
+      if (c3Selected.length === 0) {
+        alert('Silakan pilih minimal 1 kursi terlebih dahulu.');
+        return;
+      }
+      alert(`✅ Berhasil! Tiket untuk ${c3Selected.length} penumpang (${c3Selected.join(', ')}) siap dicetak.`);
+    }
+
+    function c3SaveDraft() {
+      alert('💾 Draft tersimpan di memori browser lokal!');
+    }
+
+    // --- KONSEP 4 DATA & LOGIC ---
+    let c4Selected = [];
+    function renderC4Seats() {
+      const grid = document.getElementById('c4SeatGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      c3Seats.forEach(s => {
+        const isSel = c4Selected.includes(s.code);
+        const isOcc = s.status === 'occupied';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = isOcc;
+        btn.innerText = s.code;
+        btn.className = `py-2 text-xs font-mono font-black rounded-lg border seat-transition ${
+          isOcc
+            ? 'bg-rose-950/40 border-rose-900/60 text-rose-500/40 cursor-not-allowed'
+            : isSel
+            ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/30 scale-105'
+            : 'bg-slate-900 border-slate-700 text-cyan-400 hover:border-cyan-400 hover:bg-cyan-950/40 cursor-pointer'
+        }`;
+        if (!isOcc) {
+          btn.onclick = () => toggleC4Seat(s.code);
+        }
+        grid.appendChild(btn);
+      });
+      renderC4List();
+    }
+
+    function toggleC4Seat(code) {
+      if (c4Selected.includes(code)) {
+        c4Selected = c4Selected.filter(c => c !== code);
+      } else {
+        c4Selected.push(code);
+      }
+      renderC4Seats();
+    }
+
+    function renderC4List() {
+      const list = document.getElementById('c4PaxList');
+      const badge = document.getElementById('c4PaxBadge');
+      const total = document.getElementById('c4TotalFare');
+      const btn = document.getElementById('c4BtnPrint');
+
+      badge.innerText = `${c4Selected.length} SEATS LOCKED`;
+      total.innerText = 'Rp ' + (c4Selected.length * FARE_PER_PAX).toLocaleString('id-ID');
+
+      if (c4Selected.length === 0) {
+        list.innerHTML = `<div class="text-slate-500 text-xs py-8 text-center font-mono">[SYSTEM READY] Click any neon seat in blueprint to lock passenger.</div>`;
+        btn.innerText = '🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)';
+        btn.classList.add('opacity-60');
+        return;
+      }
+
+      btn.innerText = `🖨️ Cetak Tiket (${c4Selected.length} Penumpang)`;
+      btn.classList.remove('opacity-60');
+
+      list.innerHTML = '';
+      c4Selected.forEach((seat, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs font-mono';
+        div.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold">${seat}</span>
+            <input type="text" placeholder="PAX NAME ${idx + 1}..." class="bg-black/50 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs focus:outline-none focus:border-cyan-400 w-36 sm:w-48">
+          </div>
+          <button type="button" onclick="toggleC4Seat('${seat}')" class="text-rose-400 hover:text-rose-300 font-bold px-2">✕</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function c4Reset() {
+      c4Selected = [];
+      renderC4Seats();
+    }
+
+    function c4SubmitBooking() {
+      if (c4Selected.length === 0) {
+        alert('Pilih kursi terlebih dahulu.');
+        return;
+      }
+      alert(`🛰️ [DISPATCH AUTH] ${c4Selected.length} Tiket Kapal telah diterbitkan ke printer loket.`);
+    }
+
+    // --- KONSEP 5 DATA & LOGIC ---
+    let c5Selected = [];
+    let c5Names = {};
+
+    function renderC5Seats() {
+      const grid = document.getElementById('c5SeatGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      c3Seats.forEach(s => {
+        const isSel = c5Selected.includes(s.code);
+        const isOcc = s.status === 'occupied';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = isOcc;
+        btn.innerText = s.code;
+        btn.className = `py-2 text-xs font-mono font-bold rounded-xl border seat-transition ${
+          isOcc
+            ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
+            : isSel
+            ? 'bg-amber-500 border-amber-600 text-white font-black shadow-md scale-105'
+            : 'bg-white border-slate-300 text-slate-700 hover:border-amber-400 hover:bg-amber-50/50 cursor-pointer'
+        }`;
+        if (!isOcc) {
+          btn.onclick = () => toggleC5Seat(s.code);
+        }
+        grid.appendChild(btn);
+      });
+      renderC5Inputs();
+    }
+
+    function toggleC5Seat(code) {
+      if (c5Selected.includes(code)) {
+        c5Selected = c5Selected.filter(c => c !== code);
+        delete c5Names[code];
+      } else {
+        c5Selected.push(code);
+        c5Names[code] = c5Names[code] || '';
+      }
+      renderC5Seats();
+    }
+
+    function renderC5Inputs() {
+      const container = document.getElementById('c5PaxInputs');
+      const badge = document.getElementById('c5PaxBadge');
+      const total = document.getElementById('c5TotalFare');
+      const btn = document.getElementById('c5BtnPrintText');
+      const tixName = document.getElementById('c5TicketPaxName');
+      const tixSeat = document.getElementById('c5TicketSeatNum');
+
+      badge.innerText = `${c5Selected.length} Penumpang`;
+      total.innerText = 'Rp ' + (c5Selected.length * FARE_PER_PAX).toLocaleString('id-ID');
+
+      if (c5Selected.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">Silakan klik kursi di atas untuk mengisi data nama dan NIK penumpang</div>`;
+        btn.innerText = 'Cetak Tiket (Pilih Kursi Terlebih Dahulu)';
+        tixName.innerText = '- (Pilih Kursi)';
+        tixSeat.innerText = '-';
+        return;
+      }
+
+      btn.innerText = `Cetak Tiket (${c5Selected.length} Penumpang)`;
+      tixSeat.innerText = c5Selected.join(', ');
+      const firstName = c5Names[c5Selected[0]] || 'PENUMPANG 1';
+      tixName.innerText = firstName + (c5Selected.length > 1 ? ` (+${c5Selected.length - 1} Pax)` : '');
+
+      container.innerHTML = '';
+      c5Selected.forEach((seat, idx) => {
+        const val = c5Names[seat] || '';
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 text-xs';
+        row.innerHTML = `
+          <span class="font-mono font-black text-amber-700 bg-amber-100 border border-amber-300 px-2 py-1 rounded-lg">${seat}</span>
+          <input type="text" value="${val}" placeholder="Nama Penumpang ${idx + 1}..." oninput="c5UpdateName('${seat}', this.value)" class="flex-1 p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-amber-500 font-bold">
+          <button type="button" onclick="toggleC5Seat('${seat}')" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function c5UpdateName(seat, val) {
+      c5Names[seat] = val;
+      const tixName = document.getElementById('c5TicketPaxName');
+      const firstName = c5Names[c5Selected[0]] || 'PENUMPANG 1';
+      tixName.innerText = firstName + (c5Selected.length > 1 ? ` (+${c5Selected.length - 1} Pax)` : '');
+    }
+
+    function c5Reset() {
+      c5Selected = [];
+      c5Names = {};
+      renderC5Seats();
+    }
+
+    function c5SubmitBooking() {
+      if (c5Selected.length === 0) {
+        alert('Pilih kursi terlebih dahulu.');
+        return;
+      }
+      alert(`🏖️ Boarding Pass untuk ${c5Selected.length} Penumpang berhasil dicetak.`);
+    }
+
+    // Init all
+    window.addEventListener('DOMContentLoaded', () => {
+      renderC3Seats();
+      renderC4Seats();
+      renderC5Seats();
+    });
+  </script>
+
+</body>
+</html>
