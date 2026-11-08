@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Global Crash Prevention Guards
 process.on('uncaughtException', (err) => {
@@ -151,12 +151,25 @@ async function initDb() {
 initDb();
 
 // Health Check API
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  let isDbWorking = false;
+  let dbError = null;
+  if (pool) {
+    try {
+      await pool.query('SELECT 1');
+      isDbWorking = true;
+    } catch (e) {
+      dbError = e.message;
+    }
+  }
+
   res.json({
     status: 'ok',
     app: 'Universal Ticketing SaaS & KSOP Manifest Engine',
     uptime: process.uptime(),
-    databaseConnected: !!pool,
+    databaseConnected: isDbWorking,
+    dbConfigured: Boolean(process.env.DATABASE_URL || process.env.PGHOST),
+    dbError: dbError || undefined,
     timestamp: new Date().toISOString()
   });
 });
