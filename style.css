@@ -6115,3 +6115,182 @@ table.dash-table.dev-dark-table tbody tr:hover td {
   align-items: center !important;
   gap: 0.75rem !important;
 }
+
+/* ========================================================
+   UNIVERSAL MOBILE & TABLET RESPONSIVE ENHANCEMENTS
+   ======================================================== */
+@media (max-width: 992px) {
+  /* Ticky Portal Sidebar Navigation on Tablets/Mobile */
+  .ticky-sidebar {
+    padding: 0.5rem 1rem !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .ticky-nav-list {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 2px !important;
+  }
+
+  .ticky-nav-list::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Top Weather & Profile Widgets in Company Dashboard */
+  .ticky-top-header {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
+
+  .ticky-header-actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Site Container & Layout */
+  .site-container {
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+  }
+
+  /* Global Top Navbar on Smartphones */
+  .global-navbar {
+    padding: 0.5rem 0 !important;
+  }
+
+  .brand-title-wrap .brand-sub {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .brand-name {
+    font-size: 1.05rem !important;
+  }
+
+  .header-tenant-box .btn-login-tenant {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.76rem !important;
+  }
+
+  /* BMKG Weather Section on Mobile */
+  .weather-home-section {
+    padding: 0.85rem 0.5rem 2.5rem !important;
+  }
+
+  .bmkg-hero-banner {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+  }
+
+  .bmkg-hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+
+  .bmkg-grid-top,
+  .bmkg-grid-stations {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+
+  /* Search & Route Card Layouts */
+  .customer-search-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+
+  .sched-card {
+    padding: 0.85rem !important;
+  }
+
+  .sched-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+
+  /* Dashboard Tabs & Action Buttons Bar */
+  .dash-quick-actions-bar,
+  .dash-tabs-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px !important;
+  }
+
+  /* All Modals on Mobile Phones */
+  .modal-layer {
+    padding: 0.5rem !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-window,
+  .modal-window.modal-wide {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 14px 14px 0 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Direct Ticket Print Modal on Mobile */
+  #modalDirectTicketPrint .modal-window {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 95vh !important;
+  }
+
+  .modal-bottom-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+  }
+
+  .modal-bottom-actions > div,
+  .modal-bottom-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Tables: Horizontal scrollable for touch devices */
+  .table-responsive,
+  .manifest-table-wrap,
+  .table-modern,
+  .dev-dark-table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Seating Chart / Deck Plan on Mobile */
+  .deck-grid-interactive,
+  .seat-map-scroll-area {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra Small Devices (Phones < 480px) */
+  .brand-title-wrap .brand-sub {
+    display: none !important;
+  }
+
+  .btn-login-tenant span {
+    font-size: 0.72rem !important;
+  }
+
+  .ticky-brand-title {
+    font-size: 0.88rem !important;
+  }
+
+  .ticky-nav-item {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.74rem !important;
+  }
+}
