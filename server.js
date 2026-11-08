@@ -242,10 +242,11 @@ app.post(webhookPaths, (req, res) => {
   // Handle GitHub Ping event (sent when webhook is first created or tested)
   if (githubEvent === 'ping') {
     console.log('[Auto-Deploy] Received GitHub Ping event. Responding 200 OK.');
+    var zenMsg = (req.body && req.body.zen) ? req.body.zen : 'GitHub Webhook OK';
     return res.status(200).json({
       status: 'success',
       message: 'GitHub webhook ping received successfully! TickyTech auto-deploy is active.',
-      zen: req.body?.zen
+      zen: zenMsg
     });
   }
 
