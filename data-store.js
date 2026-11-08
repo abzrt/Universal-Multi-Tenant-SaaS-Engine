@@ -155,8 +155,38 @@ const DEFAULT_SCHEDULES = [];
 // Initial bookings (Kosong / Tanpa Demo)
 const DEFAULT_BOOKINGS = [];
 
-// Helper Store Functions with LocalStorage Persistence
+// Helper Store Functions with LocalStorage Persistence & Cloud Sync
 const Store = {
+  syncCloud(key, data) {
+    try {
+      if (typeof fetch === 'function') {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, data })
+        }).catch(function() {});
+      }
+    } catch (e) {}
+  },
+
+  async hydrateFromCloud() {
+    try {
+      if (typeof fetch === 'function') {
+        const res = await fetch('/api/sync');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.connected && json.data) {
+            Object.keys(json.data).forEach(function(k) {
+              if (json.data[k] !== undefined && json.data[k] !== null) {
+                localStorage.setItem(k, typeof json.data[k] === 'string' ? json.data[k] : JSON.stringify(json.data[k]));
+              }
+            });
+          }
+        }
+      }
+    } catch (e) {}
+  },
+
   getCompanies() {
     const raw = localStorage.getItem(STORAGE_KEYS.COMPANIES);
     if (!raw) {
@@ -168,6 +198,7 @@ const Store = {
 
   saveCompanies(companies) {
     localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(companies));
+    this.syncCloud(STORAGE_KEYS.COMPANIES, companies);
   },
 
   addCompany(newComp) {
@@ -407,6 +438,7 @@ const Store = {
 
   saveVessels(vessels) {
     localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify(vessels));
+    this.syncCloud(STORAGE_KEYS.VESSELS, vessels);
   },
 
   addVessel(vessel) {
@@ -563,6 +595,7 @@ const Store = {
 
   saveSchedules(schedules) {
     localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify(schedules));
+    this.syncCloud(STORAGE_KEYS.SCHEDULES, schedules);
   },
 
   addSchedule(schedule) {
@@ -644,6 +677,7 @@ const Store = {
 
   saveBookings(bookings) {
     localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+    this.syncCloud(STORAGE_KEYS.BOOKINGS, bookings);
   },
 
   addBooking(booking) {
@@ -1389,4 +1423,11 @@ if (typeof window !== 'undefined') {
       window.location.reload();
     }
   };
+
+  // Auto-hydrate data from PostgreSQL cloud if available
+  try {
+    if (typeof Store !== 'undefined' && typeof Store.hydrateFromCloud === 'function') {
+      Store.hydrateFromCloud();
+    }
+  } catch (e) {}
 }
