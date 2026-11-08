@@ -168,6 +168,11 @@ const App = {
     const btnComp = document.getElementById('btnModeCompany');
     const brandHome = document.getElementById('brandHomeLink');
     const btnWeatherCta = document.getElementById('btnOpenAuthFromWeather');
+    const btnHeaderLogin = document.getElementById('btnHeaderLogin');
+
+    if (btnHeaderLogin) {
+      btnHeaderLogin.addEventListener('click', () => this.openCompanyAuthModal());
+    }
 
     if (btnCust) btnCust.addEventListener('click', () => this.switchView('weatherHome'));
     if (btnComp) {
@@ -264,10 +269,11 @@ const App = {
     try {
       if (typeof Store !== 'undefined' && Store.setCurrentTenant) {
         Store.setCurrentTenant(null);
-      } else {
-        localStorage.removeItem('tech_current_tenant_v5');
       }
+      localStorage.removeItem('tech_current_tenant_v6');
+      localStorage.removeItem('tech_current_tenant_v5');
     } catch (e) {
+      localStorage.removeItem('tech_current_tenant_v6');
       localStorage.removeItem('tech_current_tenant_v5');
     }
     this.updateHeaderTenantUI(null);
@@ -282,10 +288,8 @@ const App = {
     const box = document.getElementById('headerTenantBox');
     if (!box) return;
 
-    // Sembunyikan seluruh tombol login tenant / masuk mitra operator saat di mode developer
-    const isDev = (typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) ||
-                  document.body.classList.contains('in-dev-admin') ||
-                  this.activeView === 'devAdminDashboard';
+    // Sembunyikan seluruh tombol login tenant / masuk mitra operator hanya saat aktif di mode developer
+    const isDev = this.activeView === 'devAdminDashboard' || document.body.classList.contains('in-dev-admin');
     if (isDev) {
       box.innerHTML = '';
       box.style.display = 'none';
@@ -293,11 +297,23 @@ const App = {
     }
     box.style.display = '';
 
-    if (!tenant) {
+    // Validasi tenant aktif agar sesi kadaluarsa / akun non-aktif tidak menyembunyikan tombol login
+    let activeTenant = null;
+    if (tenant && tenant.id && typeof Store !== 'undefined' && Store.getCompanies) {
+      const companies = Store.getCompanies();
+      const found = companies.find(c => c.id === tenant.id);
+      if (found && found.approvalStatus !== 'PENDING' && found.approvalStatus !== 'REJECTED' && found.approvalStatus !== 'FROZEN' && found.verified !== false && found.frozen !== true) {
+        activeTenant = found;
+      } else if (tenant) {
+        if (Store.setCurrentTenant) Store.setCurrentTenant(null);
+      }
+    }
+
+    if (!activeTenant) {
       box.innerHTML = `
         <button type="button" class="btn-login-tenant" id="btnHeaderLogin">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-          <span>Masuk Mitra Operator</span>
+          <span>Masuk Portal Perusahaan</span>
         </button>
       `;
       document.getElementById('btnHeaderLogin')?.addEventListener('click', () => this.openCompanyAuthModal());
@@ -306,35 +322,35 @@ const App = {
       const dropdownAvatar = document.querySelector('#dropdownHeaderProfile img');
       if (dropdownAvatar) dropdownAvatar.src = 'assets/avatar-header.svg';
     } else {
-      const avatarHtml = tenant.displayPhoto && tenant.displayPhoto !== 'assets/avatar-header.svg'
-        ? `<img src="${tenant.displayPhoto}" alt="Logo" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; margin-right: 4px; vertical-align: middle;">`
-        : `<span class="dot" style="background: ${tenant.brandColor};"></span>`;
+      const avatarHtml = activeTenant.displayPhoto && activeTenant.displayPhoto !== 'assets/avatar-header.svg'
+        ? `<img src="${activeTenant.displayPhoto}" alt="Logo" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; margin-right: 4px; vertical-align: middle;">`
+        : `<span class="dot" style="background: ${activeTenant.brandColor || '#0284c7'};"></span>`;
 
       box.innerHTML = `
         <div class="tenant-pill-badge" id="btnHeaderTenantBadge" title="Klik untuk membuka dasbor operator">
           ${avatarHtml}
-          <span class="tenant-pill-name">${tenant.shortName || tenant.name}</span>
+          <span class="tenant-pill-name">${activeTenant.shortName || activeTenant.name}</span>
         </div>
       `;
       document.getElementById('btnHeaderTenantBadge')?.addEventListener('click', () => this.switchView('companyDashboard'));
 
       // Update avatar image in header and dropdown
-      const photoSrc = tenant.displayPhoto || 'assets/avatar-header.svg';
+      const photoSrc = activeTenant.displayPhoto || 'assets/avatar-header.svg';
       const headerAvatar = document.getElementById('imgHeaderUserAvatar');
       if (headerAvatar) headerAvatar.src = photoSrc;
       const dropdownAvatar = document.querySelector('#dropdownHeaderProfile img');
       if (dropdownAvatar) dropdownAvatar.src = photoSrc;
 
       const ddName = document.getElementById('dropdownProfileCompanyName');
-      if (ddName) ddName.textContent = tenant.name;
+      if (ddName) ddName.textContent = activeTenant.name;
       const ddRole = document.getElementById('dropdownProfileRole');
-      if (ddRole) ddRole.textContent = tenant.category || 'Operator Loket Resmi';
+      if (ddRole) ddRole.textContent = activeTenant.category || 'Operator Loket Resmi';
 
       const opsName = document.getElementById('opsHeaderUserName');
-      if (opsName) opsName.textContent = tenant.shortName || tenant.name;
+      if (opsName) opsName.textContent = activeTenant.shortName || activeTenant.name;
       const opsId = document.getElementById('opsHeaderUserId');
       if (opsId) {
-        const numId = (tenant.id || '').replace(/\D/g, '');
+        const numId = (activeTenant.id || '').replace(/\D/g, '');
         opsId.textContent = numId.length >= 4 ? numId.slice(0, 8) : '18830482';
       }
     }
@@ -13569,6 +13585,10 @@ if (typeof window !== 'undefined') {
 }
 
 // Initialize app when DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+  });
+} else {
   App.init();
-});
+}
