@@ -3,6 +3,14 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
+// Global Crash Prevention Guards
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL - Uncaught Exception Handled]:', err.message);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL - Unhandled Rejection Handled]:', reason);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -28,6 +36,9 @@ if (dbUrl) {
     pool = new Pool({
       connectionString: dbUrl,
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    });
+    pool.on('error', (err) => {
+      console.warn('[DB Pool Idle Error Handled]:', err.message);
     });
     console.log('[DB] Connecting to PostgreSQL at:', dbUrl.replace(/:[^:@]+@/, ':****@'));
   } catch (err) {
@@ -269,7 +280,7 @@ app.post(webhookPaths, (req, res) => {
   console.log('[Auto-Deploy] Valid push event received. Running deploy script in background...');
   // Delay slightly to ensure HTTP response finishes before PM2 reloads
   setTimeout(() => {
-    exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+    exec('git reset --hard origin/main && git pull origin main && npm install --production && (pm2 restart all || pm2 start server.js --name tickytech-saas)', { cwd: __dirname }, (error, stdout, stderr) => {
       if (error) {
         console.error('[Auto-Deploy Error]:', error.message);
         return;
@@ -296,12 +307,12 @@ app.get(webhookPaths, (req, res) => {
   res.send(`
     <div style="font-family: sans-serif; padding: 2rem; color: #047857;">
       <h2>Auto-Deploy Sedang Berjalan! 🚀</h2>
-      <p>Perintah <code>git pull</code> dan <code>pm2 reload all</code> sedang dijalankan di latar belakang.</p>
+      <p>Perintah <code>git pull</code> dan <code>pm2 restart</code> sedang dijalankan di latar belakang.</p>
     </div>
   `);
 
   setTimeout(() => {
-    exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+    exec('git reset --hard origin/main && git pull origin main && npm install --production && (pm2 restart all || pm2 start server.js --name tickytech-saas)', { cwd: __dirname }, (error, stdout, stderr) => {
       if (error) {
         console.error('[Auto-Deploy GET Error]:', error.message);
         return;
