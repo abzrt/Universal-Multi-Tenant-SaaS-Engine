@@ -254,6 +254,7 @@ const App = {
       const tickyLogo = document.getElementById('tickyBrandLogoImg');
       if (tickyLogo) tickyLogo.src = 'assets/ferry_logo.png?v=6.0';
     } else if (viewName === 'devAdminDashboard') {
+      if (this.isCompanyPortalActive()) return;
       document.body.classList.remove('in-company-portal');
       document.body.classList.add('in-dev-admin');
       const devPanel = document.getElementById('viewDevAdminDashboard');
@@ -1581,8 +1582,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
   },
 
+  // Helper: Cek apakah user sedang berada di dalam portal login perusahaan
+  isCompanyPortalActive() {
+    return Boolean(
+      (typeof Store !== 'undefined' && Store.getCurrentTenant && Store.getCurrentTenant()) ||
+      this.activeView === 'companyDashboard' ||
+      document.body.classList.contains('in-company-portal')
+    );
+  },
+
   // ================= HIDDEN ADMIN DEVELOPER PORTAL =================
   openDevAdminModal() {
+    if (this.isCompanyPortalActive()) return;
     const u = document.getElementById('devAdminUserInput');
     const p = document.getElementById('devAdminPassInput');
     const otp = document.getElementById('devAdminOtpInput');
@@ -1620,6 +1631,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
   handleSecretDevLogoClick(e) {
+    if (this.isCompanyPortalActive()) return false;
     if (e && e._devClickHandled) return false;
     if (e) e._devClickHandled = true;
 
@@ -1658,6 +1670,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // 1. Hidden Keyboard Shortcut: Ctrl + Shift + D (atau Ctrl + Alt + D)
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd')) || (e.ctrlKey && e.altKey && (e.key === 'D' || e.key === 'd'))) {
+        if (this.isCompanyPortalActive()) return;
         e.preventDefault();
         if (Store.isDevAdminLoggedIn()) {
           this.switchView('devAdminDashboard');
