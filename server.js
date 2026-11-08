@@ -180,6 +180,85 @@ app.get('/api/sync/:key', async (req, res) => {
   }
 });
 
+// =======================================================
+// AUTO-DEPLOY WEBHOOK (GitHub -> Server Auto Sync)
+// =======================================================
+const { exec } = require('child_process');
+const crypto = require('crypto');
+
+const DEPLOY_SECRET = process.env.DEPLOY_SECRET || 'tickytech_autodeploy_key_8899';
+
+app.post('/api/webhook/deploy', (req, res) => {
+  const queryToken = req.query.token;
+  const headerToken = req.headers['x-deploy-token'];
+  const githubSecret = req.headers['x-hub-signature-256'];
+
+  let authorized = false;
+  if (queryToken === DEPLOY_SECRET || headerToken === DEPLOY_SECRET) {
+    authorized = true;
+  } else if (githubSecret && req.body) {
+    try {
+      const hmac = crypto.createHmac('sha256', DEPLOY_SECRET);
+      const digest = 'sha256=' + hmac.update(JSON.stringify(req.body)).digest('hex');
+      if (crypto.timingSafeEqual(Buffer.from(githubSecret), Buffer.from(digest))) {
+        authorized = true;
+      }
+    } catch (e) {}
+  }
+
+  if (!authorized) {
+    return res.status(403).json({ error: 'Unauthorized: Invalid deploy secret token' });
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Auto-deploy triggered! Server is pulling latest code from GitHub...',
+    timestamp: new Date().toISOString()
+  });
+
+  console.log('[Auto-Deploy] Triggered at:', new Date().toISOString());
+  exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('[Auto-Deploy Error]:', error.message);
+      return;
+    }
+    console.log('[Auto-Deploy stdout]:', stdout);
+    if (stderr) console.warn('[Auto-Deploy stderr]:', stderr);
+    console.log('[Auto-Deploy] Update complete and application reloaded successfully!');
+  });
+});
+
+// Quick GET browser test trigger for auto-deploy
+app.get('/api/webhook/deploy', (req, res) => {
+  const token = req.query.token;
+  if (token !== DEPLOY_SECRET) {
+    return res.status(403).send(`
+      <div style="font-family: sans-serif; padding: 2rem; color: #b91c1c;">
+        <h2>Akses Ditolak (Unauthorized)</h2>
+        <p>Gunakan parameter token yang valid, contoh: <code>?token=${DEPLOY_SECRET}</code></p>
+      </div>
+    `);
+  }
+
+  exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).send(`
+        <div style="font-family: sans-serif; padding: 2rem; color: #b91c1c;">
+          <h2>Deploy Gagal</h2>
+          <pre>${error.message}</pre>
+        </div>
+      `);
+    }
+    res.send(`
+      <div style="font-family: sans-serif; padding: 2rem; color: #047857;">
+        <h2>Auto-Deploy Berhasil! 🚀</h2>
+        <p>Kode terbaru dari GitHub berhasil ditarik dan server telah di-reload.</p>
+        <pre style="background: #f1f5f9; padding: 1rem; border-radius: 8px;">${stdout || 'Aplikasi up-to-date.'}</pre>
+      </div>
+    `);
+  });
+});
+
 // SPA Fallback routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -193,3 +272,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Server listening on 0.0.0.0:${PORT}`);
   console.log(`=======================================================`);
 });
+
