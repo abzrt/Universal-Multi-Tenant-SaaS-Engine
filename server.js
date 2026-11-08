@@ -28,6 +28,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Optional PostgreSQL Connection
 let pool = null;
+let poolInitError = null;
 const dbUrl = process.env.DATABASE_URL || (process.env.PGHOST ? `postgresql://${process.env.PGUSER || 'postgres'}:${process.env.PGPASSWORD || ''}@${process.env.PGHOST}:${process.env.PGPORT || 5432}/${process.env.PGDATABASE || 'tiket_db'}` : null);
 
 if (dbUrl) {
@@ -42,6 +43,7 @@ if (dbUrl) {
     });
     console.log('[DB] Connecting to PostgreSQL at:', dbUrl.replace(/:[^:@]+@/, ':****@'));
   } catch (err) {
+    poolInitError = err.message;
     console.warn('[DB] PostgreSQL driver not initialized:', err.message);
   }
 } else {
@@ -169,6 +171,7 @@ app.get('/api/health', async (req, res) => {
     uptime: process.uptime(),
     databaseConnected: isDbWorking,
     dbConfigured: Boolean(process.env.DATABASE_URL || process.env.PGHOST),
+    driverError: poolInitError || undefined,
     dbError: dbError || undefined,
     timestamp: new Date().toISOString()
   });
