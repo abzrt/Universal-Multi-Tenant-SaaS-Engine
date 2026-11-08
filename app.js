@@ -5864,6 +5864,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   },
 
   openDirectTicketPrintModal(target = null, format = 'BOARDING_PASS') {
+    this.bindDirectTicketPrintEvents();
     this.directPrintState.currentFormat = format;
     const items = this.normalizeTicketItems(target);
     if (!items || items.length === 0) {
@@ -6153,6 +6154,57 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         </div>
       </div>
     `;
+  },
+
+  bindDirectTicketPrintEvents() {
+    if (this._directPrintEventsBound) return;
+    this._directPrintEventsBound = true;
+
+    const modalDirectPrint = document.getElementById('modalDirectTicketPrint');
+    if (modalDirectPrint) {
+      modalDirectPrint.addEventListener('click', (e) => {
+        if (e.target === modalDirectPrint) {
+          modalDirectPrint.classList.remove('show');
+        }
+      });
+    }
+
+    document.getElementById('btnCloseDirectTicketPrint')?.addEventListener('click', () => {
+      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
+    });
+    document.getElementById('btnCancelDirectTicketPrint')?.addEventListener('click', () => {
+      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
+    });
+    document.getElementById('btnExecuteDirectPrint')?.addEventListener('click', () => {
+      window.print();
+    });
+    document.getElementById('btnSaveDirectTicketFile')?.addEventListener('click', () => {
+      this.downloadDirectTicketPrintHtml();
+    });
+    document.querySelectorAll('.btn-toggle-print-format')?.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const format = btn.getAttribute('data-format') || 'BOARDING_PASS';
+        this.directPrintState.currentFormat = format;
+
+        document.querySelectorAll('.btn-toggle-print-format').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = '#64748b';
+          b.style.boxShadow = 'none';
+        });
+        btn.classList.add('active');
+        btn.style.background = '#ffffff';
+        btn.style.color = '#0284c7';
+        btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+
+        const batchBadge = document.getElementById('directPrintBatchBadge');
+        if (batchBadge) {
+          batchBadge.innerText = `${this.directPrintState.items.length} Tiket Siap Cetak (${format === 'BOARDING_PASS' ? 'A4 Boarding Pass' : 'Struk Thermal POS'})`;
+        }
+
+        this.renderDirectTicketsArea();
+      });
+    });
   },
 
   // Gate Scanner Execution (Anti-Duplicate Check-in Verification)
@@ -6543,42 +6595,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     }
 
     // Direct Ticket & Boarding Pass Print Modal Listeners
-    document.getElementById('btnCloseDirectTicketPrint')?.addEventListener('click', () => {
-      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
-    });
-    document.getElementById('btnCancelDirectTicketPrint')?.addEventListener('click', () => {
-      document.getElementById('modalDirectTicketPrint')?.classList.remove('show');
-    });
-    document.getElementById('btnExecuteDirectPrint')?.addEventListener('click', () => {
-      window.print();
-    });
-    document.getElementById('btnSaveDirectTicketFile')?.addEventListener('click', () => {
-      this.downloadDirectTicketPrintHtml();
-    });
-    document.querySelectorAll('.btn-toggle-print-format')?.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const format = btn.getAttribute('data-format') || 'BOARDING_PASS';
-        this.directPrintState.currentFormat = format;
-
-        document.querySelectorAll('.btn-toggle-print-format').forEach(b => {
-          b.classList.remove('active');
-          b.style.background = 'transparent';
-          b.style.color = '#64748b';
-          b.style.boxShadow = 'none';
-        });
-        btn.classList.add('active');
-        btn.style.background = '#ffffff';
-        btn.style.color = '#0284c7';
-        btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-
-        const batchBadge = document.getElementById('directPrintBatchBadge');
-        if (batchBadge) {
-          batchBadge.innerText = `${this.directPrintState.items.length} Tiket Siap Cetak (${format === 'BOARDING_PASS' ? 'A4 Boarding Pass' : 'Struk Thermal POS'})`;
-        }
-
-        this.renderDirectTicketsArea();
-      });
-    });
+    this.bindDirectTicketPrintEvents();
 
     // Modal 1: Edit Manifest Listeners
     document.getElementById('btnCloseEditManifest')?.addEventListener('click', () => {
@@ -7422,11 +7439,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // 1. Sub-tab toggle between Company Profile, KSOP Settings, and Peak Season
     const btnCompany = document.getElementById('tabBtnSettingsCompany');
     const btnKsop = document.getElementById('tabBtnSettingsKsop');
+    const btnPeak = document.getElementById('tabBtnSettingsPeak');
     const subCompany = document.getElementById('subPaneSettingsCompany');
     const subKsop = document.getElementById('subPaneSettingsKsop');
+    const subPeak = document.getElementById('subPaneSettingsPeak');
 
     const resetSubTabButtons = () => {
-      [btnCompany, btnKsop].forEach(b => {
+      [btnCompany, btnKsop, btnPeak].forEach(b => {
         if (!b) return;
         b.classList.remove('active');
         b.style.background = '#ffffff';
@@ -7436,6 +7455,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       });
       if (subCompany) subCompany.style.display = 'none';
       if (subKsop) subKsop.style.display = 'none';
+      if (subPeak) subPeak.style.display = 'none';
     };
 
     btnCompany?.addEventListener('click', () => {
