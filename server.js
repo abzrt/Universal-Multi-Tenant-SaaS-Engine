@@ -7,7 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static frontend files
@@ -187,49 +192,69 @@ const { exec } = require('child_process');
 const crypto = require('crypto');
 
 const DEPLOY_SECRET = process.env.DEPLOY_SECRET || 'tickytech_autodeploy_key_8899';
+const webhookPaths = ['/api/webhook/deploy', '/api/webhook', '/webhook/deploy', '/webhook'];
 
-app.post('/api/webhook/deploy', (req, res) => {
+app.post(webhookPaths, (req, res) => {
+  const githubEvent = req.headers['x-github-event'];
   const queryToken = req.query.token;
   const headerToken = req.headers['x-deploy-token'];
   const githubSecret = req.headers['x-hub-signature-256'];
 
+  // Handle GitHub Ping event (sent when webhook is first created or tested)
+  if (githubEvent === 'ping') {
+    console.log('[Auto-Deploy] Received GitHub Ping event. Responding 200 OK.');
+    return res.status(200).json({
+      status: 'success',
+      message: 'GitHub webhook ping received successfully! TickyTech auto-deploy is active.',
+      zen: req.body?.zen
+    });
+  }
+
   let authorized = false;
   if (queryToken === DEPLOY_SECRET || headerToken === DEPLOY_SECRET) {
     authorized = true;
-  } else if (githubSecret && req.body) {
+  } else if (githubSecret) {
     try {
       const hmac = crypto.createHmac('sha256', DEPLOY_SECRET);
-      const digest = 'sha256=' + hmac.update(JSON.stringify(req.body)).digest('hex');
+      const payload = req.rawBody || JSON.stringify(req.body);
+      const digest = 'sha256=' + hmac.update(payload).digest('hex');
       if (crypto.timingSafeEqual(Buffer.from(githubSecret), Buffer.from(digest))) {
         authorized = true;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[Auto-Deploy] Signature check error:', e.message);
+    }
   }
 
   if (!authorized) {
+    console.warn('[Auto-Deploy] Unauthorized webhook attempt received.');
     return res.status(403).json({ error: 'Unauthorized: Invalid deploy secret token' });
   }
 
+  // Respond immediately so GitHub receives 200 OK without timeout
   res.json({
     status: 'success',
     message: 'Auto-deploy triggered! Server is pulling latest code from GitHub...',
     timestamp: new Date().toISOString()
   });
 
-  console.log('[Auto-Deploy] Triggered at:', new Date().toISOString());
-  exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
-    if (error) {
-      console.error('[Auto-Deploy Error]:', error.message);
-      return;
-    }
-    console.log('[Auto-Deploy stdout]:', stdout);
-    if (stderr) console.warn('[Auto-Deploy stderr]:', stderr);
-    console.log('[Auto-Deploy] Update complete and application reloaded successfully!');
-  });
+  console.log('[Auto-Deploy] Valid push event received. Running deploy script in background...');
+  // Delay slightly to ensure HTTP response finishes before PM2 reloads
+  setTimeout(() => {
+    exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[Auto-Deploy Error]:', error.message);
+        return;
+      }
+      console.log('[Auto-Deploy stdout]:', stdout);
+      if (stderr) console.warn('[Auto-Deploy stderr]:', stderr);
+      console.log('[Auto-Deploy] Update complete and application reloaded successfully!');
+    });
+  }, 1000);
 });
 
 // Quick GET browser test trigger for auto-deploy
-app.get('/api/webhook/deploy', (req, res) => {
+app.get(webhookPaths, (req, res) => {
   const token = req.query.token;
   if (token !== DEPLOY_SECRET) {
     return res.status(403).send(`
@@ -240,23 +265,23 @@ app.get('/api/webhook/deploy', (req, res) => {
     `);
   }
 
-  exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).send(`
-        <div style="font-family: sans-serif; padding: 2rem; color: #b91c1c;">
-          <h2>Deploy Gagal</h2>
-          <pre>${error.message}</pre>
-        </div>
-      `);
-    }
-    res.send(`
-      <div style="font-family: sans-serif; padding: 2rem; color: #047857;">
-        <h2>Auto-Deploy Berhasil! 🚀</h2>
-        <p>Kode terbaru dari GitHub berhasil ditarik dan server telah di-reload.</p>
-        <pre style="background: #f1f5f9; padding: 1rem; border-radius: 8px;">${stdout || 'Aplikasi up-to-date.'}</pre>
-      </div>
-    `);
-  });
+  res.send(`
+    <div style="font-family: sans-serif; padding: 2rem; color: #047857;">
+      <h2>Auto-Deploy Sedang Berjalan! 🚀</h2>
+      <p>Perintah <code>git pull</code> dan <code>pm2 reload all</code> sedang dijalankan di latar belakang.</p>
+    </div>
+  `);
+
+  setTimeout(() => {
+    exec('git pull origin main && npm install --production && pm2 reload all', { cwd: __dirname }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[Auto-Deploy GET Error]:', error.message);
+        return;
+      }
+      console.log('[Auto-Deploy GET stdout]:', stdout);
+      if (stderr) console.warn('[Auto-Deploy GET stderr]:', stderr);
+    });
+  }, 500);
 });
 
 // SPA Fallback routing
