@@ -114,6 +114,15 @@ async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS port_passes (
+        id VARCHAR(100) PRIMARY KEY,
+        pass_number VARCHAR(100) UNIQUE,
+        passenger_name VARCHAR(255),
+        fee NUMERIC DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS cloud_store_backup (
         key_name VARCHAR(100) PRIMARY KEY,
         data_json JSONB NOT NULL,
@@ -168,6 +177,25 @@ app.post('/api/sync', async (req, res) => {
 });
 
 // Full Cloud Restore API (Get all cloud data on load)
+app.get('/api/sync', async (req, res) => {
+  if (!pool) {
+    return res.status(200).json({ connected: false, data: {} });
+  }
+
+  try {
+    const result = await pool.query('SELECT key_name, data_json FROM cloud_store_backup');
+    const store = {};
+    result.rows.forEach(row => {
+      store[row.key_name] = row.data_json;
+    });
+    res.json({ connected: true, data: store });
+  } catch (err) {
+    console.error('[API /api/sync all error]:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Single key restore
 app.get('/api/sync/:key', async (req, res) => {
   if (!pool) {
     return res.status(404).json({ error: 'Database not connected' });
