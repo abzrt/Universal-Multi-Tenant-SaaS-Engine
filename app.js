@@ -193,6 +193,7 @@ const App = {
     if (brandHome) {
       brandHome.addEventListener('click', (e) => {
         e.preventDefault();
+        if (this.handleSecretDevLogoClick && this.handleSecretDevLogoClick(e)) return;
         this.switchView('weatherHome');
       });
 
@@ -1618,6 +1619,38 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('modalDevAdminAuth')?.classList.remove('show');
   },
 
+  handleSecretDevLogoClick(e) {
+    if (e && e._devClickHandled) return false;
+    if (e) e._devClickHandled = true;
+
+    if (!this._logoClickState) {
+      this._logoClickState = { count: 0, timer: null };
+    }
+    const state = this._logoClickState;
+    state.count++;
+    if (state.timer) clearTimeout(state.timer);
+
+    if (state.count >= 5) {
+      state.count = 0;
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      }
+      if (typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) {
+        this.switchView('devAdminDashboard');
+      } else {
+        this.openDevAdminModal();
+      }
+      return true;
+    }
+
+    state.timer = setTimeout(() => {
+      state.count = 0;
+    }, 2500);
+    return false;
+  },
+
   initDevAdminEvents() {
     if (this._devAdminEventsBound) return;
     this._devAdminEventsBound = true;
@@ -1635,30 +1668,24 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // 2. Hidden 5x Rapid Click on Brand Logo Wrap
-    let logoClickCount = 0;
-    let logoClickTimer = null;
     const brandWrap = document.getElementById('brandLogoWrap');
     if (brandWrap) {
-      brandWrap.addEventListener('click', () => {
-        logoClickCount++;
-        if (logoClickTimer) clearTimeout(logoClickTimer);
-        if (logoClickCount >= 5) {
-          logoClickCount = 0;
-          if (Store.isDevAdminLoggedIn()) {
-            this.switchView('devAdminDashboard');
-          } else {
-            this.openDevAdminModal();
-          }
-          return;
+      brandWrap.addEventListener('click', (e) => {
+        if (this.handleSecretDevLogoClick(e)) {
+          e.preventDefault();
+          e.stopPropagation();
         }
-        logoClickTimer = setTimeout(() => {
-          logoClickCount = 0;
-        }, 2200);
       });
     }
 
     document.getElementById('btnCloseDevAdminModal')?.addEventListener('click', () => this.closeDevAdminModal());
     document.getElementById('btnCancelDevAdminModal')?.addEventListener('click', () => this.closeDevAdminModal());
+    const modalDev = document.getElementById('modalDevAdminAuth');
+    if (modalDev) {
+      modalDev.addEventListener('click', (e) => {
+        if (e.target === modalDev) this.closeDevAdminModal();
+      });
+    }
 
     // Live 1-second interval for Google Authenticator TOTP countdown in modal
     setInterval(() => {
@@ -4234,6 +4261,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // Ticky Sidebar Collapse Toggle via Logo Perusahaan
     document.getElementById('tickyBrandHome')?.addEventListener('click', (e) => {
       e.preventDefault();
+      if (this.handleSecretDevLogoClick && this.handleSecretDevLogoClick(e)) return;
       document.getElementById('tickySidebar')?.classList.toggle('collapsed');
     });
 

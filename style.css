@@ -292,6 +292,7 @@ body.in-company-portal .dash-sidebar-nav {
   position: relative;
   perspective: 600px;
   cursor: pointer;
+  user-select: none;
 }
 
 .brand-logo-wrap {
