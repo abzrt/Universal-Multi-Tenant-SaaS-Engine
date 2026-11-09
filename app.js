@@ -8420,6 +8420,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         schedBookings.forEach(b => {
           occupiedCount += (b.passengers && b.passengers.length > 0) ? b.passengers.length : 1;
         });
+        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
         const totalCap = sch.quotaTotal || (v ? v.capacity : 150);
         const availCount = Math.max(0, totalCap - occupiedCount);
 
@@ -8432,7 +8434,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               🕒 ${sch.departTime} WITA • ${vName}
             </div>
             <div style="font-size: 0.68rem; color: #64748b; margin-top: 1px;">
-              ${formatRupiah(totalFare)} / Pax • <strong style="color: ${availCount > 0 ? '#16a34a' : '#dc2626'};">Sisa ${availCount} Seat</strong>
+              ${formatRupiah(totalFare)} / Pax • <strong style="color: ${availCount > 0 && !isUnlimited ? '#16a34a' : '#0284c7'};">${(isUnlimited || availCount === 0) ? 'Unlimited Seat' : `Sisa ${availCount} Seat`}</strong>
             </div>
           </div>
           <div>
@@ -12311,10 +12313,13 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
             const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
             const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
+            const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+            const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
             const booked = s.quotaBooked || 0;
             const total = s.quotaTotal || (v ? v.capacity : 250);
             const sisa = Math.max(0, total - booked);
-            const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [Sisa: ${sisa} Seat]`;
+            const sisaLabel = (isUnlimited || sisa === 0) ? 'Unlimited Seat' : `Sisa: ${sisa} Seat`;
+            const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${sisaLabel}]`;
             const opt = new Option(label, s.id);
             if (idx === 0) opt.selected = true;
             select.add(opt);
@@ -12333,10 +12338,13 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
         const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
         const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
+        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
         const booked = s.quotaBooked || 0;
         const total = s.quotaTotal || (v ? v.capacity : 250);
         const sisa = Math.max(0, total - booked);
-        const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [Sisa: ${sisa} Seat]`;
+        const sisaLabel = (isUnlimited || sisa === 0) ? 'Unlimited Seat' : `Sisa: ${sisa} Seat`;
+        const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${sisaLabel}]`;
         const opt = new Option(label, s.id);
         if (preselectedScheduleId && s.id === preselectedScheduleId) {
           opt.selected = true;
