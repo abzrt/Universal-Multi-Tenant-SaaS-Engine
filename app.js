@@ -1743,6 +1743,26 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       });
     }
 
+    const verifyDevDeletePass = () => {
+      const passInput = document.getElementById('devDeleteChoicePassInput');
+      const entered = passInput ? passInput.value : '';
+      const creds = Store.getDevAdminCredentials ? Store.getDevAdminCredentials() : null;
+      if (!entered) {
+        this.showToast('Proteksi Penghapusan', 'Masukkan password Admin Developer terlebih dahulu sebelum menghapus data.', 'warning');
+        passInput?.focus();
+        return false;
+      }
+      if (creds && entered !== creds.password) {
+        this.showToast('Password Developer Salah', 'Password otorisasi tidak sesuai. Penghapusan dibatalkan.', 'warning');
+        passInput?.focus();
+        return false;
+      }
+      if (Store.createAutoSnapshot) {
+        Store.createAutoSnapshot();
+      }
+      return true;
+    };
+
     document.getElementById('btnDevChoiceDeleteVessel')?.addEventListener('click', () => {
       const compId = this.devDeleteTargetCompId;
       if (!compId) return;
@@ -1755,13 +1775,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
 
       if (vessels.length === 1) {
+        if (!verifyDevDeletePass()) return;
         const v = vessels[0];
         if (confirm(`Hapus armada kapal "${v.name}" milik ${comp ? comp.name : compId}?\n\nPerusahaan tetap terdaftar dalam sistem, hanya data armada & jadwalnya yang dihapus.`)) {
           Store.deleteVessel(v.id);
           closeDevDeleteChoice();
           this.renderCompanyFilterChips();
           this.renderDevAdminDashboard();
-          this.showToast('Armada Dihapus', `Armada "${v.name}" berhasil dihapus dari sistem.`, 'warning');
+          this.showToast('Armada Dihapus', `Armada "${v.name}" berhasil dihapus (Snapshot backup otomatis tersimpan).`, 'warning');
         }
       } else {
         const sublist = document.getElementById('devDeleteChoiceVesselSublist');
@@ -1774,6 +1795,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('devDeleteChoiceVesselSublist')?.addEventListener('click', (e) => {
       const btn = e.target.closest('.btn-dev-delete-specific-vessel');
       if (!btn) return;
+      if (!verifyDevDeletePass()) return;
       const vId = btn.getAttribute('data-vessel-id');
       const vName = btn.getAttribute('data-vessel-name');
       const compId = this.devDeleteTargetCompId;
@@ -1783,13 +1805,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         closeDevDeleteChoice();
         this.renderCompanyFilterChips();
         this.renderDevAdminDashboard();
-        this.showToast('Armada Dihapus', `Armada "${vName}" berhasil dihapus dari sistem.`, 'warning');
+        this.showToast('Armada Dihapus', `Armada "${vName}" berhasil dihapus (Snapshot backup otomatis tersimpan).`, 'warning');
       }
     });
 
     document.getElementById('btnDevChoiceDeleteCompany')?.addEventListener('click', () => {
       const compId = this.devDeleteTargetCompId;
       if (!compId) return;
+      if (!verifyDevDeletePass()) return;
       const comp = Store.getCompanyById(compId);
       const compName = comp ? comp.name : compId;
       if (confirm(`PERINGATAN HAPUS PERUSAHAAN:\n\nYakin ingin menghapus seluruh akun perusahaan "${compName}"?\nSemua armada kapal, jadwal pelayaran, dan akses login terkait akan dihapus permanen.`)) {
@@ -1799,7 +1822,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         closeDevDeleteChoice();
         this.renderCompanyFilterChips();
         this.renderDevAdminDashboard();
-        this.showToast('Perusahaan Dihapus', `Perusahaan "${compName}" beserta seluruh datanya telah dihapus dari sistem.`, 'warning');
+        this.showToast('Perusahaan Dihapus', `Perusahaan "${compName}" dihapus (Snapshot backup otomatis tersimpan).`, 'warning');
       }
     });
 
@@ -1946,16 +1969,114 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Data Diperbarui', 'Data perusahaan dan transaksi harian berhasil dimuat ulang.');
     });
 
-    document.getElementById('btnClearAllDevDatabase')?.addEventListener('click', () => {
-      if (!confirm('PERINGATAN KERAS — HAPUS SEMUA DATABASE:\n\nApakah Anda yakin ingin menghapus & mengosongkan SELURUH database sistem (Perusahaan, Armada Kapal, Jadwal Pelayaran, Tiket/Transaksi & Kredensial Tersimpan)?\n\nTindakan ini akan mereset seluruh data secara permanen.')) {
+    // Menu Backup & Restore Database (Developer Mode)
+    const closeDevBackupModal = () => {
+      document.getElementById('modalDevBackupDatabase')?.classList.remove('show');
+    };
+    document.getElementById('btnOpenDevBackupModal')?.addEventListener('click', () => {
+      this.openDevBackupDatabaseModal();
+    });
+    document.getElementById('btnCloseDevBackupModal')?.addEventListener('click', closeDevBackupModal);
+    document.getElementById('btnCancelDevBackupModal')?.addEventListener('click', closeDevBackupModal);
+    document.getElementById('modalDevBackupDatabase')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modalDevBackupDatabase') closeDevBackupModal();
+    });
+
+    document.getElementById('btnDownloadDevDatabaseBackup')?.addEventListener('click', () => {
+      this.downloadDevDatabaseBackup();
+    });
+
+    document.getElementById('btnRestoreLastAutoSnapshot')?.addEventListener('click', () => {
+      const snap = Store.getAutoSnapshot ? Store.getAutoSnapshot() : null;
+      if (!snap || !snap.data) {
+        this.showToast('Snapshot Belum Tersedia', 'Belum ada snapshot otomatis yang tersimpan di perangkat ini.', 'info');
         return;
       }
+      const dtStr = snap.exportedAt ? new Date(snap.exportedAt).toLocaleString('id-ID') : '-';
+      if (!confirm(`Pulihkan database dari Snapshot Otomatis Terakhir (${dtStr})?\n\nIsi snapshot: ${(snap.data.companies || []).length} Perusahaan, ${(snap.data.vessels || []).length} Armada, ${(snap.data.schedules || []).length} Jadwal, ${(snap.data.bookings || []).length} Transaksi.`)) {
+        return;
+      }
+      if (Store.restoreDatabasePayload(snap)) {
+        closeDevBackupModal();
+        this.renderCompanyFilterChips();
+        this.renderDevAdminDashboard();
+        this.showToast('Database Dipulihkan', 'Seluruh data berhasil dipulihkan dari snapshot otomatis terakhir.');
+      }
+    });
+
+    document.getElementById('btnTriggerRestoreDatabaseFile')?.addEventListener('click', () => {
+      document.getElementById('inputRestoreDevDatabaseFile')?.click();
+    });
+
+    document.getElementById('inputRestoreDevDatabaseFile')?.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          const payload = parsed.data ? parsed : { data: parsed };
+          if (!payload.data || (!Array.isArray(payload.data.companies) && !Array.isArray(payload.data.vessels))) {
+            this.showToast('Format Tidak Valid', 'File JSON yang dipilih bukan format backup database yang valid.', 'warning');
+            return;
+          }
+          if (Store.createAutoSnapshot) Store.createAutoSnapshot();
+          if (Store.restoreDatabasePayload(payload)) {
+            closeDevBackupModal();
+            this.renderCompanyFilterChips();
+            this.renderDevAdminDashboard();
+            this.showToast('Backup Berhasil Dipulihkan', `Database berhasil dipulihkan dari file "${file.name}".`);
+          }
+        } catch (err) {
+          this.showToast('Gagal Membaca File', 'File JSON rusak atau tidak dapat dibaca.', 'warning');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Proteksi Keamanan Hapus Semua Database (Developer Mode)
+    const closeClearDbProt = () => {
+      document.getElementById('modalDevClearDbProtection')?.classList.remove('show');
+    };
+    document.getElementById('btnClearAllDevDatabase')?.addEventListener('click', () => {
+      this.openDevClearDbProtectionModal();
+    });
+    document.getElementById('btnCloseDevClearDbProtection')?.addEventListener('click', closeClearDbProt);
+    document.getElementById('btnCancelDevClearDbProtection')?.addEventListener('click', closeClearDbProt);
+    document.getElementById('modalDevClearDbProtection')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modalDevClearDbProtection') closeClearDbProt();
+    });
+
+    document.getElementById('btnBackupBeforeClearDb')?.addEventListener('click', () => {
+      this.downloadDevDatabaseBackup();
+    });
+
+    document.getElementById('formDevClearDbProtection')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const passVal = document.getElementById('devClearDbPassInput')?.value || '';
+      const confirmText = (document.getElementById('devClearDbConfirmInput')?.value || '').trim().toUpperCase();
+      const creds = Store.getDevAdminCredentials ? Store.getDevAdminCredentials() : null;
+
+      if (!creds || passVal !== creds.password) {
+        this.showToast('Password Developer Salah', 'Password Admin Developer tidak sesuai. Penghapusan database ditolak.', 'warning');
+        document.getElementById('devClearDbPassInput')?.focus();
+        return;
+      }
+      if (confirmText !== 'HAPUS DATABASE') {
+        this.showToast('Konfirmasi Tidak Sesuai', 'Ketik tepat kata kunci "HAPUS DATABASE" untuk melanjutkan.', 'warning');
+        document.getElementById('devClearDbConfirmInput')?.focus();
+        return;
+      }
+
       if (typeof Store !== 'undefined' && typeof Store.clearAllData === 'function') {
         Store.clearAllData();
       }
+      closeClearDbProt();
       this.renderCompanyFilterChips();
       this.renderDevAdminDashboard();
-      this.showToast('Database Dikosongkan', 'Seluruh database perusahaan, armada, jadwal, dan transaksi telah dihapus bersih.', 'warning');
+      this.showToast('Database Dikosongkan', 'Seluruh database telah dihapus bersih (Snapshot cadangan otomatis telah diamankan).', 'warning');
     });
 
     document.getElementById('btnLogoutDevAdmin')?.addEventListener('click', () => {
@@ -10207,6 +10328,8 @@ ${area.innerHTML}
     }
 
     this.devDeleteTargetCompId = compId;
+    const passInput = document.getElementById('devDeleteChoicePassInput');
+    if (passInput) passInput.value = '';
     const titleEl = document.getElementById('devDeleteChoiceModalTitle');
     const subEl = document.getElementById('devDeleteChoiceModalSubtitle');
     if (titleEl) titleEl.textContent = `Pilihan Hapus: ${comp.name}`;
@@ -10263,6 +10386,72 @@ ${area.innerHTML}
 
   closeDevDeleteChoiceModal() {
     document.getElementById('modalDevDeleteChoice')?.classList.remove('show');
+  },
+
+  openDevBackupDatabaseModal() {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const cCount = Store.getCompanies().length;
+    const vCount = Store.getVessels().length;
+    const sCount = Store.getSchedules().length;
+    const bCount = Store.getBookings().length;
+
+    const elC = document.getElementById('devBackupStatComp');
+    const elV = document.getElementById('devBackupStatVessel');
+    const elS = document.getElementById('devBackupStatSched');
+    const elB = document.getElementById('devBackupStatBook');
+    if (elC) elC.textContent = String(cCount);
+    if (elV) elV.textContent = String(vCount);
+    if (elS) elS.textContent = String(sCount);
+    if (elB) elB.textContent = String(bCount);
+
+    const snapInfo = document.getElementById('devBackupAutoSnapshotInfo');
+    const snap = Store.getAutoSnapshot ? Store.getAutoSnapshot() : null;
+    if (snapInfo) {
+      if (snap && snap.exportedAt) {
+        const dt = new Date(snap.exportedAt).toLocaleString('id-ID');
+        const sComp = (snap.data && snap.data.companies) ? snap.data.companies.length : 0;
+        const sVes = (snap.data && snap.data.vessels) ? snap.data.vessels.length : 0;
+        snapInfo.textContent = `Tersimpan: ${dt} (${sComp} Perusahaan, ${sVes} Armada)`;
+      } else {
+        snapInfo.textContent = 'Belum ada snapshot otomatis tersimpan';
+      }
+    }
+
+    document.getElementById('modalDevBackupDatabase')?.classList.add('show');
+  },
+
+  downloadDevDatabaseBackup() {
+    if (!Store.exportDatabasePayload) return;
+    const payload = Store.exportDatabasePayload();
+    if (Store.createAutoSnapshot) Store.createAutoSnapshot();
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateTag = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.href = url;
+    a.download = `tickytech-database-backup-${dateTag}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.showToast('Backup Database Diunduh', 'File cadangan seluruh database (.JSON) berhasil diunduh ke perangkat Anda.');
+  },
+
+  openDevClearDbProtectionModal() {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const passEl = document.getElementById('devClearDbPassInput');
+    const confEl = document.getElementById('devClearDbConfirmInput');
+    if (passEl) passEl.value = '';
+    if (confEl) confEl.value = '';
+    document.getElementById('modalDevClearDbProtection')?.classList.add('show');
+    setTimeout(() => passEl?.focus(), 80);
   },
 
   openDevEditCompanyModal(compId) {

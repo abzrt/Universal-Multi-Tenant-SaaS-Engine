@@ -1310,9 +1310,120 @@ const Store = {
     return list;
   },
 
+  // Ekspor seluruh data sistem ke objek backup JSON
+  exportDatabasePayload() {
+    let savedCreds = [];
+    try {
+      savedCreds = JSON.parse(localStorage.getItem('tech_saved_mitra_credentials_v1') || '[]');
+    } catch (_) {}
+    return {
+      app: 'Universal Ticketing SaaS - TickyTech',
+      version: '6.4',
+      exportedAt: new Date().toISOString(),
+      summary: {
+        companies: this.getCompanies().length,
+        vessels: this.getVessels().length,
+        schedules: this.getSchedules().length,
+        bookings: this.getBookings().length,
+        masterRoutes: this.getMasterRouteTariffs ? this.getMasterRouteTariffs().length : 0
+      },
+      data: {
+        companies: this.getCompanies(),
+        vessels: this.getVessels(),
+        schedules: this.getSchedules(),
+        bookings: this.getBookings(),
+        portPasses: this.getPortPasses ? this.getPortPasses() : [],
+        masterRouteTariffs: this.getMasterRouteTariffs ? this.getMasterRouteTariffs() : [],
+        ksopSettings: this.getKsopSettings ? this.getKsopSettings() : DEFAULT_KSOP_SETTINGS,
+        agents: this.getAgents ? this.getAgents() : [],
+        cargoRecords: this.getCargoRecords ? this.getCargoRecords() : [],
+        peakSeason: this.getPeakSeason ? this.getPeakSeason() : DEFAULT_PEAK_SEASON,
+        watchlist: this.getWatchlist ? this.getWatchlist() : [],
+        savedMitraCredentials: savedCreds
+      }
+    };
+  },
+
+  // Simpan snapshot cadangan otomatis sebelum penghapusan database
+  createAutoSnapshot() {
+    try {
+      const payload = this.exportDatabasePayload();
+      localStorage.setItem('tech_dev_last_snapshot_v1', JSON.stringify(payload));
+      return payload;
+    } catch (e) {
+      console.warn('Gagal membuat auto-snapshot:', e);
+      return null;
+    }
+  },
+
+  getAutoSnapshot() {
+    try {
+      const raw = localStorage.getItem('tech_dev_last_snapshot_v1');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  // Pulihkan (Restore) seluruh database dari objek backup JSON
+  restoreDatabasePayload(payload) {
+    if (!payload || !payload.data || typeof payload.data !== 'object') {
+      return false;
+    }
+    try {
+      const d = payload.data;
+      const companies = Array.isArray(d.companies) ? d.companies : [];
+      const vessels = Array.isArray(d.vessels) ? d.vessels : [];
+      const schedules = Array.isArray(d.schedules) ? d.schedules : [];
+      const bookings = Array.isArray(d.bookings) ? d.bookings : [];
+      const portPasses = Array.isArray(d.portPasses) ? d.portPasses : [];
+
+      localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(companies));
+      localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify(vessels));
+      localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify(schedules));
+      localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+      localStorage.setItem(STORAGE_KEYS.PORT_PASS, JSON.stringify(portPasses));
+
+      if (Array.isArray(d.masterRouteTariffs)) {
+        localStorage.setItem('tech_master_route_tariffs_v1', JSON.stringify(d.masterRouteTariffs));
+      }
+      if (d.ksopSettings) {
+        localStorage.setItem(STORAGE_KEYS.KSOP_SETTINGS, JSON.stringify(d.ksopSettings));
+      }
+      if (Array.isArray(d.agents)) {
+        localStorage.setItem(STORAGE_KEYS.AGENTS, JSON.stringify(d.agents));
+      }
+      if (Array.isArray(d.cargoRecords)) {
+        localStorage.setItem(STORAGE_KEYS.CARGO_RECORDS, JSON.stringify(d.cargoRecords));
+      }
+      if (d.peakSeason) {
+        localStorage.setItem(STORAGE_KEYS.PEAK_SEASON, JSON.stringify(d.peakSeason));
+      }
+      if (Array.isArray(d.watchlist)) {
+        localStorage.setItem(STORAGE_KEYS.IMMIGRATION_WATCHLIST, JSON.stringify(d.watchlist));
+      }
+      if (Array.isArray(d.savedMitraCredentials)) {
+        localStorage.setItem('tech_saved_mitra_credentials_v1', JSON.stringify(d.savedMitraCredentials));
+      }
+
+      this.syncCloud(STORAGE_KEYS.COMPANIES, companies);
+      this.syncCloud(STORAGE_KEYS.VESSELS, vessels);
+      this.syncCloud(STORAGE_KEYS.SCHEDULES, schedules);
+      this.syncCloud(STORAGE_KEYS.BOOKINGS, bookings);
+      this.syncCloud(STORAGE_KEYS.PORT_PASS, portPasses);
+      return true;
+    } catch (e) {
+      console.error('Gagal memulihkan database dari backup:', e);
+      return false;
+    }
+  },
+
   // Hapus semua data transaksi & master data di aplikasi
   clearAllData() {
     try {
+      // Buat auto-snapshot otomatis sebelum menghapus seluruh data
+      this.createAutoSnapshot();
+
       localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.VESSELS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify([]));

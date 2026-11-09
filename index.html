@@ -3178,7 +3178,10 @@
           <button type="button" id="btnRefreshDevAdmin" style="background: #1e293b; color: #e2e8f0; border: 1px solid #475569; height: 38px; padding: 0 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
             <span>🔄 Muat Ulang Data</span>
           </button>
-          <button type="button" id="btnClearAllDevDatabase" style="background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); height: 38px; padding: 0 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;" title="Kosongkan &amp; Reset Seluruh Database Sistem">
+          <button type="button" id="btnOpenDevBackupModal" style="background: rgba(16, 185, 129, 0.16); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); height: 38px; padding: 0 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;" title="Backup &amp; Restore Seluruh Database Sistem">
+            <span>💾 Backup Database</span>
+          </button>
+          <button type="button" id="btnClearAllDevDatabase" style="background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); height: 38px; padding: 0 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;" title="Kosongkan &amp; Reset Seluruh Database Sistem (Dilindungi Proteksi)">
             <span>🗑️ Hapus Semua Database</span>
           </button>
           <button type="button" id="btnLogoutDevAdmin" style="background: #ef4444; color: #ffffff; border: 1px solid #ef4444; height: 38px; padding: 0 1rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35); white-space: nowrap;">
@@ -5588,6 +5591,12 @@
         <button type="button" class="btn-close-x" id="btnCloseDevDeleteChoice" style="color: #94a3b8;">&times;</button>
       </div>
       <div style="padding: 1.25rem 0 0.5rem 0; display: flex; flex-direction: column; gap: 0.75rem;">
+        <!-- Proteksi Otorisasi Password Developer Sebelum Hapus -->
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 0.75rem 0.9rem;">
+          <label style="display: block; color: #fca5a5; font-size: 0.75rem; font-weight: 800; margin-bottom: 0.35rem;">🔒 Proteksi Keamanan: Masukkan Password Developer untuk Menghapus *</label>
+          <input type="password" id="devDeleteChoicePassInput" class="form-input" placeholder="Ketik password Admin Developer..." autocomplete="off" style="background: #0f172a !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+        </div>
+
         <!-- Pilihan 1: Hapus Armada Kapal -->
         <button type="button" id="btnDevChoiceDeleteVessel" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#f59e0b'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#162032';">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -5617,6 +5626,131 @@
       <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.75rem;">
         <button type="button" class="btn-cancel" id="btnCancelDevDeleteChoice" style="background: #1e293b; color: #cbd5e1; border-color: #334155; width: 100%;">Batal / Tutup</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Backup & Restore Database (Developer Mode) -->
+  <div class="modal-layer" id="modalDevBackupDatabase">
+    <div class="modal-window" style="max-width: 560px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem; background: rgba(16, 185, 129, 0.16); padding: 0.4rem; border-radius: 8px;">💾</span>
+          <div>
+            <h4 style="color: #34d399 !important; margin: 0; font-size: 1.05rem;">Backup &amp; Restore Database Sistem</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Cadangkan seluruh data perusahaan, armada, jadwal &amp; transaksi ke file JSON atau pulihkan kapan saja.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevBackupModal" style="color: #94a3b8;">&times;</button>
+      </div>
+
+      <div style="padding: 1rem 0 0.5rem 0; display: flex; flex-direction: column; gap: 0.85rem;">
+        <!-- Ringkasan Isi Database Saat Ini -->
+        <div style="background: #162032; border: 1px solid #334155; border-radius: 10px; padding: 0.85rem 1rem;">
+          <div style="font-size: 0.74rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 0.5rem;">📊 Ringkasan Data Aktif Saat Ini</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center;">
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.45rem;">
+              <div id="devBackupStatComp" style="font-size: 1.05rem; font-weight: 800; color: #f8fafc;">0</div>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Perusahaan</div>
+            </div>
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.45rem;">
+              <div id="devBackupStatVessel" style="font-size: 1.05rem; font-weight: 800; color: #38bdf8;">0</div>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Armada</div>
+            </div>
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.45rem;">
+              <div id="devBackupStatSched" style="font-size: 1.05rem; font-weight: 800; color: #a78bfa;">0</div>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Jadwal</div>
+            </div>
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.45rem;">
+              <div id="devBackupStatBook" style="font-size: 1.05rem; font-weight: 800; color: #34d399;">0</div>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Transaksi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu 1: Unduh File Backup JSON -->
+        <button type="button" id="btnDownloadDevDatabaseBackup" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(16, 185, 129, 0.2); padding: 0.4rem; border-radius: 8px;">⬇️</span>
+            <div>
+              <div style="color: #34d399; font-size: 0.9rem;">Unduh File Backup Database (.JSON)</div>
+              <div style="color: #cbd5e1; font-size: 0.72rem; font-weight: 400;">Simpan salinan lengkap seluruh database ke perangkat Anda</div>
+            </div>
+          </div>
+          <span style="color: #34d399; font-size: 1.1rem;">💾</span>
+        </button>
+
+        <!-- Menu 2: Pulihkan dari Snapshot Otomatis Terakhir -->
+        <button type="button" id="btnRestoreLastAutoSnapshot" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(56, 189, 248, 0.15); padding: 0.4rem; border-radius: 8px;">⏪</span>
+            <div>
+              <div style="color: #38bdf8; font-size: 0.88rem;">Pulihkan dari Snapshot Otomatis Terakhir</div>
+              <div id="devBackupAutoSnapshotInfo" style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;">Cadangan otomatis sebelum penghapusan terakhir</div>
+            </div>
+          </div>
+          <span style="color: #38bdf8; font-size: 1rem;">🔄</span>
+        </button>
+
+        <!-- Menu 3: Upload & Restore dari File Backup JSON -->
+        <div style="background: #162032; border: 1px solid #334155; border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+          <div>
+            <div style="color: #fbbf24; font-size: 0.86rem; font-weight: 700;">📂 Pulihkan (Restore) dari File Backup (.JSON)</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Unggah file backup JSON yang pernah Anda unduh sebelumnya</div>
+          </div>
+          <input type="file" id="inputRestoreDevDatabaseFile" accept=".json,application/json" style="display: none;">
+          <button type="button" id="btnTriggerRestoreDatabaseFile" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 8px; padding: 0.45rem 0.85rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;">
+            📤 Pilih File JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.75rem;">
+        <button type="button" class="btn-cancel" id="btnCancelDevBackupModal" style="background: #1e293b; color: #cbd5e1; border-color: #334155; width: 100%;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Proteksi Keamanan Hapus Semua Database (Developer Mode) -->
+  <div class="modal-layer" id="modalDevClearDbProtection">
+    <div class="modal-window" style="max-width: 520px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem; background: rgba(239, 68, 68, 0.2); padding: 0.4rem; border-radius: 8px;">🛡️</span>
+          <div>
+            <h4 style="color: #f87171 !important; margin: 0; font-size: 1.05rem;">Proteksi Penghapusan Seluruh Database</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Otorisasi keamanan berlapis sebelum mengosongkan seluruh data sistem.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevClearDbProtection" style="color: #94a3b8;">&times;</button>
+      </div>
+
+      <form id="formDevClearDbProtection" class="modal-content-form" style="padding-top: 0.9rem;">
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 0.75rem 0.9rem; margin-bottom: 0.85rem; font-size: 0.76rem; color: #fecaca; line-height: 1.45;">
+          ⚠️ <strong>Peringatan Keamanan:</strong> Tindakan ini akan menghapus seluruh data Perusahaan, Armada, Jadwal, dan Transaksi Tiket. Sistem otomatis membuat snapshot cadangan, namun sangat disarankan mengunduh file backup terlebih dahulu:
+          <div style="margin-top: 0.55rem;">
+            <button type="button" id="btnBackupBeforeClearDb" style="width: 100%; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 7px; padding: 0.42rem 0.75rem; font-size: 0.76rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+              <span>💾 Unduh Backup Database (.JSON) Terlebih Dahulu</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">1. Masukkan Password Admin Developer *</label>
+          <input type="password" id="devClearDbPassInput" class="form-input" placeholder="Masukkan password Developer untuk verifikasi" required autocomplete="off" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important;">
+        </div>
+
+        <div class="input-block">
+          <label style="color: #cbd5e1; font-size: 0.78rem; font-weight: 700;">2. Ketik Kata Kunci Konfirmasi: <code style="color: #f87171; background: rgba(239, 68, 68, 0.15); padding: 2px 6px; border-radius: 4px;">HAPUS DATABASE</code> *</label>
+          <input type="text" id="devClearDbConfirmInput" class="form-input" placeholder="Ketik: HAPUS DATABASE" required autocomplete="off" style="background: #1e293b !important; color: #f87171 !important; border-color: #334155 !important; font-family: monospace; font-weight: 800; letter-spacing: 1px;">
+        </div>
+
+        <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.6rem;">
+          <button type="button" class="btn-cancel" id="btnCancelDevClearDbProtection" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
+          <button type="submit" class="btn-submit-action" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); font-weight: 800;">
+            <span>🗑️ Verifikasi &amp; Hapus Semua Database</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -5999,7 +6133,7 @@
     </div>
   </div>
 
-  <script src="data-store.js?v=3.1"></script>
-  <script src="app.js?v=6.3"></script>
+  <script src="data-store.js?v=3.2"></script>
+  <script src="app.js?v=6.4"></script>
 </body>
 </html>
