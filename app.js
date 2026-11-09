@@ -2591,6 +2591,22 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const targetTicketPrice = isDom ? 690000 : 430000;
       const targetPortPass = isDom ? 30000 : 50000;
 
+      // Ambil data jadwal dari form pengaturan terpadu
+      const formOrigId = document.getElementById('devEditVesselSchedOrigin')?.value || 'NNK';
+      const formDestId = document.getElementById('devEditVesselSchedDest')?.value || targetDestId;
+      const formDepartDate = document.getElementById('devEditVesselSchedDate')?.value || new Date().toISOString().split('T')[0];
+      const formDepartTime = document.getElementById('devEditVesselSchedDepartTime')?.value || '09:00';
+      const formArrivalTime = document.getElementById('devEditVesselSchedArrivalTime')?.value || (isDom ? '17:30' : '10:30');
+      const formPier = document.getElementById('devEditVesselSchedPier')?.value || (isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP');
+      const formRecurrence = document.getElementById('devEditVesselSchedRecurrence')?.value || 'DAILY_WEEK';
+
+      const masterRoutes = (typeof Store !== 'undefined' && Store.getMasterRouteTariffs) ? Store.getMasterRouteTariffs() : [];
+      const rTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) ? Store.getMasterRouteTariff(formOrigId, formDestId) : null;
+      const effectiveTicketPrice = rTariff ? rTariff.ticketPrice : targetTicketPrice;
+      const effectivePortPass = rTariff ? rTariff.portPassFee : targetPortPass;
+      const effectiveOrigCity = rTariff ? (rTariff.originName || formOrigId) : 'Nunukan';
+      const effectiveDestCity = rTariff ? (rTariff.destinationName || formDestId) : targetDestCity;
+
       // Sinkronisasi data di jadwal terkait
       const schedules = Store.getSchedules();
       let schedChanged = false;
@@ -2606,18 +2622,23 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           s.seatCols = seatCols;
           s.seatColsLeft = seatColsLeft;
           s.seatColsRight = seatColsRight;
-          s.originId = 'NNK';
-          s.originCity = 'Nunukan';
-          s.destinationId = targetDestId;
-          s.destinationCity = targetDestCity;
-          s.categoryType = isDom ? 'DOMESTIC' : 'INTERNATIONAL';
-          s.priceEconomy = targetTicketPrice;
-          s.portPassFee = targetPortPass;
-          s.pier = isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP';
-          s.arrivalTime = isDom ? '17:30' : '10:30';
+          s.originId = formOrigId;
+          s.originCity = effectiveOrigCity;
+          s.destinationId = formDestId;
+          s.destinationCity = effectiveDestCity;
+          s.categoryType = (formDestId === 'TWU' || formOrigId === 'TWU') ? 'INTERNATIONAL' : 'DOMESTIC';
+          s.priceEconomy = effectiveTicketPrice;
+          s.portPassFee = effectivePortPass;
+          s.pier = formPier;
+          s.departTime = formDepartTime;
+          s.arrivalTime = formArrivalTime;
+          if (formDepartDate && (!s.departDate || s.departDate < formDepartDate)) {
+            s.departDate = formDepartDate;
+            s.date = formDepartDate;
+          }
           if (Array.isArray(s.classes) && s.classes.length > 0) {
             s.classes[0].quota = capacity;
-            s.classes[0].price = targetTicketPrice;
+            s.classes[0].price = effectiveTicketPrice;
             const booked = s.classes[0].booked || 0;
             s.classes[0].available = Math.max(0, capacity - booked);
           }
@@ -2631,22 +2652,22 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           companyId: compId,
           vesselId: vId,
           vesselNameCustom: vName,
-          originId: 'NNK',
-          destinationId: targetDestId,
-          originCity: 'Nunukan',
-          destinationCity: targetDestCity,
-          categoryType: isDom ? 'DOMESTIC' : 'INTERNATIONAL',
-          departTime: '09:00',
-          arrivalTime: isDom ? '17:30' : '10:30',
-          departDate: new Date().toISOString().split('T')[0],
-          date: new Date().toISOString().split('T')[0],
-          pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
-          priceEconomy: targetTicketPrice,
-          portPassFee: targetPortPass,
+          originId: formOrigId,
+          destinationId: formDestId,
+          originCity: effectiveOrigCity,
+          destinationCity: effectiveDestCity,
+          categoryType: (formDestId === 'TWU' || formOrigId === 'TWU') ? 'INTERNATIONAL' : 'DOMESTIC',
+          departTime: formDepartTime,
+          arrivalTime: formArrivalTime,
+          departDate: formDepartDate,
+          date: formDepartDate,
+          pier: formPier,
+          priceEconomy: effectiveTicketPrice,
+          portPassFee: effectivePortPass,
           quotaTotal: capacity,
           quotaBooked: 0,
           classes: [
-            { id: 'cls-eko', name: 'Tiket Reguler', price: targetTicketPrice, quota: capacity, available: capacity, booked: 0 }
+            { id: 'cls-eko', name: 'Tiket Reguler', price: effectiveTicketPrice, quota: capacity, available: capacity, booked: 0 }
           ],
           status: 'ACTIVE',
           isDefault: true
@@ -2654,6 +2675,55 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         Store.addSchedule(newSched);
       } else if (schedChanged) {
         Store.saveSchedules(schedules);
+      }
+
+      // Generate recurrent dates jika dipilih DAILY_WEEK atau DAILY_MONTH
+      if (formRecurrence === 'DAILY_WEEK' || formRecurrence === 'DAILY_MONTH') {
+        const startDate = new Date(formDepartDate);
+        let maxDays = formRecurrence === 'DAILY_WEEK' ? 7 : 30;
+        if (formRecurrence === 'DAILY_MONTH') {
+          const year = startDate.getFullYear();
+          const month = startDate.getMonth();
+          const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+          maxDays = Math.max(1, lastDayOfMonth - startDate.getDate() + 1);
+        }
+
+        const existingScheds = Store.getSchedules();
+        let addedRecurrent = 0;
+        for (let i = 1; i < maxDays; i++) {
+          const d = new Date(startDate);
+          d.setDate(d.getDate() + i);
+          const dStr = d.toISOString().split('T')[0];
+          const exists = existingScheds.some(s => (s.vesselId === vId || s.vesselNameCustom === vName) && (s.departDate === dStr || s.date === dStr));
+          if (!exists) {
+            Store.addSchedule({
+              id: `SCH-${Date.now().toString(36).toUpperCase()}-${i}`,
+              companyId: compId,
+              vesselId: vId,
+              vesselNameCustom: vName,
+              originId: formOrigId,
+              destinationId: formDestId,
+              originCity: effectiveOrigCity,
+              destinationCity: effectiveDestCity,
+              categoryType: (formDestId === 'TWU' || formOrigId === 'TWU') ? 'INTERNATIONAL' : 'DOMESTIC',
+              departTime: formDepartTime,
+              arrivalTime: formArrivalTime,
+              departDate: dStr,
+              date: dStr,
+              pier: formPier,
+              priceEconomy: effectiveTicketPrice,
+              portPassFee: effectivePortPass,
+              quotaTotal: capacity,
+              quotaBooked: 0,
+              classes: [
+                { id: 'cls-eko', name: 'Tiket Reguler', price: effectiveTicketPrice, quota: capacity, available: capacity, booked: 0 }
+              ],
+              status: 'ACTIVE',
+              isDefault: false
+            });
+            addedRecurrent++;
+          }
+        }
       }
 
       this.devSectionSelectedVesselId = vId;
@@ -10881,7 +10951,66 @@ ${area.innerHTML}
         ? vessel.facilities.join(', ')
         : '-';
     }
-    if (titleLabel) titleLabel.textContent = `Pengaturan Data & Dek Armada: ${vessel.name}`;
+    if (titleLabel) titleLabel.textContent = `Pengaturan Terpadu: ${vessel.name}`;
+
+    // Muat konfigurasi jadwal pelayaran untuk armada ini
+    const scheds = Store.getSchedules().filter(s => s.vesselId === vessel.id || s.vesselNameCustom === vessel.name);
+    const primarySched = scheds[0] || null;
+
+    const allPorts = (typeof MASTER_PORTS !== 'undefined' ? MASTER_PORTS.slice() : []);
+    const masterRoutes = (typeof Store !== 'undefined' && Store.getMasterRouteTariffs) ? Store.getMasterRouteTariffs() : [];
+    masterRoutes.forEach(r => {
+      if (r.originId && !allPorts.some(p => p.id === r.originId)) {
+        allPorts.push({ id: r.originId, name: r.originName || r.originId, city: r.originName || r.originId });
+      }
+      if (r.destinationId && !allPorts.some(p => p.id === r.destinationId)) {
+        allPorts.push({ id: r.destinationId, name: r.destinationName || r.destinationId, city: r.destinationName || r.destinationId });
+      }
+    });
+
+    const origSel = document.getElementById('devEditVesselSchedOrigin');
+    const destSel = document.getElementById('devEditVesselSchedDest');
+    if (origSel && destSel) {
+      origSel.innerHTML = '';
+      destSel.innerHTML = '';
+      allPorts.forEach(port => {
+        origSel.add(new Option(`${port.name} (${port.city})`, port.id));
+        destSel.add(new Option(`${port.name} (${port.city})`, port.id));
+      });
+      const isDom = (vessel.type || '').toLowerCase().includes('parepare') || (vessel.type || '').toLowerCase().includes('domestik');
+      origSel.value = (primarySched && primarySched.originId) || 'NNK';
+      destSel.value = (primarySched && primarySched.destinationId) || (isDom ? 'PRE' : 'TWU');
+    }
+
+    const schedDateInput = document.getElementById('devEditVesselSchedDate');
+    if (schedDateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      schedDateInput.min = today;
+      schedDateInput.value = (primarySched && (primarySched.departDate || primarySched.date)) || today;
+    }
+
+    const departTimeInput = document.getElementById('devEditVesselSchedDepartTime');
+    const arrTimeInput = document.getElementById('devEditVesselSchedArrivalTime');
+    const pierInput = document.getElementById('devEditVesselSchedPier');
+    if (departTimeInput) departTimeInput.value = (primarySched && primarySched.departTime) || '09:00';
+    if (arrTimeInput) arrTimeInput.value = (primarySched && primarySched.arrivalTime) || ((vessel.type || '').toLowerCase().includes('parepare') ? '17:30' : '10:30');
+    if (pierInput) pierInput.value = (primarySched && primarySched.pier) || ((vessel.type || '').toLowerCase().includes('parepare') ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP');
+
+    const syncVesselSchedTariffSummary = () => {
+      const oVal = origSel ? origSel.value : 'NNK';
+      const dVal = destSel ? destSel.value : 'TWU';
+      const isDestIntl = dVal === 'TWU' || oVal === 'TWU';
+      const rTariff = (typeof Store !== 'undefined' && Store.getMasterRouteTariff) ? Store.getMasterRouteTariff(oVal, dVal) : null;
+      const tPrice = rTariff ? rTariff.ticketPrice : (isDestIntl ? 430000 : 690000);
+      const pPass = rTariff ? rTariff.portPassFee : (isDestIntl ? 50000 : 30000);
+      const summEl = document.getElementById('devEditVesselSchedTariffSummary');
+      if (summEl) {
+        summEl.innerHTML = `<span>Tiket: ${formatRupiah(tPrice)}</span><span style="color:#38bdf8;">Pas: ${formatRupiah(pPass)}</span>`;
+      }
+    };
+    if (origSel) origSel.onchange = syncVesselSchedTariffSummary;
+    if (destSel) destSel.onchange = syncVesselSchedTariffSummary;
+    syncVesselSchedTariffSummary();
 
     // Muat konfigurasi baris vertikal & kolom horizontal terpadu
     const capVal = vessel.capacity || 150;

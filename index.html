@@ -5845,8 +5845,8 @@
         <div style="display: flex; align-items: center; gap: 0.65rem;">
           <span style="font-size: 1.4rem;">🛳️</span>
           <div>
-            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;" id="devEditVesselModalTitle">Pengaturan Data &amp; Dek Armada Kapal</h4>
-            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Ubah data kapal, nama deck, dan alokasi jumlah seat tiap deck untuk semua jenis armada dan rute.</p>
+            <h4 style="color: #ffffff !important; margin: 0; font-size: 1.05rem;" id="devEditVesselModalTitle">Pengaturan Terpadu: Armada Kapal, Seat/Dek &amp; Jadwal Pelayaran</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;">Kelola data kapal, denah kursi/seat, dek armada, dan jadwal pelayaran operasional dalam satu pintu.</p>
           </div>
         </div>
         <button type="button" class="btn-close-x" id="btnCloseDevEditVessel" style="color: #94a3b8;">&times;</button>
@@ -5990,10 +5990,74 @@
           </div>
         </div>
 
+        <!-- PENGATURAN JADWAL OPERASIONAL ARMADA (TERPADU: EDIT ARMADA, SEAT & JADWAL) -->
+        <div style="background: #162032; border: 1.5px solid #334155; border-radius: 12px; padding: 0.9rem 1rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+            <div style="font-size: 0.84rem; font-weight: 800; color: #34d399; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📅</span>
+              <span>Jadwal Pelayaran &amp; Jam Operasional Armada</span>
+            </div>
+            <span style="font-size: 0.68rem; color: #6ee7b7; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700;">Terpadu Otomatis</span>
+          </div>
+
+          <div class="form-row-2" style="margin-bottom: 0.6rem;">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Pelabuhan Asal *</label>
+              <select id="devEditVesselSchedOrigin" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+              </select>
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Pelabuhan Tujuan *</label>
+              <select id="devEditVesselSchedDest" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2" style="margin-bottom: 0.6rem;">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Tanggal Pelayaran Mulai *</label>
+              <input type="date" id="devEditVesselSchedDate" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Pola Keberangkatan</label>
+              <select id="devEditVesselSchedRecurrence" class="form-input" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+                <option value="DAILY_WEEK">Harian Selama 1 Minggu (7 Hari Berturut-turut)</option>
+                <option value="DAILY_MONTH">Harian Penuh s/d Akhir Bulan Ini</option>
+                <option value="ONCE">1 Kali Saja (Sesuai Tanggal)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Jam Berangkat *</label>
+              <input type="time" id="devEditVesselSchedDepartTime" class="form-input" value="09:00" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Estimasi Jam Tiba</label>
+              <input type="time" id="devEditVesselSchedArrivalTime" class="form-input" value="10:30" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+          </div>
+
+          <div class="form-row-2" style="margin-top: 0.6rem;">
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Dermaga / Pier</label>
+              <input type="text" id="devEditVesselSchedPier" class="form-input" value="Dermaga Utama KSOP" style="background: #1e293b !important; color: #ffffff !important; border-color: #334155 !important; font-size: 0.82rem;">
+            </div>
+            <div class="input-block">
+              <label style="color: #cbd5e1; font-size: 0.76rem; font-weight: 700;">Tarif Tiket &amp; Pas (Otomatis Master Rute)</label>
+              <div id="devEditVesselSchedTariffSummary" style="font-size: 0.75rem; color: #34d399; font-weight: 700; padding: 0.45rem 0.65rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                <span>Tiket: Rp 430.000</span>
+                <span style="color: #38bdf8;">Pas: Rp 50.000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
           <button type="button" class="btn-cancel" id="btnCancelDevEditVessel" style="background: #1e293b; color: #cbd5e1; border-color: #334155;">Batal</button>
           <button type="submit" class="btn-submit-action" id="btnSubmitDevEditVessel" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);">
-            <span>💾 Simpan Armada, Dek &amp; Seat</span>
+            <span>💾 Simpan Armada, Seat &amp; Jadwal</span>
           </button>
         </div>
       </form>
