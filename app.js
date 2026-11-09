@@ -1946,6 +1946,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Data Diperbarui', 'Data perusahaan dan transaksi harian berhasil dimuat ulang.');
     });
 
+    document.getElementById('btnClearAllDevDatabase')?.addEventListener('click', () => {
+      if (!confirm('PERINGATAN KERAS — HAPUS SEMUA DATABASE:\n\nApakah Anda yakin ingin menghapus & mengosongkan SELURUH database sistem (Perusahaan, Armada Kapal, Jadwal Pelayaran, Tiket/Transaksi & Kredensial Tersimpan)?\n\nTindakan ini akan mereset seluruh data secara permanen.')) {
+        return;
+      }
+      if (typeof Store !== 'undefined' && typeof Store.clearAllData === 'function') {
+        Store.clearAllData();
+      }
+      this.renderCompanyFilterChips();
+      this.renderDevAdminDashboard();
+      this.showToast('Database Dikosongkan', 'Seluruh database perusahaan, armada, jadwal, dan transaksi telah dihapus bersih.', 'warning');
+    });
+
     document.getElementById('btnLogoutDevAdmin')?.addEventListener('click', () => {
       Store.setDevAdminSession(false);
       document.body.classList.remove('in-dev-admin');

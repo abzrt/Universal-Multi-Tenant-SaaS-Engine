@@ -1325,6 +1325,19 @@ const Store = {
       localStorage.removeItem(STORAGE_KEYS.IMMIGRATION_WATCHLIST);
       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_COMPANY);
       localStorage.removeItem('tech_current_tenant_v5');
+      localStorage.removeItem('tech_saved_mitra_credentials_v1');
+      localStorage.removeItem('tech_route_decks_sulawesi_v1');
+      localStorage.removeItem('tech_route_decks_tawau_v1');
+
+      this.syncCloud(STORAGE_KEYS.COMPANIES, []);
+      this.syncCloud(STORAGE_KEYS.VESSELS, []);
+      this.syncCloud(STORAGE_KEYS.SCHEDULES, []);
+      this.syncCloud(STORAGE_KEYS.BOOKINGS, []);
+      this.syncCloud(STORAGE_KEYS.PORT_PASS, []);
+
+      if (typeof fetch === 'function') {
+        fetch('/api/sync', { method: 'DELETE' }).catch(function() {});
+      }
       return true;
     } catch (e) {
       console.error('Gagal menghapus data aplikasi:', e);

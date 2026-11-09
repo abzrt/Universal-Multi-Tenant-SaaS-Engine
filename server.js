@@ -240,6 +240,21 @@ app.get('/api/sync/:key', async (req, res) => {
   }
 });
 
+// Clear all cloud store backup & database tables (Developer Mode Reset)
+app.delete('/api/sync', async (req, res) => {
+  if (!pool) {
+    return res.status(200).json({ success: true, message: 'Local store mode, nothing to clear on server DB.' });
+  }
+
+  try {
+    await pool.query('TRUNCATE TABLE cloud_store_backup, passengers, bookings, schedules, vessels, companies, port_passes RESTART IDENTITY CASCADE');
+    res.json({ success: true, message: 'All cloud database tables cleared.' });
+  } catch (err) {
+    console.error('[API DELETE /api/sync error]:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // =======================================================
 // AUTO-DEPLOY WEBHOOK (GitHub -> Server Auto Sync)
 // =======================================================
