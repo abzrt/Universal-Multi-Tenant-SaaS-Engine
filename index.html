@@ -5722,6 +5722,59 @@
     </div>
   </div>
 
+  <!-- Modal Quick Actions Kelola Armada, Seat & Jadwal (Developer Mode) -->
+  <div class="modal-layer" id="modalDevQuickFleetMenu">
+    <div class="modal-window" style="max-width: 520px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem;">⛴️</span>
+          <div>
+            <h4 style="color: #38bdf8 !important; margin: 0; font-size: 1.05rem;" id="devQuickFleetModalTitle">Kelola Armada, Seat &amp; Jadwal</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;" id="devQuickFleetModalSubtitle">Pilih menu konfigurasi untuk perusahaan terpilih.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevQuickFleetMenu" style="color: #94a3b8;">&times;</button>
+      </div>
+      <div style="padding: 1.25rem 0 0.5rem 0; display: flex; flex-direction: column; gap: 0.75rem;">
+        <button type="button" id="btnQuickActionAddVessel" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#38bdf8'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#162032';">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(56, 189, 248, 0.15); padding: 0.4rem; border-radius: 8px;">⛴️</span>
+            <div>
+              <div style="color: #38bdf8; font-size: 0.9rem;">+ Tambah Armada Kapal Baru</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;">Daftarkan nama kapal, kapasitas penumpang &amp; tipe rute</div>
+            </div>
+          </div>
+          <span style="color: #38bdf8; font-size: 1.1rem;">➜</span>
+        </button>
+
+        <button type="button" id="btnQuickActionConfigSeat" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#c084fc'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#162032';">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(168, 85, 247, 0.15); padding: 0.4rem; border-radius: 8px;">💺</span>
+            <div>
+              <div style="color: #c084fc; font-size: 0.9rem;">+ Tambah / Atur Seat &amp; Dek Kursi</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;">Pengaturan kapasitas kursi, nama dek, baris &amp; visual peta kursi</div>
+            </div>
+          </div>
+          <span style="color: #c084fc; font-size: 1.1rem;">➜</span>
+        </button>
+
+        <button type="button" id="btnQuickActionAddSchedule" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#34d399'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#162032';">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(16, 185, 129, 0.15); padding: 0.4rem; border-radius: 8px;">📅</span>
+            <div>
+              <div style="color: #34d399; font-size: 0.9rem;">+ Tambah / Buka Jadwal Pelayaran</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;">Buka rute, tanggal, jam keberangkatan &amp; tarif tiket</div>
+            </div>
+          </div>
+          <span style="color: #34d399; font-size: 1.1rem;">➜</span>
+        </button>
+      </div>
+      <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.75rem;">
+        <button type="button" class="btn-cancel" id="btnCancelDevQuickFleetMenu" style="background: #1e293b; color: #cbd5e1; border-color: #334155; width: 100%;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Tambah Armada Kapal (Developer Mode) -->
   <div class="modal-layer" id="modalDevAddVessel">
     <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
