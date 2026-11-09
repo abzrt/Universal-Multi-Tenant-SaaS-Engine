@@ -3180,17 +3180,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                 <span style="font-size: 0.76rem; color: #cbd5e1; font-weight: 600;">${c.joinedDate || '-'}</span>
               </td>
               <td style="white-space: nowrap;">${fleetCellHtml}</td>
-              <td style="white-space: nowrap;">${statusBadgeHtml}</td>
-              <td style="text-align: right; white-space: nowrap;">
+              <td style="white-space: nowrap; text-align: right; padding-right: 0.14rem;">${statusBadgeHtml}</td>
+              <td style="text-align: right; white-space: nowrap; padding-left: 0.14rem;">
                 <div style="display: inline-flex; gap: 0.28rem; align-items: center; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap;">
-                  ${(isPending || isRejected) ? `
-                    <button type="button" class="btn-dev-approve-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #10b981; color: #ffffff; border: 1px solid #059669; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Setujui Akun Perusahaan">
-                      ✅
-                    </button>
-                  ` : ''}
                   ${isPending ? `
                     <button type="button" class="btn-dev-reject-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Tolak Pendaftaran Akun">
                       ❌
+                    </button>
+                  ` : ''}
+                  ${(isPending || isRejected) ? `
+                    <button type="button" class="btn-dev-approve-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #10b981; color: #ffffff; border: 1px solid #059669; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Setujui Akun Perusahaan">
+                      ✅
                     </button>
                   ` : ''}
                   ${isFrozen ? `
