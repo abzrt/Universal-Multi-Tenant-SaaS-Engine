@@ -2573,7 +2573,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const seatCols = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 6;
       const capacity = decks.length > 0
         ? decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0)
-        : (seatRows * seatCols);
+        : 0;
       const seatColsLeft = parseInt(document.getElementById('devEditVesselColsLeftInput')?.value, 10) || Math.ceil(seatCols / 2);
       const seatColsRight = parseInt(document.getElementById('devEditVesselColsRightInput')?.value, 10) || (seatCols - seatColsLeft);
 
@@ -2764,7 +2764,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       closeDevEditVes();
       this.renderDevAdminDashboard();
       this.renderDevSulawesiDeckSection();
-      this.showToast('Armada & Dek Diperbarui', `Perubahan data armada & ${decks.length} dek kapal "${vName}" (${capacity.toLocaleString('id-ID')} Kursi) berhasil disimpan.`);
+      const capMsg = decks.length > 0 ? `${capacity.toLocaleString('id-ID')} Kursi` : 'Unlimited Seat';
+      this.showToast('Armada & Dek Diperbarui', `Perubahan data armada & ${decks.length > 0 ? `${decks.length} dek` : 'mode tanpa dek'} kapal "${vName}" (${capMsg}) berhasil disimpan.`);
     });
 
     // ----------------- DEVELOPER MODE: PENGATURAN SEAT -----------------
@@ -3317,7 +3318,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                 const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
                 const paxCount = v.capacity || 0;
                 const dLabel = dCount > 0 ? `${dCount} Dek` : 'Tanpa Dek';
-                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dLabel})</span> ✏️</span>`;
+                const capLabel = dCount > 0 ? `${paxCount} Pax` : 'Unlimited Pax';
+                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${capLabel} • ${dLabel})</span> ✏️</span>`;
               }).join(' ')
             : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
@@ -3336,13 +3338,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
             const paxCount = v.capacity || 0;
             const dLabel = dCount > 0 ? `${dCount} Dek` : 'Tanpa Dek';
+            const capLabel = dCount > 0 ? `${paxCount} Pax` : 'Unlimited Pax';
             fleetCellHtml = `
               <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
                 <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8;">1 Armada • ${compSchedules.length} Jadwal</span>
                 <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); color: #2dd4bf; border-radius: 4px; padding: 0.1rem 0.35rem; font-size: 0.65rem; font-weight: 700; cursor: pointer;" title="Tambah armada lagi untuk ${c.name}">+ Tambah</button>
               </div>
               <div>
-                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dLabel})</span> ✏️</span>
+                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${capLabel} • ${dLabel})</span> ✏️</span>
               </div>
             `;
           } else {
@@ -6345,7 +6348,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
             <div class="dt-cell">
               <span class="lbl">Nomor Kursi (Seat)</span>
-              <span class="dt-seat-highlight">${t.seat}</span>
+              <span class="dt-seat-highlight">${(t.seat && t.seat !== '-') ? t.seat : 'Bebas (Non-Seat)'}</span>
               <span class="sub">${t.className}</span>
             </div>
 
@@ -6464,7 +6467,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
         <div class="th-seat-box">
           <span class="th-seat-lbl">NOMOR KURSI / SEAT</span>
-          <span class="th-seat-num">${t.seat}</span>
+          <span class="th-seat-num">${(t.seat && t.seat !== '-') ? t.seat : 'BEBAS (NON-SEAT)'}</span>
           <span style="font-size: 0.72rem; font-weight: 700; color: #000;">${t.className}</span>
         </div>
 
@@ -8157,6 +8160,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.showToast('Pilihan Dikosongkan', 'Seluruh pilihan kursi telah dibersihkan.', 'warning');
     });
 
+    // Tambah Penumpang Langsung Button (Mendukung mode Tanpa Dek / Bebas Kursi)
+    document.getElementById('btnTixAddPassengerRow')?.addEventListener('click', () => {
+      const tenant = Store.getCurrentTenant();
+      const schedules = tenant ? Store.getSchedulesByCompany(tenant.id) : [];
+      const activeSched = schedules.find(s => s.id === this.tixConsoleState.selectedScheduleId) || schedules[0];
+      const fleet = tenant ? Store.getVesselsByCompany(tenant.id) : [];
+      const vessel = activeSched ? (fleet.find(v => v.id === activeSched.vesselId) || fleet[0]) : fleet[0];
+      const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+      this.addPassengerEntry(isNoDeck);
+    });
+
     // Save Only Button (Save Ticket without immediate printing)
     document.getElementById('btnTixSaveOnly')?.addEventListener('click', () => {
       this.processFinalPosBookings(false);
@@ -8486,17 +8500,31 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (elTripFare) elTripFare.innerText = `${formatRupiah(totalFare)} (${formatRupiah(minPrice)} + Pas ${formatRupiah(passFee)})`;
 
     // 4. PILIH SEAT PENUMPANG (CHOOSE SEATS)
-    const vesselDecks = (vessel && Array.isArray(vessel.decks) && vessel.decks.length > 0)
+    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+
+    const vesselDecks = (!isNoDeck && vessel && Array.isArray(vessel.decks) && vessel.decks.length > 0)
       ? vessel.decks
-      : ((isSulawesi && Store.getSulawesiDecks)
-          ? Store.getSulawesiDecks()
-          : (Store.getRouteDecks ? Store.getRouteDecks(isSulawesi ? 'sulawesi' : 'tawau') : null));
+      : (isNoDeck
+          ? null
+          : ((isSulawesi && Store.getSulawesiDecks)
+              ? Store.getSulawesiDecks()
+              : (Store.getRouteDecks ? Store.getRouteDecks(isSulawesi ? 'sulawesi' : 'tawau') : null)));
 
     let deckName = 'Main Deck';
     let capacity = 150;
 
     const deckPillsWrap = document.getElementById('tixDeckSelectorPillsWrap');
-    if (vesselDecks && vesselDecks.length > 0) {
+    if (isNoDeck) {
+      deckName = 'Tanpa Dek';
+      capacity = 999999;
+      if (deckPillsWrap) {
+        deckPillsWrap.innerHTML = `
+          <span class="btn-deck-pill" style="background: rgba(2, 132, 199, 0.12); color: #0284c7; border: 1.5px solid #0284c7; border-radius: 6px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; cursor: default;">
+            🚢 Tanpa Dek (Bebas / Unlimited Seat)
+          </span>
+        `;
+      }
+    } else if (vesselDecks && vesselDecks.length > 0) {
       if (!this.tixConsoleState.selectedDeckCode || !vesselDecks.some(d => d.code === this.tixConsoleState.selectedDeckCode)) {
         this.tixConsoleState.selectedDeckCode = vesselDecks[0].code;
       }
@@ -8541,62 +8569,91 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     schedBookings.forEach(b => {
       const pArr = (b.passengers && b.passengers.length > 0) ? b.passengers : [{ seat: b.seatNumber }];
       pArr.forEach(p => {
-        if (p.seat) occupiedSeats.add(p.seat.toUpperCase().trim());
+        if (p.seat && p.seat !== '-') occupiedSeats.add(p.seat.toUpperCase().trim());
       });
     });
 
-    const availSeatsCount = Math.max(0, capacity - occupiedSeats.size);
     const elSeatAvailBadge = document.getElementById('tixSeatAvailBadge');
     if (elSeatAvailBadge) {
-      elSeatAvailBadge.innerText = `Tersedia: ${availSeatsCount} Kursi (${occupiedSeats.size} Terisi)`;
+      if (isNoDeck) {
+        elSeatAvailBadge.innerText = `Kapasitas: Bebas / Unlimited (${schedBookings.length} Penumpang Terdaftar)`;
+      } else {
+        const availSeatsCount = Math.max(0, capacity - occupiedSeats.size);
+        elSeatAvailBadge.innerText = `Tersedia: ${availSeatsCount} Kursi (${occupiedSeats.size} Terisi)`;
+      }
     }
 
     // Render Visual Seat Map Grid
     const seatGrid = document.getElementById('tixVisualSeatMapGrid');
     if (seatGrid) {
       seatGrid.innerHTML = '';
-      const getRowCode = (rIdx) => {
-        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-        if (rIdx < letters.length) return letters[rIdx];
-        const p1 = letters[Math.floor(rIdx / letters.length) - 1];
-        const p2 = letters[rIdx % letters.length];
-        return `${p1}${p2}`;
-      };
+      if (isNoDeck) {
+        seatGrid.style.display = 'block';
+        seatGrid.style.gridTemplateColumns = 'none';
+        seatGrid.innerHTML = `
+          <div style="text-align: center; padding: 1.8rem 1rem; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; color: #475569; width: 100%; box-sizing: border-box;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">🎟️</div>
+            <div style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 0.3rem;">
+              Armada Tanpa Dek (Kapasitas Kursi Bebas / Unlimited)
+            </div>
+            <p style="margin: 0 auto; font-size: 0.78rem; color: #64748b; max-width: 480px; line-height: 1.45;">
+              Armada ini beroperasi tanpa nomor kursi tertentu. Penumpang tidak memerlukan nomor kursi saat penerbitan tiket. Silakan klik tombol di bawah untuk menambah data penumpang langsung.
+            </p>
+            <div style="margin-top: 0.85rem;">
+              <button type="button" id="btnTixAddPaxNoDeckHero" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; padding: 0.45rem 1.15rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);">
+                ➕ Tambah Penumpang
+              </button>
+            </div>
+          </div>
+        `;
+        document.getElementById('btnTixAddPaxNoDeckHero')?.addEventListener('click', () => {
+          this.addPassengerEntry(true);
+        });
+      } else {
+        seatGrid.style.display = 'grid';
+        const getRowCode = (rIdx) => {
+          const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+          if (rIdx < letters.length) return letters[rIdx];
+          const p1 = letters[Math.floor(rIdx / letters.length) - 1];
+          const p2 = letters[rIdx % letters.length];
+          return `${p1}${p2}`;
+        };
 
-      const totalCols = (vessel && vessel.seatCols) ? vessel.seatCols : 6;
-      const totalRows = (vessel && vessel.seatRows) ? vessel.seatRows : Math.ceil(capacity / totalCols);
-      const colWidth = totalCols > 8 ? 28 : (totalCols > 6 ? 32 : 36);
-      seatGrid.style.gridTemplateColumns = `repeat(${totalCols}, ${colWidth}px)`;
-      seatGrid.style.justifyContent = 'center';
-      seatGrid.style.alignContent = 'start';
-      let count = 0;
-      for (let r = 0; r < totalRows; r++) {
-        if (count >= capacity) break;
-        const rCode = getRowCode(r);
-        for (let col = 1; col <= totalCols; col++) {
+        const totalCols = (vessel && vessel.seatCols) ? vessel.seatCols : 6;
+        const totalRows = (vessel && vessel.seatRows) ? vessel.seatRows : Math.ceil(capacity / totalCols);
+        const colWidth = totalCols > 8 ? 28 : (totalCols > 6 ? 32 : 36);
+        seatGrid.style.gridTemplateColumns = `repeat(${totalCols}, ${colWidth}px)`;
+        seatGrid.style.justifyContent = 'center';
+        seatGrid.style.alignContent = 'start';
+        let count = 0;
+        for (let r = 0; r < totalRows; r++) {
           if (count >= capacity) break;
-          count++;
-          const prefix = vesselDecks ? `${this.tixConsoleState.selectedDeckCode}-` : '';
-          const sCode = `${prefix}${rCode}-${String(col).padStart(2, '0')}`;
-          const isOcc = occupiedSeats.has(sCode);
-          const isSel = this.tixConsoleState.selectedSeats.includes(sCode);
+          const rCode = getRowCode(r);
+          for (let col = 1; col <= totalCols; col++) {
+            if (count >= capacity) break;
+            count++;
+            const prefix = vesselDecks ? `${this.tixConsoleState.selectedDeckCode}-` : '';
+            const sCode = `${prefix}${rCode}-${String(col).padStart(2, '0')}`;
+            const isOcc = occupiedSeats.has(sCode);
+            const isSel = this.tixConsoleState.selectedSeats.includes(sCode);
 
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = `tix-visual-seat-btn ${isOcc ? 'occupied' : (isSel ? 'selected' : 'available')}`;
-          btn.setAttribute('data-seat', sCode);
-          btn.title = isOcc ? `Kursi ${sCode} (Terisi/Booked)` : (isSel ? `Kursi ${sCode} (Dipilih)` : `Kursi ${sCode} (Klik untuk pilih)`);
-          if (isOcc) btn.disabled = true;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `tix-visual-seat-btn ${isOcc ? 'occupied' : (isSel ? 'selected' : 'available')}`;
+            btn.setAttribute('data-seat', sCode);
+            btn.title = isOcc ? `Kursi ${sCode} (Terisi/Booked)` : (isSel ? `Kursi ${sCode} (Dipilih)` : `Kursi ${sCode} (Klik untuk pilih)`);
+            if (isOcc) btn.disabled = true;
 
-          btn.innerText = `${rCode}-${String(col).padStart(2, '0')}`;
+            btn.innerText = `${rCode}-${String(col).padStart(2, '0')}`;
 
-          if (!isOcc) {
-            btn.addEventListener('click', () => {
-              this.toggleSeatSelection(sCode);
-            });
+            if (!isOcc) {
+              btn.addEventListener('click', () => {
+                this.toggleSeatSelection(sCode);
+              });
+            }
+
+            seatGrid.appendChild(btn);
           }
-
-          seatGrid.appendChild(btn);
         }
       }
     }
@@ -8612,6 +8669,35 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.initManualGridRows(3);
     } else {
       this.renderManualGridTable();
+    }
+  },
+
+  addPassengerEntry(isNoDeck = false) {
+    this.tixConsoleState.passengerEntries.push({
+      seat: isNoDeck ? '-' : '',
+      name: '',
+      docNum: '',
+      gender: 'L',
+      paxType: 'Dewasa',
+      nationality: 'ID',
+      phone: ''
+    });
+    this.renderTicketingConsole();
+    // Scroll ke baris terakhir
+    setTimeout(() => {
+      document.getElementById('tixPassengerRowsTbody')?.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  },
+
+  removePassengerEntry(index) {
+    if (index >= 0 && index < this.tixConsoleState.passengerEntries.length) {
+      const removed = this.tixConsoleState.passengerEntries[index];
+      if (removed && removed.seat && removed.seat !== '-') {
+        const sIdx = this.tixConsoleState.selectedSeats.indexOf(removed.seat);
+        if (sIdx !== -1) this.tixConsoleState.selectedSeats.splice(sIdx, 1);
+      }
+      this.tixConsoleState.passengerEntries.splice(index, 1);
+      this.renderTicketingConsole();
     }
   },
 
@@ -8649,24 +8735,33 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     tbody.innerHTML = '';
     const entries = this.tixConsoleState.passengerEntries;
+    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
 
     if (entries.length === 0) {
       tbody.innerHTML = `
         <tr>
           <td colspan="9" style="text-align: center; color: #94a3b8; padding: 2rem 1rem;">
-            👆 Silakan klik nomor kursi yang diinginkan pada <strong>Denah Kursi (Step 5)</strong> di atas untuk otomatis membuat entri penumpang.
+            ${isNoDeck
+              ? `Armada beroperasi tanpa pembagian dek & nomor kursi (Bebas / Unlimited). Klik tombol <button type="button" id="btnTixAddPaxEmptyState" style="background: #0284c7; color: #fff; border: none; padding: 0.25rem 0.65rem; border-radius: 4px; font-size: 0.74rem; font-weight: 700; cursor: pointer; margin-inline: 4px;">➕ Tambah Penumpang</button> untuk memasukkan data penumpang.`
+              : `👆 Silakan klik nomor kursi yang diinginkan pada <strong>Denah Kursi (Step 5)</strong> di atas untuk otomatis membuat entri penumpang.`}
           </td>
         </tr>
       `;
+      if (isNoDeck) {
+        document.getElementById('btnTixAddPaxEmptyState')?.addEventListener('click', () => {
+          this.addPassengerEntry(true);
+        });
+      }
     } else {
       entries.forEach((p, index) => {
         const tr = document.createElement('tr');
+        const isSeatless = isNoDeck || !p.seat || p.seat === '-';
         tr.innerHTML = `
           <td style="text-align: center; font-weight: 700; color: #64748b;">${index + 1}</td>
           <td>
-            <span class="tag-badge" style="background: #dcfce7; color: #166534; font-weight: 800; border: 1px solid #bbf7d0; font-size: 0.78rem;">
-              💺 ${p.seat}
-            </span>
+            ${isSeatless
+              ? `<span class="tag-badge" style="background: #f1f5f9; color: #64748b; font-weight: 700; border: 1px solid #cbd5e1; font-size: 0.78rem;">- (Bebas)</span>`
+              : `<span class="tag-badge" style="background: #dcfce7; color: #166534; font-weight: 800; border: 1px solid #bbf7d0; font-size: 0.78rem;">💺 ${p.seat}</span>`}
           </td>
           <td>
             <input type="text" class="form-input pax-in-name" placeholder="Nama Lengkap Penumpang..." value="${p.name || ''}" style="padding: 0.35rem 0.55rem; font-size: 0.8rem; font-weight: 600;">
@@ -8698,7 +8793,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             <input type="tel" class="form-input pax-in-phone" placeholder="08xxxxxxxxxx" value="${p.phone || ''}" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
           </td>
           <td style="text-align: center;">
-            <button type="button" class="btn-del-seat-row" style="color: #ef4444; border: none; background: transparent; cursor: pointer; font-size: 1.2rem; font-weight: 800; line-height: 1;" title="Batalkan Kursi ${p.seat}">
+            <button type="button" class="btn-del-seat-row" style="color: #ef4444; border: none; background: transparent; cursor: pointer; font-size: 1.2rem; font-weight: 800; line-height: 1;" title="Hapus Penumpang #${index + 1}">
               &times;
             </button>
           </td>
@@ -8713,7 +8808,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         tr.querySelector('.pax-in-phone')?.addEventListener('input', (e) => { p.phone = e.target.value; });
 
         tr.querySelector('.btn-del-seat-row')?.addEventListener('click', () => {
-          this.toggleSeatSelection(p.seat);
+          this.removePassengerEntry(index);
         });
 
         tbody.appendChild(tr);
@@ -8743,7 +8838,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (elBtnText) {
       elBtnText.innerText = count > 0
         ? `🖨️ Cetak Tiket (${count} Penumpang)`
-        : `🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)`;
+        : (isNoDeck ? `🖨️ Cetak Tiket (Tambah Penumpang Terlebih Dahulu)` : `🖨️ Cetak Tiket (Pilih Kursi Terlebih Dahulu)`);
     }
     const elBtnSaveOnlyText = document.getElementById('btnTixSaveOnlyText');
     if (elBtnSaveOnlyText) {
@@ -8767,6 +8862,18 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       return;
     }
 
+    const schedules = Store.getSchedulesByCompany(tenant.id);
+    const activeSched = schedules.find(s => s.id === this.tixConsoleState.selectedScheduleId) || schedules[0];
+    if (!activeSched) {
+      this.showToast('Jadwal Tidak Ditemukan', 'Pilih jadwal pelayaran aktif terlebih dahulu.', 'warning');
+      return;
+    }
+
+    const fleet = Store.getVesselsByCompany(tenant.id);
+    const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
+    const vesselName = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
+    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+
     let entries = this.tixConsoleState.passengerEntries;
     if ((!entries || entries.length === 0) && this.bulkState && this.bulkState.paxList && this.bulkState.paxList.length > 0) {
       entries = this.bulkState.paxList.map(p => ({
@@ -8781,33 +8888,27 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.tixConsoleState.passengerEntries = entries;
     }
     if (!entries || entries.length === 0) {
-      this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu nomor kursi pada denah visual untuk membuat entri penumpang.', 'warning');
+      if (isNoDeck) {
+        this.showToast('Belum Ada Penumpang', 'Klik tombol ➕ Tambah Penumpang untuk memasukkan data penumpang sebelum memproses tiket.', 'warning');
+      } else {
+        this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu nomor kursi pada denah visual untuk membuat entri penumpang.', 'warning');
+      }
       return;
     }
 
     // Validasi Kelengkapan Nama & NIK/Paspor
     for (let i = 0; i < entries.length; i++) {
       const p = entries[i];
+      const seatLabel = (p.seat && p.seat !== '-') ? `kursi ${p.seat}` : `penumpang #${i + 1}`;
       if (!p.name || !p.name.trim()) {
-        this.showToast('Data Belum Lengkap', `Nama lengkap penumpang pada kursi ${p.seat} wajib diisi!`, 'warning');
+        this.showToast('Data Belum Lengkap', `Nama lengkap ${seatLabel} wajib diisi!`, 'warning');
         return;
       }
       if (!p.docNum || !p.docNum.trim()) {
-        this.showToast('Data Belum Lengkap', `Nomor NIK / Paspor penumpang pada kursi ${p.seat} wajib diisi!`, 'warning');
+        this.showToast('Data Belum Lengkap', `Nomor NIK / Paspor ${seatLabel} wajib diisi!`, 'warning');
         return;
       }
     }
-
-    const schedules = Store.getSchedulesByCompany(tenant.id);
-    const activeSched = schedules.find(s => s.id === this.tixConsoleState.selectedScheduleId) || schedules[0];
-    if (!activeSched) {
-      this.showToast('Jadwal Tidak Ditemukan', 'Pilih jadwal pelayaran aktif terlebih dahulu.', 'warning');
-      return;
-    }
-
-    const fleet = Store.getVesselsByCompany(tenant.id);
-    const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
-    const vesselName = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
 
     // Cek duplikasi penumpang
     for (let i = 0; i < entries.length; i++) {
@@ -8850,7 +8951,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       nationality: p.nationality || 'ID',
       remark: 'POS Loket Resmi Interaktif',
       passportExp: '',
-      seat: p.seat,
+      seat: (isNoDeck || !p.seat) ? '-' : p.seat,
       className: 'Tiket Reguler'
     }));
 
@@ -8891,7 +8992,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Reset Pilihan Kursi & Entri Penumpang
     const totalPaxSuccess = entries.length;
-    const seatListSuccess = entries.map(e => e.seat).join(', ');
+    const seatListSuccess = isNoDeck ? 'Bebas (Non-Seat)' : entries.map(e => e.seat).join(', ');
     this.tixConsoleState.selectedSeats = [];
     this.tixConsoleState.passengerEntries = [];
     try { localStorage.removeItem('tech_single_draft_passengers_v1'); } catch (e) {}
@@ -8912,7 +9013,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
   saveSinglePassengerDraft() {
     const entries = this.tixConsoleState.passengerEntries || [];
     if (entries.length === 0) {
-      this.showToast('Pilih Kursi Terlebih Dahulu', 'Klik salah satu kursi pada denah visual sebelum menyimpan draft.', 'warning');
+      this.showToast('Data Masih Kosong', 'Tambahkan data penumpang terlebih dahulu sebelum menyimpan draft.', 'warning');
       return;
     }
     const data = {
@@ -11117,12 +11218,12 @@ ${area.innerHTML}
       tbody.innerHTML = `
         <tr id="rowDevEditVesselEmptyDecks">
           <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.35rem 1rem; font-size: 0.76rem; background: rgba(15, 23, 42, 0.45);">
-            <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.25rem;">
-              ⛴️ Mode Tanpa Dek Aktif (1 Kabin Utama)
+            <div style="font-size: 0.84rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.25rem;">
+              ⛴️ Mode Tanpa Dek Aktif (Kapasitas Bebas / Unlimited Seat)
             </div>
-            Armada ini beroperasi tanpa pembagian dek. Kapasitas kursi diatur langsung melalui konfigurasi Baris &times; Kolom kursi di atas.
+            Armada ini beroperasi tanpa pembagian dek dan tanpa nomor kursi tertentu (Kapasitas Bebas / Unlimited). Saat entri penumpang di loket, tiket diterbitkan tanpa nomor kursi.
             <div style="margin-top: 0.35rem; font-size: 0.72rem; color: #64748b;">
-              Jika ingin membagi kapal menjadi beberapa dek bertingkat (misal: Deck 1, Deck 2), klik tombol <strong>➕ Tambah Dek</strong>.
+              Jika ingin membagi kapal menjadi beberapa dek bertingkat dengan penomoran kursi, silakan klik tombol <strong>➕ Tambah Dek</strong> di atas.
             </div>
           </td>
         </tr>
@@ -11190,9 +11291,7 @@ ${area.innerHTML}
         }
       });
     } else {
-      const rowVal = parseInt(document.getElementById('devEditVesselRowsInput')?.value, 10) || 0;
-      const colVal = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 0;
-      totalSeats = rowVal * colVal;
+      totalSeats = 0;
     }
 
     const totalSeatsLabel = document.getElementById('devEditVesselTotalSeatsLabel');
@@ -11200,14 +11299,14 @@ ${area.innerHTML}
     const badgeLabel = document.getElementById('devEditVesselDeckCountBadge');
     const vesselCapInput = document.getElementById('devEditVesselCapacity');
 
-    if (totalSeatsLabel) totalSeatsLabel.textContent = `${totalSeats.toLocaleString('id-ID')} Pax`;
+    if (totalSeatsLabel) totalSeatsLabel.textContent = hasDecks ? `${totalSeats.toLocaleString('id-ID')} Pax` : 'Unlimited (Bebas)';
     if (totalDecksLabel) totalDecksLabel.textContent = hasDecks ? `(${rows.length} Dek)` : '(Tanpa Dek)';
     if (badgeLabel) {
       badgeLabel.textContent = hasDecks ? `${rows.length} Dek` : 'Tanpa Dek';
       badgeLabel.style.background = hasDecks ? 'rgba(56, 189, 248, 0.2)' : 'rgba(148, 163, 184, 0.2)';
       badgeLabel.style.color = hasDecks ? '#38bdf8' : '#cbd5e1';
     }
-    if (vesselCapInput) vesselCapInput.value = totalSeats;
+    if (vesselCapInput) vesselCapInput.value = hasDecks ? totalSeats : 0;
 
     // Sinkronkan baris vertikal otomatis jika menggunakan dek dan total kursi terakumulasi
     const colsInput = document.getElementById('devEditVesselColsInput');
@@ -11220,11 +11319,38 @@ ${area.innerHTML}
   },
 
   updateDevEditVesselSeatPreview() {
+    const tbody = document.getElementById('tbodyDevEditVesselDecks');
+    const isNoDeck = (tbody?.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)').length || 0) === 0;
+
     const rowsInput = document.getElementById('devEditVesselRowsInput');
     const colsInput = document.getElementById('devEditVesselColsInput');
     const colsLeftInput = document.getElementById('devEditVesselColsLeftInput');
     const colsRightInput = document.getElementById('devEditVesselColsRightInput');
     const capInput = document.getElementById('devEditVesselCapacity');
+
+    const badge = document.getElementById('devEditVesselSeatSummaryBadge');
+    const details = document.getElementById('devEditVesselPreviewDetails');
+    const miniGrid = document.getElementById('devEditVesselMiniGridPreview');
+
+    if (isNoDeck) {
+      if (badge) {
+        badge.textContent = 'Bebas / Unlimited (Tanpa Nomor Kursi)';
+      }
+      if (details) {
+        details.innerHTML = `
+          Mode Operasional: <strong style="color: #38bdf8;">Armada Tanpa Dek (Unlimited Seat)</strong><br>
+          Armada ini tidak menggunakan penomoran kursi. Pada saat penerbitan tiket dan entri penumpang di loket, penumpang masuk dengan kapasitas bebas tanpa nomor kursi.
+        `;
+      }
+      if (miniGrid) {
+        miniGrid.innerHTML = `
+          <div style="padding: 0.75rem; text-align: center; color: #94a3b8; font-size: 0.75rem;">
+            🎟️ Mode Tanpa Dek Aktif: Denah nomor kursi dinonaktifkan (Kapasitas Bebas / Unlimited).
+          </div>
+        `;
+      }
+      return;
+    }
 
     const cols = Math.max(2, parseInt(colsInput ? colsInput.value : 6, 10) || 6);
     const colsLeft = Math.max(1, parseInt(colsLeftInput ? colsLeftInput.value : Math.ceil(cols / 2), 10) || Math.ceil(cols / 2));
@@ -11245,12 +11371,10 @@ ${area.innerHTML}
     const firstRow = 'A';
     const lastRow = getRowCode(Math.max(0, rows - 1));
 
-    const badge = document.getElementById('devEditVesselSeatSummaryBadge');
     if (badge) {
       badge.textContent = `${rows} Baris Vertikal × ${effectiveCols} Kolom Horizontal`;
     }
 
-    const details = document.getElementById('devEditVesselPreviewDetails');
     if (details) {
       const leftRange = colsLeft === 1 ? '01' : `01 s/d ${String(colsLeft).padStart(2, '0')}`;
       const rightStart = colsLeft + 1;
@@ -11261,7 +11385,6 @@ ${area.innerHTML}
       `;
     }
 
-    const miniGrid = document.getElementById('devEditVesselMiniGridPreview');
     if (miniGrid) {
       const previewRowsCount = Math.min(3, rows);
       let rowsHtml = '';
