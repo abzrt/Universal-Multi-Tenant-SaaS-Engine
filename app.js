@@ -2100,118 +2100,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       Store.addCompany(newComp);
       this.saveMitraCredential(email, password, newComp);
 
-      // 2. Simpan Armada Kapal (Fitur 1)
-      const vName = (document.getElementById('devAddCompVesselName')?.value || `${shortName} 01`).trim();
-      const vReg = (document.getElementById('devAddCompVesselReg')?.value || `IMO-${code}-01`).trim();
-      const vType = document.getElementById('devAddCompVesselType')?.value || category;
-      const vCap = parseInt(document.getElementById('devAddCompSeatCapacity')?.value, 10) || (vType.toLowerCase().includes('parepare') ? 1084 : 185);
-      const vRows = parseInt(document.getElementById('devAddCompSeatRows')?.value, 10) || 31;
-      const vCols = parseInt(document.getElementById('devAddCompSeatCols')?.value, 10) || 6;
-      const vLeftCols = parseInt(document.getElementById('devAddCompSeatLeftCols')?.value, 10) || Math.floor(vCols / 2);
-      const vRightCols = parseInt(document.getElementById('devAddCompSeatRightCols')?.value, 10) || (vCols - vLeftCols);
-      const vDeckName = (document.getElementById('devAddCompSeatDeckName')?.value || (vType.toLowerCase().includes('parepare') ? 'DECK 2A' : 'Main Deck')).trim();
-      const vFac = (document.getElementById('devAddCompVesselFacilities')?.value || '-').split(',').map(s => s.trim()).filter(Boolean);
-
-      const initialDecks = [{
-        code: vDeckName.toUpperCase().replace(/\s+/g, '_'),
-        name: vDeckName,
-        carriage: vDeckName.toUpperCase(),
-        capacity: vCap,
-        percent: '100%',
-        range: `Kursi 1 s/d ${vCap}`,
-        desc: `${vDeckName} (${vCap} Kursi)`
-      }];
-
-      const newVessel = {
-        id: `VESSEL-${Date.now().toString(36).toUpperCase()}`,
-        companyId: newComp.id,
-        name: vName,
-        regNumber: vReg,
-        type: vType,
-        capacity: vCap,
-        seatRows: vRows,
-        seatCols: vCols,
-        seatLeftCols: vLeftCols,
-        seatRightCols: vRightCols,
-        deckName: vDeckName,
-        decks: initialDecks,
-        facilities: vFac.length > 0 ? vFac : ['-'],
-        status: 'ACTIVE',
-        isDefault: true
-      };
-      Store.addVessel(newVessel);
-
-      // 3. Simpan Jadwal Pelayaran (Fitur 2 & 3)
-      const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
-      const origId = document.getElementById('devAddCompOriginSelect')?.value || 'NNK';
-      const destId = document.getElementById('devAddCompDestSelect')?.value || (isDom ? 'PRE' : 'TWU');
-      const origCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === origId)?.city) || 'Nunukan';
-      const destCity = (typeof MASTER_PORTS !== 'undefined' && MASTER_PORTS.find(p => p.id === destId)?.city) || (destId === 'PRE' ? 'Parepare' : 'Tawau');
-      const depTime = document.getElementById('devAddCompDepartTime')?.value || '09:00';
-      const arrTime = document.getElementById('devAddCompArrivalTime')?.value || (destId === 'PRE' ? '17:30' : '10:30');
-      const pier = document.getElementById('devAddCompPierInput')?.value || (destId === 'PRE' ? 'Pelabuhan Tunon Taka (Dermaga Nusantara)' : 'Pelabuhan Tunon Taka International');
-      const priceEko = parseInt(document.getElementById('devAddCompPriceEko')?.value, 10) || (destId === 'PRE' ? 690000 : 430000);
-      const portPassFee = parseInt(document.getElementById('devAddCompPortPassPrice')?.value, 10) || (destId === 'PRE' ? 30000 : 50000);
-      const startDate = document.getElementById('devAddCompDateInput')?.value || new Date().toISOString().split('T')[0];
-      const recurrence = document.getElementById('devAddCompRecurrence')?.value || 'DAILY_MONTH';
-
-      const createSchedObj = (dStr) => ({
-        id: `SCH-${code}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`,
-        companyId: newComp.id,
-        vesselId: newVessel.id,
-        vesselNameCustom: newVessel.name,
-        originId,
-        destinationId: destId,
-        originCity,
-        destinationCity: destCity,
-        departDate: dStr,
-        date: dStr,
-        departTime: depTime,
-        arrivalTime: arrTime,
-        pier,
-        priceEconomy: priceEko,
-        portPassFee,
-        quotaTotal: vCap,
-        quotaBooked: 0,
-        categoryType: destId === 'PRE' ? 'DOMESTIC' : 'INTERNATIONAL',
-        classes: [
-          { id: 'cls-eko', name: 'Tiket Reguler', price: priceEko, quota: vCap, available: vCap, booked: 0 }
-        ],
-        status: 'ACTIVE',
-        isDefault: true
-      });
-
-      if (recurrence === 'ONCE') {
-        Store.addSchedule(createSchedObj(startDate));
-      } else if (recurrence === 'DAILY_WEEK') {
-        const start = new Date(startDate);
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(start);
-          d.setDate(d.getDate() + i);
-          const dStr = d.toISOString().split('T')[0];
-          Store.addSchedule(createSchedObj(dStr));
-        }
-      } else {
-        const start = new Date(startDate);
-        const y = start.getFullYear();
-        const m = start.getMonth();
-        const endDay = new Date(y, m + 1, 0).getDate();
-        for (let d = start.getDate(); d <= endDay; d++) {
-          const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          Store.addSchedule(createSchedObj(dStr));
-        }
-      }
-
-      Store.updateCompany(newComp.id, {
-        defaultVesselId: newVessel.id,
-        defaultCapacity: vCap
-      });
-
       closeDevAddComp();
       document.getElementById('formDevAddCompany')?.reset();
       this.renderCompanyFilterChips();
       this.renderDevAdminDashboard();
-      this.showToast('Perusahaan Terdaftar Lengkap', `"${name}" berhasil didaftarkan lengkap dengan armada "${vName}" (${vCap} Kursi) & jadwal aktif.`);
+      this.showToast('Perusahaan Terdaftar', `"${name}" berhasil didaftarkan. Klik kolom Daftar Armada Kapal pada tabel untuk mengatur armada, seat & jadwal.`);
     });
 
     // ----------------- DEVELOPER MODE: EDIT DATA PERUSAHAAN -----------------
@@ -2460,7 +2353,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     document.getElementById('formDevEditVessel')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const vId = document.getElementById('devEditVesselId')?.value;
+      let vId = document.getElementById('devEditVesselId')?.value;
       const compId = document.getElementById('devEditVesselCompanySelect')?.value;
       const vName = (document.getElementById('devEditVesselName')?.value || '').trim();
       const reg = (document.getElementById('devEditVesselReg')?.value || '').trim();
@@ -2468,7 +2361,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const facStr = (document.getElementById('devEditVesselFacilities')?.value || '').trim();
       const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['-'];
 
-      if (!vId || !compId || !vName || !reg) {
+      if (!compId || !vName || !reg) {
         this.showToast('Data Tidak Lengkap', 'Pilih perusahaan, isi nama armada dan nomor registrasi kapal.', 'warning');
         return;
       }
@@ -2477,27 +2370,52 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const decks = this.getDevEditVesselDecksFromTable();
       const capacity = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0) || (parseInt(document.getElementById('devEditVesselCapacity')?.value, 10) || 150);
 
-      const oldVessel = Store.getVessels().find(v => v.id === vId);
-      const oldName = oldVessel ? oldVessel.name : '';
-
       const seatRows = parseInt(document.getElementById('devEditVesselRowsInput')?.value, 10) || 25;
       const seatCols = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 6;
       const seatColsLeft = parseInt(document.getElementById('devEditVesselColsLeftInput')?.value, 10) || Math.ceil(seatCols / 2);
       const seatColsRight = parseInt(document.getElementById('devEditVesselColsRightInput')?.value, 10) || (seatCols - seatColsLeft);
 
-      Store.updateVessel(vId, {
-        companyId: compId,
-        name: vName,
-        regNumber: reg,
-        type: vType,
-        capacity: capacity,
-        facilities: facilities,
-        decks: decks,
-        seatRows: seatRows,
-        seatCols: seatCols,
-        seatColsLeft: seatColsLeft,
-        seatColsRight: seatColsRight
-      });
+      const isNewVessel = !vId;
+      const oldVessel = vId ? Store.getVessels().find(v => v.id === vId) : null;
+      const oldName = oldVessel ? oldVessel.name : '';
+
+      if (isNewVessel) {
+        vId = `VESSEL-${Date.now().toString(36).toUpperCase()}`;
+        Store.addVessel({
+          id: vId,
+          companyId: compId,
+          name: vName,
+          regNumber: reg,
+          type: vType,
+          capacity: capacity,
+          facilities: facilities,
+          decks: decks,
+          seatRows: seatRows,
+          seatCols: seatCols,
+          seatColsLeft: seatColsLeft,
+          seatColsRight: seatColsRight,
+          status: 'ACTIVE',
+          isDefault: true
+        });
+        Store.updateCompany(compId, {
+          defaultVesselId: vId,
+          defaultCapacity: capacity
+        });
+      } else {
+        Store.updateVessel(vId, {
+          companyId: compId,
+          name: vName,
+          regNumber: reg,
+          type: vType,
+          capacity: capacity,
+          facilities: facilities,
+          decks: decks,
+          seatRows: seatRows,
+          seatCols: seatCols,
+          seatColsLeft: seatColsLeft,
+          seatColsRight: seatColsRight
+        });
+      }
 
       const isDom = vType.toLowerCase().includes('parepare') || vType.toLowerCase().includes('domestik');
       const targetDestId = isDom ? 'PRE' : 'TWU';
@@ -3202,9 +3120,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                       ❄️
                     </button>
                   `}
-                  <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
-                    🔍
-                  </button>
                   <button type="button" class="btn-dev-delete-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Pilihan Hapus (Perusahaan atau Armada)">
                     🗑️
                   </button>
@@ -10251,11 +10166,11 @@ ${area.innerHTML}
     const seatBtnTitle = document.querySelector('#btnQuickActionConfigSeat div div:first-child');
     const seatBtnSub = document.querySelector('#btnQuickActionConfigSeat div div:last-child');
     if (compVessels.length > 0) {
-      if (seatBtnTitle) seatBtnTitle.innerHTML = `💺 Edit Data &amp; Denah Kursi: <span style="color:#ffffff;">${compVessels[0].name}</span>`;
-      if (seatBtnSub) seatBtnSub.textContent = `Pengaturan kapasitas, baris & denah kursi terpadu untuk armada ini`;
+      if (seatBtnTitle) seatBtnTitle.innerHTML = `⛴️💺 Kelola Armada, Seat &amp; Dek: <span style="color:#ffffff;">${compVessels[0].name}</span>`;
+      if (seatBtnSub) seatBtnSub.textContent = `Pengaturan terpadu data kapal, kapasitas, dek & baris-kolom kursi`;
     } else {
-      if (seatBtnTitle) seatBtnTitle.textContent = `💺 Tambah / Atur Seat & Dek Kursi`;
-      if (seatBtnSub) seatBtnSub.textContent = `Daftarkan armada terlebih dahulu sebelum mengatur denah kursi`;
+      if (seatBtnTitle) seatBtnTitle.textContent = `⛴️💺 Tambah Armada, Seat & Dek Kursi Baru`;
+      if (seatBtnSub) seatBtnSub.textContent = `Daftarkan armada kapal sekaligus atur dek & baris-kolom kursi dalam satu tempat`;
     }
 
     const modal = document.getElementById('modalDevQuickFleetMenu');
@@ -10637,31 +10552,65 @@ ${area.innerHTML}
       return;
     }
 
-    const sel = document.getElementById('devAddVesselCompanySelect');
+    const targetCompId = preselectedCompanyId || companies[0]?.id || '';
+    const targetComp = companies.find(c => c.id === targetCompId);
+    const isDom = ((targetComp && targetComp.category) || '').toLowerCase().includes('parepare') || ((targetComp && targetComp.category) || '').toLowerCase().includes('domestik');
+
+    const sel = document.getElementById('devEditVesselCompanySelect');
     if (sel) {
       sel.innerHTML = '';
       companies.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
         opt.textContent = `${c.name} (${c.code || c.id})`;
-        if (preselectedCompanyId && c.id === preselectedCompanyId) opt.selected = true;
+        if (targetCompId && c.id === targetCompId) opt.selected = true;
         sel.appendChild(opt);
       });
-      if (preselectedCompanyId && [...sel.options].some(o => o.value === preselectedCompanyId)) {
-        sel.value = preselectedCompanyId;
+      if (targetCompId && [...sel.options].some(o => o.value === targetCompId)) {
+        sel.value = targetCompId;
       }
     }
 
-    document.getElementById('formDevAddVessel')?.reset();
-    const capEl = document.getElementById('devAddVesselCapacity');
-    if (capEl) capEl.value = '150';
-    const facEl = document.getElementById('devAddVesselFacilities');
-    if (facEl) facEl.value = '-';
-    const chkEl = document.getElementById('devAddVesselMakeDefaultCheck');
-    if (chkEl) chkEl.checked = true;
+    const idInput = document.getElementById('devEditVesselId');
+    const nameInput = document.getElementById('devEditVesselName');
+    const regInput = document.getElementById('devEditVesselReg');
+    const typeSelect = document.getElementById('devEditVesselType');
+    const capInput = document.getElementById('devEditVesselCapacity');
+    const facInput = document.getElementById('devEditVesselFacilities');
+    const titleLabel = document.getElementById('devEditVesselModalTitle');
 
-    document.getElementById('modalDevAddVessel')?.classList.add('show');
-    setTimeout(() => document.getElementById('devAddVesselName')?.focus(), 80);
+    if (idInput) idInput.value = '';
+    if (nameInput) nameInput.value = '';
+    if (regInput) regInput.value = `IMO-${(targetComp && targetComp.code) || 'KPL'}-01`;
+    if (typeSelect) {
+      typeSelect.value = isDom
+        ? 'Kapal Penumpang Domestik (Nunukan - Parepare)'
+        : 'Kapal Penumpang Internasional (Nunukan - Tawau)';
+    }
+    if (capInput) capInput.value = isDom ? 1084 : 185;
+    if (facInput) facInput.value = 'AC, Toilet, Kafetaria, Bagasi';
+    if (titleLabel) titleLabel.textContent = `Tambah Armada, Dek & Seat Baru (${targetComp ? targetComp.name : 'Perusahaan'})`;
+
+    const rowsInput = document.getElementById('devEditVesselRowsInput');
+    const colsInput = document.getElementById('devEditVesselColsInput');
+    const colsLeftInput = document.getElementById('devEditVesselColsLeftInput');
+    const colsRightInput = document.getElementById('devEditVesselColsRightInput');
+    if (rowsInput) rowsInput.value = isDom ? 40 : 31;
+    if (colsInput) colsInput.value = isDom ? 8 : 6;
+    if (colsLeftInput) colsLeftInput.value = isDom ? 4 : 3;
+    if (colsRightInput) colsRightInput.value = isDom ? 4 : 3;
+
+    const initialDecks = isDom && Store.getDefaultSulawesiDecks
+      ? Store.getDefaultSulawesiDecks()
+      : [
+          { code: 'DECK 1', carriage: 'MAIN DECK', name: 'Main Deck', capacity: 125, desc: 'Dek Utama Reguler' },
+          { code: 'DECK 2', carriage: 'UPPER DECK', name: 'Upper Deck', capacity: 60, desc: 'Dek Atas Reguler' }
+        ];
+    this.renderDevEditVesselDecks(initialDecks);
+    this.updateDevEditVesselSeatPreview();
+
+    document.getElementById('modalDevEditVessel')?.classList.add('show');
+    setTimeout(() => nameInput?.focus(), 80);
   },
 
   openDevEditVesselModal(vesselId) {
