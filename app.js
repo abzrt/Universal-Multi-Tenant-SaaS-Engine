@@ -5333,23 +5333,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <button type="button" class="btn-action-sm btn-manage-crew" data-id="${v.id}" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 0.34rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;">
                 👨‍✈️ Daftar Crew (${crewArr.length})
               </button>
-              <button type="button" class="btn-action-sm btn-edit-vessel" data-id="${v.id}" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0284c7; padding: 0.34rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;">
-                ✏️ Edit
-              </button>
-              <button type="button" class="btn-action-sm btn-delete-vessel" data-id="${v.id}" style="background: #fef2f2; border: 1px solid #fecaca; color: #e11d48; padding: 0.34rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;">
-                🗑️ Hapus Armada
-              </button>
             </div>
           </td>
         `;
         tr.querySelector('.btn-manage-crew')?.addEventListener('click', () => {
           this.openVesselCrewModal(v.id);
-        });
-        tr.querySelector('.btn-edit-vessel')?.addEventListener('click', () => {
-          this.openEditVesselModal(v.id);
-        });
-        tr.querySelector('.btn-delete-vessel')?.addEventListener('click', () => {
-          this.openDeleteVesselModal(v.id, '', v.name);
         });
         tbodyFleet.appendChild(tr);
       });
@@ -5404,18 +5392,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           <td style="white-space: nowrap;"><span class="status-pill paid">${s.status || 'Aktif'}</span></td>
           <td style="white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap;">
-              <span style="background: #f8fafc; border: 1px solid #cbd5e1; color: #64748b; padding: 0.32rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap;" title="Harga tiket dan pas pelabuhan hanya dapat diubah oleh Admin Developer">
-                🔒 Tarif Resmi
+              <span style="background: #f8fafc; border: 1px solid #cbd5e1; color: #64748b; padding: 0.32rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap;" title="Jadwal dan tarif resmi armada hanya dapat diubah oleh Admin Developer">
+                🔒 Jadwal Resmi
               </span>
-              <button type="button" class="btn-action-sm btn-delete-sched-vessel" data-id="${s.id}" data-vessel-id="${s.vesselId || ''}" style="background: #fef2f2; border: 1px solid #fecaca; color: #e11d48; padding: 0.32rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;">
-                🗑️ Hapus Armada
-              </button>
             </div>
           </td>
         `;
-        tr.querySelector('.btn-delete-sched-vessel')?.addEventListener('click', () => {
-          this.openDeleteVesselModal(s.vesselId || '', s.id, vName);
-        });
         tbodySched.appendChild(tr);
       });
     }
