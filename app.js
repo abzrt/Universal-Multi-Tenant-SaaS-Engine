@@ -2461,14 +2461,26 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     document.getElementById('btnDevEditVesselAddDeckRow')?.addEventListener('click', () => {
       const tbody = document.getElementById('tbodyDevEditVesselDecks');
       if (!tbody) return;
-      const count = tbody.querySelectorAll('tr').length + 1;
       const currentDecks = this.getDevEditVesselDecksFromTable();
+      const count = currentDecks.length + 1;
       currentDecks.push({
         code: `DECK ${count}`,
         carriage: `DECK ${count}`,
         name: `Deck ${count}`,
         capacity: 100,
         desc: `Dek Penumpang Tambahan (${count})`
+      });
+      let genericIdx = 1;
+      currentDecks.forEach(d => {
+        if (/^DECK\s*\d*$/i.test(d.code || '') && /^Deck\s*\d*$/i.test(d.name || '')) {
+          d.code = `DECK ${genericIdx}`;
+          d.carriage = `DECK ${genericIdx}`;
+          d.name = `Deck ${genericIdx}`;
+          if (!d.desc || /^Dek Penumpang Tambahan/i.test(d.desc)) {
+            d.desc = `Dek Penumpang Tambahan (${genericIdx})`;
+          }
+          genericIdx++;
+        }
       });
       this.renderDevEditVesselDecks(currentDecks);
     });
@@ -11055,6 +11067,20 @@ ${area.innerHTML}
     const vesselDecks = (typeof Store !== 'undefined' && Store.getVesselDecks)
       ? Store.getVesselDecks(vessel)
       : (vessel.decks || []);
+    if (Array.isArray(vesselDecks) && vesselDecks.length > 0) {
+      let genericIdx = 1;
+      vesselDecks.forEach(d => {
+        if (/^DECK\s*\d*$/i.test(d.code || '') && /^Deck\s*\d*$/i.test(d.name || '')) {
+          d.code = `DECK ${genericIdx}`;
+          d.carriage = `DECK ${genericIdx}`;
+          d.name = `Deck ${genericIdx}`;
+          if (!d.desc || /^Dek Penumpang Tambahan/i.test(d.desc)) {
+            d.desc = `Dek Penumpang Tambahan (${genericIdx})`;
+          }
+          genericIdx++;
+        }
+      });
+    }
     this.renderDevEditVesselDecks(vesselDecks);
 
     document.getElementById('modalDevEditVessel')?.classList.add('show');
@@ -11098,16 +11124,24 @@ ${area.innerHTML}
       });
       tr.querySelector('.btn-dev-vessel-remove-deck')?.addEventListener('click', () => {
         tr.remove();
-        if (tbody.querySelectorAll('tr').length === 0) {
-          tbody.innerHTML = `
-            <tr id="rowDevEditVesselEmptyDecks">
-              <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem; font-size: 0.76rem;">
-                Belum ada dek ditambahkan untuk armada ini. Klik tombol <strong>➕ Tambah Dek</strong> di atas untuk mengatur nama dek dan jumlah kursi.
-              </td>
-            </tr>
-          `;
+        const currentDecks = this.getDevEditVesselDecksFromTable();
+        if (currentDecks.length === 0) {
+          this.renderDevEditVesselDecks([]);
+        } else {
+          let genericIdx = 1;
+          currentDecks.forEach(d => {
+            if (/^DECK\s*\d*$/i.test(d.code || '') && /^Deck\s*\d*$/i.test(d.name || '')) {
+              d.code = `DECK ${genericIdx}`;
+              d.carriage = `DECK ${genericIdx}`;
+              d.name = `Deck ${genericIdx}`;
+              if (!d.desc || /^Dek Penumpang Tambahan/i.test(d.desc)) {
+                d.desc = `Dek Penumpang Tambahan (${genericIdx})`;
+              }
+              genericIdx++;
+            }
+          });
+          this.renderDevEditVesselDecks(currentDecks);
         }
-        this.updateDevEditVesselCapacitySummary();
       });
     });
 
