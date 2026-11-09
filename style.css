@@ -202,16 +202,20 @@ body {
 }
 
 /* Sembunyikan Header Bar Global Begitu Masuk Portal Perusahaan */
+html.preload-company-portal body .enterprise-top-strip,
+html.preload-company-portal body .global-navbar,
 body.in-company-portal .enterprise-top-strip,
 body.in-company-portal .global-navbar {
   display: none !important;
 }
 
 /* Sesuaikan Warna Header Bar Global Saat Masuk Mode Developer */
+html.preload-dev-admin body,
 body.in-dev-admin {
   background-color: #0f172a !important;
 }
 
+html.preload-dev-admin body .global-navbar,
 body.in-dev-admin .global-navbar {
   background: #0f172a !important;
   border-bottom: 1px solid #1e293b !important;
@@ -498,6 +502,20 @@ body.in-company-portal .dash-sidebar-nav {
 
 .view-panel.active {
   display: block;
+}
+
+/* Preload state to eliminate flash of initial unauthenticated screen */
+html.preload-company-portal #viewWeatherHome,
+html.preload-dev-admin #viewWeatherHome {
+  display: none !important;
+}
+
+html.preload-company-portal #viewCompanyDashboard {
+  display: block !important;
+}
+
+html.preload-dev-admin #viewDevAdminDashboard {
+  display: block !important;
 }
 
 @keyframes fadeIn {

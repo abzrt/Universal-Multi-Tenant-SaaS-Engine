@@ -12,6 +12,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css?v=3.5">
+  <script>
+    (function() {
+      try {
+        var rawTenant = localStorage.getItem('tech_current_tenant_v6') || localStorage.getItem('tech_current_tenant_v5');
+        var devAdmin = sessionStorage.getItem('tech_dev_admin_session_v1') === 'ACTIVE';
+        var activeView = localStorage.getItem('ticky_active_view');
+        if (devAdmin) {
+          document.documentElement.classList.add('preload-dev-admin');
+        } else if (rawTenant && activeView !== 'weatherHome') {
+          document.documentElement.classList.add('preload-company-portal');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 

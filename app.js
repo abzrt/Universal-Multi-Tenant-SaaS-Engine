@@ -254,6 +254,7 @@ const App = {
     const btnComp = document.getElementById('btnModeCompany');
 
     if (viewName === 'weatherHome') {
+      document.documentElement.classList.remove('preload-company-portal', 'preload-dev-admin');
       document.body.classList.remove('in-company-portal');
       document.body.classList.remove('in-dev-admin');
       const weatherPanel = document.getElementById('viewWeatherHome');
@@ -264,8 +265,11 @@ const App = {
       const brandLogo = document.getElementById('brandLogoImg');
       if (brandLogo) brandLogo.src = 'assets/ferry_logo.png?v=6.0';
     } else if (viewName === 'companyAuth') {
+      document.documentElement.classList.remove('preload-company-portal', 'preload-dev-admin');
       this.openCompanyAuthModal();
     } else if (viewName === 'companyDashboard') {
+      document.documentElement.classList.remove('preload-dev-admin');
+      document.documentElement.classList.add('preload-company-portal');
       document.body.classList.add('in-company-portal');
       document.body.classList.remove('in-dev-admin');
       const dashPanel = document.getElementById('viewCompanyDashboard');
@@ -280,6 +284,8 @@ const App = {
       if (tickyLogo) tickyLogo.src = 'assets/ferry_logo.png?v=6.0';
     } else if (viewName === 'devAdminDashboard') {
       if (this.isCompanyPortalActive()) return;
+      document.documentElement.classList.remove('preload-company-portal');
+      document.documentElement.classList.add('preload-dev-admin');
       document.body.classList.remove('in-company-portal');
       document.body.classList.add('in-dev-admin');
       const devPanel = document.getElementById('viewDevAdminDashboard');
