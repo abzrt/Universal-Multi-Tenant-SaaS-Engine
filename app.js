@@ -10296,14 +10296,14 @@ ${area.innerHTML}
     if (subEl) subEl.textContent = `ID: ${comp.id} • Kode: ${comp.code || '-'} (${comp.category || 'Operator Pelayaran'})`;
 
     const compVessels = Store.getVessels().filter(v => v.companyId === compId);
-    const seatBtnTitle = document.querySelector('#btnQuickActionConfigSeat div div:first-child');
-    const seatBtnSub = document.querySelector('#btnQuickActionConfigSeat div div:last-child');
+    const seatBtnTitle = document.getElementById('devQuickActionSeatTitle');
+    const seatBtnSub = document.getElementById('devQuickActionSeatSub');
     if (compVessels.length > 0) {
       if (seatBtnTitle) seatBtnTitle.innerHTML = `⛴️💺 Kelola Armada, Seat &amp; Dek: <span style="color:#ffffff;">${compVessels[0].name}</span>`;
       if (seatBtnSub) seatBtnSub.textContent = `Pengaturan terpadu data kapal, kapasitas, dek & baris-kolom kursi`;
     } else {
-      if (seatBtnTitle) seatBtnTitle.textContent = `⛴️💺 Tambah Armada, Seat & Dek Kursi Baru`;
-      if (seatBtnSub) seatBtnSub.textContent = `Daftarkan armada kapal sekaligus atur dek & baris-kolom kursi dalam satu tempat`;
+      if (seatBtnTitle) seatBtnTitle.textContent = `⛴️💺 Kelola Armada, Seat & Dek Kursi`;
+      if (seatBtnSub) seatBtnSub.textContent = `Pengaturan terpadu data kapal, kapasitas, dek & baris-kolom kursi`;
     }
 
     const modal = document.getElementById('modalDevQuickFleetMenu');
@@ -10757,7 +10757,7 @@ ${area.innerHTML}
     const targetComp = companies.find(c => c.id === targetCompId);
     const isDom = ((targetComp && targetComp.category) || '').toLowerCase().includes('parepare') || ((targetComp && targetComp.category) || '').toLowerCase().includes('domestik');
 
-    const sel = document.getElementById('devEditVesselCompanySelect');
+    const sel = document.getElementById('devAddVesselCompanySelect');
     if (sel) {
       sel.innerHTML = '';
       companies.forEach(c => {
@@ -10772,15 +10772,12 @@ ${area.innerHTML}
       }
     }
 
-    const idInput = document.getElementById('devEditVesselId');
-    const nameInput = document.getElementById('devEditVesselName');
-    const regInput = document.getElementById('devEditVesselReg');
-    const typeSelect = document.getElementById('devEditVesselType');
-    const capInput = document.getElementById('devEditVesselCapacity');
-    const facInput = document.getElementById('devEditVesselFacilities');
-    const titleLabel = document.getElementById('devEditVesselModalTitle');
+    const nameInput = document.getElementById('devAddVesselName');
+    const regInput = document.getElementById('devAddVesselReg');
+    const typeSelect = document.getElementById('devAddVesselType');
+    const capInput = document.getElementById('devAddVesselCapacity');
+    const facInput = document.getElementById('devAddVesselFacilities');
 
-    if (idInput) idInput.value = '';
     if (nameInput) nameInput.value = '';
     if (regInput) regInput.value = `IMO-${(targetComp && targetComp.code) || 'KPL'}-01`;
     if (typeSelect) {
@@ -10790,27 +10787,8 @@ ${area.innerHTML}
     }
     if (capInput) capInput.value = isDom ? 1084 : 185;
     if (facInput) facInput.value = 'AC, Toilet, Kafetaria, Bagasi';
-    if (titleLabel) titleLabel.textContent = `Tambah Armada, Dek & Seat Baru (${targetComp ? targetComp.name : 'Perusahaan'})`;
 
-    const rowsInput = document.getElementById('devEditVesselRowsInput');
-    const colsInput = document.getElementById('devEditVesselColsInput');
-    const colsLeftInput = document.getElementById('devEditVesselColsLeftInput');
-    const colsRightInput = document.getElementById('devEditVesselColsRightInput');
-    if (rowsInput) rowsInput.value = isDom ? 40 : 31;
-    if (colsInput) colsInput.value = isDom ? 8 : 6;
-    if (colsLeftInput) colsLeftInput.value = isDom ? 4 : 3;
-    if (colsRightInput) colsRightInput.value = isDom ? 4 : 3;
-
-    const initialDecks = isDom && Store.getDefaultSulawesiDecks
-      ? Store.getDefaultSulawesiDecks()
-      : [
-          { code: 'DECK 1', carriage: 'MAIN DECK', name: 'Main Deck', capacity: 125, desc: 'Dek Utama Reguler' },
-          { code: 'DECK 2', carriage: 'UPPER DECK', name: 'Upper Deck', capacity: 60, desc: 'Dek Atas Reguler' }
-        ];
-    this.renderDevEditVesselDecks(initialDecks);
-    this.updateDevEditVesselSeatPreview();
-
-    document.getElementById('modalDevEditVessel')?.classList.add('show');
+    document.getElementById('modalDevAddVessel')?.classList.add('show');
     setTimeout(() => nameInput?.focus(), 80);
   },
 
