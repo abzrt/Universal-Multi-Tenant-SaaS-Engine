@@ -2359,9 +2359,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const vName = (document.getElementById('devAddVesselName')?.value || '').trim();
       const reg = (document.getElementById('devAddVesselReg')?.value || '').trim();
       const vType = document.getElementById('devAddVesselType')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
-      const capacity = parseInt(document.getElementById('devAddVesselCapacity')?.value, 10) || 150;
+      const capacity = 0;
       const facStr = (document.getElementById('devAddVesselFacilities')?.value || '').trim();
-      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['-'];
+      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const makeDefault = document.getElementById('devAddVesselMakeDefaultCheck')?.checked ?? true;
 
       if (!compId || !vName || !reg) {
@@ -3042,10 +3042,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // Auto update capacity saat memilih tipe rute di form tambah / edit kapal dev mode
-    document.getElementById('devAddVesselType')?.addEventListener('change', (e) => {
-      const isDom = e.target.value.includes('Parepare') || e.target.value.includes('Domestik');
+    document.getElementById('devAddVesselType')?.addEventListener('change', () => {
       const capEl = document.getElementById('devAddVesselCapacity');
-      if (capEl) capEl.value = isDom ? '1084' : '150';
+      if (capEl) capEl.value = '0 Kursi • 0 Dek';
     });
     document.getElementById('devEditVesselType')?.addEventListener('change', (e) => {
       const isDom = e.target.value.includes('Parepare') || e.target.value.includes('Domestik');
@@ -10902,8 +10901,8 @@ ${area.innerHTML}
         ? 'Kapal Penumpang Domestik (Nunukan - Parepare)'
         : 'Kapal Penumpang Internasional (Nunukan - Tawau)';
     }
-    if (capInput) capInput.value = isDom ? 1084 : 185;
-    if (facInput) facInput.value = 'AC, Toilet, Kafetaria, Bagasi';
+    if (capInput) capInput.value = '0 Kursi • 0 Dek';
+    if (facInput) facInput.value = '';
 
     document.getElementById('modalDevAddVessel')?.classList.add('show');
     setTimeout(() => nameInput?.focus(), 80);
