@@ -56,7 +56,27 @@ const App = {
     } else {
       const loggedInTenant = Store.getCurrentTenant();
       this.updateHeaderTenantUI(loggedInTenant);
-      this.switchView('weatherHome');
+      let savedView = 'weatherHome';
+      try {
+        savedView = localStorage.getItem('ticky_active_view') || (loggedInTenant ? 'companyDashboard' : 'weatherHome');
+      } catch (e) {
+        savedView = loggedInTenant ? 'companyDashboard' : 'weatherHome';
+      }
+      if (savedView === 'companyDashboard' && !loggedInTenant) {
+        savedView = 'weatherHome';
+      }
+      this.switchView(savedView);
+      if (savedView === 'companyDashboard') {
+        let savedTab = 'tabOverview';
+        try {
+          savedTab = localStorage.getItem('ticky_active_tab') || 'tabOverview';
+        } catch (e) {
+          savedTab = 'tabOverview';
+        }
+        if (savedTab && savedTab !== 'tabOverview') {
+          this.switchDashboardTab(savedTab);
+        }
+      }
     }
 
     this.renderCompanyAuthButtons();
@@ -224,6 +244,11 @@ const App = {
 
   switchView(viewName) {
     this.activeView = viewName;
+    try {
+      if (viewName === 'companyDashboard' || viewName === 'weatherHome') {
+        localStorage.setItem('ticky_active_view', viewName);
+      }
+    } catch (e) {}
     document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
 
     const btnComp = document.getElementById('btnModeCompany');
@@ -274,9 +299,13 @@ const App = {
       }
       localStorage.removeItem('tech_current_tenant_v6');
       localStorage.removeItem('tech_current_tenant_v5');
+      localStorage.removeItem('ticky_active_view');
+      localStorage.removeItem('ticky_active_tab');
     } catch (e) {
       localStorage.removeItem('tech_current_tenant_v6');
       localStorage.removeItem('tech_current_tenant_v5');
+      localStorage.removeItem('ticky_active_view');
+      localStorage.removeItem('ticky_active_tab');
     }
     this.updateHeaderTenantUI(null);
     document.body.classList.remove('in-company-portal');
@@ -4368,6 +4397,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
   // Helper function to switch tabs in company dashboard
   switchDashboardTab(tabKey, preserveGroupToggle = false) {
+    try {
+      if (tabKey) localStorage.setItem('ticky_active_tab', tabKey);
+    } catch (e) {}
     document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.dash-tab-btn').forEach(b => {
       if (b.getAttribute('data-tab') === tabKey) {
