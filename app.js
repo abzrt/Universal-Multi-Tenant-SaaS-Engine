@@ -3114,13 +3114,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           const isPending = !isFrozen && (c.approvalStatus === 'PENDING' || (c.verified === false && c.approvalStatus !== 'REJECTED'));
           const isRejected = !isFrozen && c.approvalStatus === 'REJECTED';
 
-          let statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; padding: 0.24rem 0.55rem; font-size: 0.7rem; background: rgba(16, 185, 129, 0.18); color: #34d399; border-color: rgba(16, 185, 129, 0.4); font-weight: 700;">✅ Disetujui (Aktif)</span>`;
+          let statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; font-size: 0.72rem; background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 6px; font-weight: 700;" title="Status: Disetujui (Aktif)">✅</span>`;
           if (isFrozen) {
-            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; padding: 0.24rem 0.55rem; font-size: 0.7rem; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border-color: rgba(56, 189, 248, 0.45); font-weight: 800;">❄️ Akun Dibekukan</span>`;
+            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 6px; font-weight: 800;" title="Status: Akun Dibekukan">❄️</span>`;
           } else if (isPending) {
-            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; padding: 0.24rem 0.55rem; font-size: 0.7rem; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.45); font-weight: 800;">⏳ Menunggu Approval</span>`;
+            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; font-size: 0.72rem; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 6px; font-weight: 800;" title="Status: Menunggu Approval">⏳</span>`;
           } else if (isRejected) {
-            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; padding: 0.24rem 0.55rem; font-size: 0.7rem; background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.45); font-weight: 700;">❌ Ditolak</span>`;
+            statusBadgeHtml = `<span class="tag-badge" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; font-size: 0.72rem; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 6px; font-weight: 700;" title="Status: Ditolak">❌</span>`;
           }
 
           const vesselNamesStr = compVessels.length > 0
@@ -3184,28 +3184,28 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <td style="text-align: right; white-space: nowrap;">
                 <div style="display: inline-flex; gap: 0.28rem; align-items: center; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap;">
                   ${(isPending || isRejected) ? `
-                    <button type="button" class="btn-dev-approve-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: #10b981; color: #ffffff; border: none; border-radius: 6px; padding: 0.28rem 0.52rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
-                      ✅ Setujui
+                    <button type="button" class="btn-dev-approve-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #10b981; color: #ffffff; border: 1px solid #059669; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Setujui Akun Perusahaan">
+                      ✅
                     </button>
                   ` : ''}
                   ${isPending ? `
-                    <button type="button" class="btn-dev-reject-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
-                      ❌ Tolak
+                    <button type="button" class="btn-dev-reject-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Tolak Pendaftaran Akun">
+                      ❌
                     </button>
                   ` : ''}
                   ${isFrozen ? `
-                    <button type="button" class="btn-dev-unfreeze-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 6px; padding: 0.28rem 0.52rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Aktifkan Kembali Akun Perusahaan">
-                      🔓 Buka Bekuan
+                    <button type="button" class="btn-dev-unfreeze-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Aktifkan Kembali Akun Perusahaan">
+                      🔓
                     </button>
                   ` : `
-                    <button type="button" class="btn-dev-freeze-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 6px; padding: 0.28rem 0.52rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Bekukan Sementara Akun Perusahaan">
-                      ❄️ Bekukan Akun
+                    <button type="button" class="btn-dev-freeze-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Bekukan Sementara Akun Perusahaan">
+                      ❄️
                     </button>
                   `}
-                  <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
-                    🔍 Transaksi
+                  <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
+                    🔍
                   </button>
-                  <button type="button" class="btn-dev-delete-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 0.28rem 0.45rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Pilihan Hapus (Perusahaan atau Armada)">
+                  <button type="button" class="btn-dev-delete-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Pilihan Hapus (Perusahaan atau Armada)">
                     🗑️
                   </button>
                 </div>
