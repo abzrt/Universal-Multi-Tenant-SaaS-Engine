@@ -4579,8 +4579,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       this.setTicketingEntryMode('SINGLE');
     }
     if (tabKey === 'tabSeats') {
-      document.getElementById('paneSeats')?.classList.add('active');
-      this.renderSeatDashboard();
+      this.switchDashboardTab('tabTicketing');
+      return;
     }
     if (tabKey === 'tabCalendar') {
       document.getElementById('paneCalendar')?.classList.add('active');
