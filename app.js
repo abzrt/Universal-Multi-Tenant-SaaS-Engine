@@ -3060,6 +3060,33 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               }).join(' ')
             : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
+          let fleetCellHtml = '';
+          if (compVessels.length === 0) {
+            fleetCellHtml = `
+              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-block; margin-bottom: 0.2rem; font-size: 0.73rem; font-weight: 700; color: #38bdf8; transition: all 0.15s;" onmouseover="this.style.textDecoration='underline'; this.style.color='#7dd3fc';" onmouseout="this.style.textDecoration='none'; this.style.color='#38bdf8';" title="Klik untuk menu kelola Armada, Seat/Dek & Jadwal ${c.name}">
+                0 Armada • 0 Jadwal
+              </div>
+              <div style="color: #64748b; font-size: 0.74rem; white-space: nowrap;">Belum ada armada</div>
+            `;
+          } else if (compVessels.length === 1) {
+            const v = compVessels[0];
+            const isSul = (v.type || '').toLowerCase().includes('parepare') || (v.type || '').toLowerCase().includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
+            const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
+            fleetCellHtml = `
+              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; font-weight: 700; color: #38bdf8; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 0.22rem 0.55rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#0f172a';" title="Klik untuk kelola armada, denah kursi & jadwal ${c.name}">
+                <span>⛴️ ${v.name} <span style="color: #94a3b8; font-weight: 600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> • 📅 ${compSchedules.length} Jadwal</span>
+                <span style="font-size: 0.65rem; color: #38bdf8;">⚙️</span>
+              </div>
+            `;
+          } else {
+            fleetCellHtml = `
+              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-block; margin-bottom: 0.2rem; font-size: 0.73rem; font-weight: 700; color: #38bdf8; transition: all 0.15s;" onmouseover="this.style.textDecoration='underline'; this.style.color='#7dd3fc';" onmouseout="this.style.textDecoration='none'; this.style.color='#38bdf8';" title="Klik untuk menu kelola Armada, Seat/Dek & Jadwal ${c.name}">
+                ${compVessels.length} Armada • ${compSchedules.length} Jadwal
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.2rem;">${vesselNamesStr}</div>
+            `;
+          }
+
           return `
             <tr style="background: #162032; color: #e2e8f0;">
               <td style="background: transparent;">
@@ -3081,12 +3108,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               <td style="white-space: nowrap;">
                 <span style="font-size: 0.76rem; color: #cbd5e1; font-weight: 600;">${c.joinedDate || '-'}</span>
               </td>
-              <td style="white-space: nowrap;">
-                <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-block; margin-bottom: 0.2rem; font-size: 0.73rem; font-weight: 700; color: #38bdf8; transition: all 0.15s;" onmouseover="this.style.textDecoration='underline'; this.style.color='#7dd3fc';" onmouseout="this.style.textDecoration='none'; this.style.color='#38bdf8';" title="Klik untuk menu kelola Armada, Seat/Dek & Jadwal ${c.name}">
-                  ${compVessels.length} Armada • ${compSchedules.length} Jadwal
-                </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.2rem;">${vesselNamesStr}</div>
-              </td>
+              <td style="white-space: nowrap;">${fleetCellHtml}</td>
               <td style="white-space: nowrap;">${statusBadgeHtml}</td>
               <td style="text-align: right; white-space: nowrap;">
                 <div style="display: inline-flex; gap: 0.28rem; align-items: center; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap;">
@@ -10158,6 +10180,17 @@ ${area.innerHTML}
     const subEl = document.getElementById('devQuickFleetModalSubtitle');
     if (titleEl) titleEl.textContent = `Kelola: ${comp.name}`;
     if (subEl) subEl.textContent = `ID: ${comp.id} • Kode: ${comp.code || '-'} (${comp.category || 'Operator Pelayaran'})`;
+
+    const compVessels = Store.getVessels().filter(v => v.companyId === compId);
+    const seatBtnTitle = document.querySelector('#btnQuickActionConfigSeat div div:first-child');
+    const seatBtnSub = document.querySelector('#btnQuickActionConfigSeat div div:last-child');
+    if (compVessels.length > 0) {
+      if (seatBtnTitle) seatBtnTitle.innerHTML = `💺 Edit Data &amp; Denah Kursi: <span style="color:#ffffff;">${compVessels[0].name}</span>`;
+      if (seatBtnSub) seatBtnSub.textContent = `Pengaturan kapasitas, baris & denah kursi terpadu untuk armada ini`;
+    } else {
+      if (seatBtnTitle) seatBtnTitle.textContent = `💺 Tambah / Atur Seat & Dek Kursi`;
+      if (seatBtnSub) seatBtnSub.textContent = `Daftarkan armada terlebih dahulu sebelum mengatur denah kursi`;
+    }
 
     const modal = document.getElementById('modalDevQuickFleetMenu');
     if (modal) {
