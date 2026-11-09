@@ -2376,7 +2376,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         name: vName,
         regNumber: reg,
         type: vType,
-        capacity: capacity,
+        capacity: 0,
+        decks: [],
+        seatRows: 0,
+        seatCols: 0,
         facilities: facilities,
         status: 'ACTIVE',
         isDefault: makeDefault
@@ -2410,10 +2413,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         pier: isDom ? 'Dermaga Nusantara Domestik' : 'Dermaga Utama KSOP',
         priceEconomy: ticketPrice,
         portPassFee: portPassPrice,
-        quotaTotal: capacity,
+        quotaTotal: 0,
         quotaBooked: 0,
         classes: [
-          { id: 'cls-eko', name: 'Tiket Reguler', price: ticketPrice, quota: capacity, available: capacity, booked: 0 }
+          { id: 'cls-eko', name: 'Tiket Reguler', price: ticketPrice, quota: 0, available: 0, booked: 0 }
         ],
         status: 'ACTIVE',
         isDefault: makeDefault
@@ -2424,14 +2427,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         Store.updateCompany(compId, {
           defaultVesselId: newVessel.id,
           defaultScheduleId: defaultSched.id,
-          defaultCapacity: capacity
+          defaultCapacity: 0
         });
       }
 
       closeDevAddVes();
       document.getElementById('formDevAddVessel')?.reset();
       this.renderDevAdminDashboard();
-      this.showToast('Armada Berhasil Ditambahkan', `Kapal "${vName}" (${capacity} Kursi) terdaftar di ${comp ? comp.name : 'Perusahaan'}. Otomatis jadi default saat login.`);
+      this.showToast('Armada Berhasil Ditambahkan', `Kapal "${vName}" (0 Pax • 0 Dek) berhasil terdaftar di ${comp ? comp.name : 'Perusahaan'}. Silakan klik nama kapal untuk mengatur dek, kapasitas kursi & jadwal.`);
     });
 
     // ----------------- DEVELOPER MODE: EDIT ARMADA -----------------
@@ -3281,9 +3284,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
           const vesselNamesStr = compVessels.length > 0
             ? compVessels.map(v => {
-                const isSul = (v.type || '').toLowerCase().includes('parepare') || (v.type || '').toLowerCase().includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
-                const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
-                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> ✏️</span>`;
+                const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
+                const paxCount = v.capacity || 0;
+                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dCount} Dek)</span> ✏️</span>`;
               }).join(' ')
             : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
@@ -3299,15 +3302,15 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             `;
           } else if (compVessels.length === 1) {
             const v = compVessels[0];
-            const isSul = (v.type || '').toLowerCase().includes('parepare') || (v.type || '').toLowerCase().includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
-            const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
+            const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
+            const paxCount = v.capacity || 0;
             fleetCellHtml = `
               <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
                 <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8;">1 Armada • ${compSchedules.length} Jadwal</span>
                 <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); color: #2dd4bf; border-radius: 4px; padding: 0.1rem 0.35rem; font-size: 0.65rem; font-weight: 700; cursor: pointer;" title="Tambah armada lagi untuk ${c.name}">+ Tambah</button>
               </div>
               <div>
-                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> ✏️</span>
+                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dCount} Dek)</span> ✏️</span>
               </div>
             `;
           } else {
