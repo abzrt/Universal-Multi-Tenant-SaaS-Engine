@@ -2530,7 +2530,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const reg = (document.getElementById('devEditVesselReg')?.value || '').trim();
       const vType = document.getElementById('devEditVesselType')?.value || 'Kapal Penumpang Internasional (Nunukan - Tawau)';
       const facStr = (document.getElementById('devEditVesselFacilities')?.value || '').trim();
-      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : ['-'];
+      const facilities = facStr ? facStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
       if (!compId || !vName || !reg) {
         this.showToast('Data Tidak Lengkap', 'Pilih perusahaan, isi nama armada dan nomor registrasi kapal.', 'warning');
@@ -10955,9 +10955,18 @@ ${area.innerHTML}
       capInput.value = vessel.capacity || 0;
     }
     if (facInput) {
-      facInput.value = (Array.isArray(vessel.facilities) && vessel.facilities.length > 0)
-        ? vessel.facilities.join(', ')
-        : '-';
+      let fList = [];
+      if (Array.isArray(vessel.facilities)) {
+        fList = vessel.facilities;
+      } else if (typeof vessel.facilities === 'string' && vessel.facilities.trim()) {
+        fList = vessel.facilities.split(',').map(s => s.trim());
+      }
+      fList = fList.map(s => String(s).trim()).filter(f => f && f !== '-');
+      const joined = fList.join(', ').toLowerCase();
+      if (joined === 'ac, toilet, kafetaria, bagasi') {
+        fList = [];
+      }
+      facInput.value = fList.join(', ');
     }
     if (titleLabel) titleLabel.textContent = `Pengaturan Terpadu: ${vessel.name}`;
 
