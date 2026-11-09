@@ -498,6 +498,29 @@ const Store = {
     return this.getVessels().filter(v => v.companyId === companyId);
   },
 
+  isVesselUnlimited(vesselIdOrObj) {
+    const v = typeof vesselIdOrObj === 'object' && vesselIdOrObj !== null
+      ? vesselIdOrObj
+      : this.getVessels().find(item => item.id === vesselIdOrObj);
+    if (!v) return false;
+    return Boolean(
+      (Array.isArray(v.decks) && v.decks.length === 0) ||
+      v.isNoDeck ||
+      v.capacity === 0 ||
+      v.capacity === '0'
+    );
+  },
+
+  isScheduleUnlimited(schedIdOrObj) {
+    const s = typeof schedIdOrObj === 'object' && schedIdOrObj !== null
+      ? schedIdOrObj
+      : (this.getScheduleById ? this.getScheduleById(schedIdOrObj) : this.getSchedules().find(item => item.id === schedIdOrObj));
+    if (!s) return false;
+    const v = this.getVessels().find(item => item.id === s.vesselId);
+    if (v && this.isVesselUnlimited(v)) return true;
+    return Boolean(s.capacity === 0 || s.capacity === '0' || s.quotaTotal === 0 || s.isUnlimited);
+  },
+
   deleteVessel(id) {
     const list = this.getVessels().filter(v => v.id !== id);
     this.saveVessels(list);

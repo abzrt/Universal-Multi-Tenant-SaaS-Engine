@@ -690,9 +690,11 @@ const App = {
         modalVesselSelect.innerHTML = `<option value="${sch.vesselId || ''}">🚢 ${vesselName}</option>`;
       } else {
         compFleet.forEach(fv => {
+          const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(fv) : Boolean((fv && Array.isArray(fv.decks) && fv.decks.length === 0) || (fv && fv.isNoDeck) || (fv && (fv.capacity === 0 || fv.capacity === '0')));
+          const capText = isUnl ? 'Unlimited Seat' : `${fv.capacity || 150} Kursi`;
           const opt = document.createElement('option');
           opt.value = fv.id;
-          opt.textContent = `🚢 ${fv.name} (${fv.capacity || 150} Kursi • ${fv.regNumber || 'Resmi'})`;
+          opt.textContent = `🚢 ${fv.name} (${capText} • ${fv.regNumber || 'Resmi'})`;
           if (fv.id === sch.vesselId || fv.name === vesselName) opt.selected = true;
           modalVesselSelect.appendChild(opt);
         });
@@ -712,13 +714,15 @@ const App = {
     if (modalVesselPills) {
       modalVesselPills.innerHTML = '';
       compFleet.forEach(fv => {
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(fv) : Boolean((fv && Array.isArray(fv.decks) && fv.decks.length === 0) || (fv && fv.isNoDeck) || (fv && (fv.capacity === 0 || fv.capacity === '0')));
+        const capText = isUnl ? 'Unlimited Seat' : `${fv.capacity || 150} Seat`;
         const isCurrent = (fv.id === sch.vesselId || fv.name === vesselName);
         const pill = document.createElement('button');
         pill.type = 'button';
         pill.style.cssText = isCurrent
           ? 'background: #0284c7; color: #ffffff; border: 1px solid #0284c7; padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; cursor: pointer;'
           : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; cursor: pointer;';
-        pill.textContent = `⚓ ${fv.name} (${fv.capacity || 150} Seat)`;
+        pill.textContent = `⚓ ${fv.name} (${capText})`;
         pill.addEventListener('click', () => {
           const matchedSched = compSchedules.find(s => s.vesselId === fv.id && s.originId === origPort.id && s.destinationId === destPort.id)
             || compSchedules.find(s => s.vesselId === fv.id)
@@ -889,6 +893,31 @@ const App = {
     if (!grid) return;
     grid.innerHTML = '';
 
+    // Ambil kapasitas armada kapal (menyesuaikan data penumpang kapal)
+    const { sch, comp } = this.currentBookingSchedule || {};
+    const fleet = comp ? Store.getVesselsByCompany(comp.id) : [];
+    const vessel = fleet.find(v => v.id === sch?.vesselId) || Store.getVessels().find(v => v.id === sch?.vesselId);
+    const isUnlimited = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
+
+    if (isUnlimited) {
+      if (deckName) deckName.innerText = 'Tanpa Dek (Bebas / Unlimited)';
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 1.75rem 1rem; text-align: center; background: #f0fdf4; border: 1.5px dashed #86efac; border-radius: 12px; margin: 0.5rem 0;">
+          <div style="font-size: 1.8rem; margin-bottom: 0.35rem;">🚢✨</div>
+          <strong style="color: #166534; font-size: 0.95rem; display: block;">Armada Berkonsep Tanpa Dek (Unlimited Seat)</strong>
+          <p style="color: #15803d; font-size: 0.8rem; margin: 0.35rem auto 0; max-width: 480px; line-height: 1.4;">
+            Tiket diterbitkan dengan sistem bebas kursi (Non-Seat). Penumpang bebas memilih posisi duduk yang nyaman di atas kapal saat berlayar.
+          </p>
+        </div>
+      `;
+      if (this.selectedSeats.length === 0) {
+        this.selectedSeats = ['-'];
+      }
+      return;
+    }
+
     if (deckName) deckName.innerText = 'Main Passenger Deck';
 
     // Deck Header: Hanya Ada Main Deck Sesuai Permintaan
@@ -897,12 +926,8 @@ const App = {
     deckHeader.innerText = '⚓ MAIN PASSENGER DECK (3 KURSI KIRI • LORONG • 3 KURSI KANAN)';
     grid.appendChild(deckHeader);
 
-    // Ambil kapasitas armada kapal (menyesuaikan data penumpang kapal)
-    const { sch, comp } = this.currentBookingSchedule || {};
     let capacity = 150;
     if (comp && sch) {
-      const fleet = Store.getVesselsByCompany(comp.id);
-      const vessel = fleet.find(v => v.id === sch.vesselId) || Store.getVessels().find(v => v.id === sch.vesselId);
       if (vessel && vessel.capacity) {
         capacity = parseInt(vessel.capacity, 10);
       } else if (sch.capacity) {
@@ -1016,7 +1041,7 @@ const App = {
     const seatCount = this.selectedSeats.length;
     const calcCount = Math.max(1, seatCount);
 
-    const { sch, origPort, destPort } = this.currentBookingSchedule || {};
+    const { sch, origPort, destPort, comp } = this.currentBookingSchedule || {};
     const isDom = origPort?.id === 'PRE' || destPort?.id === 'PRE' || (sch?.destinationId === 'PRE');
     const isIntl = !isDom && (origPort?.id === 'TWU' || destPort?.id === 'TWU');
     const isNunukanTawau = !isDom && ((origPort?.id === 'NNK' && destPort?.id === 'TWU') || (origPort?.id === 'TWU' && destPort?.id === 'NNK') || isIntl);
@@ -1072,7 +1097,16 @@ const App = {
 
     if (feeTotalEl) feeTotalEl.innerText = fmt(totalPayableIdr);
 
-    if (seatCount === 0) {
+    const fleet = comp ? Store.getVesselsByCompany(comp.id) : [];
+    const vessel = fleet.find(v => v.id === sch?.vesselId) || Store.getVessels().find(v => v.id === sch?.vesselId);
+    const isUnlimited = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
+
+    if (isUnlimited || this.selectedSeats.includes('-')) {
+      if (seatDisp) seatDisp.innerHTML = '<span class="tag-badge" style="background: #f0fdf4; color: #166534; border: 1px solid #86efac; font-weight: 700;">Bebas (Non-Seat)</span>';
+      if (priceDisp) priceDisp.innerText = fmt(totalPayableIdr);
+    } else if (seatCount === 0) {
       if (seatDisp) seatDisp.innerText = 'Belum dipilih (Klik nomor kursi di denah)';
       if (priceDisp) priceDisp.innerText = fmt(0);
     } else {
@@ -1084,7 +1118,17 @@ const App = {
   // Confirm Customer Payment & Generate E-Ticket
   confirmCustomerPayment() {
     if (!this.currentBookingSchedule) return;
-    if (this.selectedSeats.length === 0) {
+
+    const { sch, comp, vesselName, origPort, destPort } = this.currentBookingSchedule;
+    const fleet = comp ? Store.getVesselsByCompany(comp.id) : [];
+    const vessel = fleet.find(v => v.id === sch?.vesselId) || Store.getVessels().find(v => v.id === sch?.vesselId);
+    const isUnlimited = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
+
+    if (isUnlimited && (this.selectedSeats.length === 0 || !this.selectedSeats[0])) {
+      this.selectedSeats = ['-'];
+    } else if (!isUnlimited && this.selectedSeats.length === 0) {
       this.showToast('Pilih Kursi', 'Silakan pilih minimal 1 nomor kursi di denah kapal.', 'warning');
       return;
     }
@@ -1106,8 +1150,6 @@ const App = {
       this.showToast('Lengkapi Data', 'Nama lengkap dan nomor dokumen identitas wajib diisi.', 'warning');
       return;
     }
-
-    const { sch, comp, vesselName, origPort, destPort } = this.currentBookingSchedule;
 
     // Cek Data Penumpang Ganda pada Jadwal Ini
     const dupCheck = Store.checkDuplicatePassenger(paxName, sch.id);
@@ -1172,7 +1214,7 @@ const App = {
         nationality,
         remark,
         passportExp,
-        seat,
+        seat: isUnlimited ? '-' : seat,
         className: currentClass.name
       })),
       totalAmount,
@@ -5343,13 +5385,17 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       tbodyFleet.innerHTML = `<tr><td colspan="6" class="text-center text-dim" style="padding: 2rem;">Belum ada armada yang didaftarkan. Klik "Tambah Armada Baru" di atas.</td></tr>`;
     } else {
       fleet.forEach(v => {
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(v) : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
+        const capHtml = isUnl
+          ? '<span style="color: #0284c7; font-weight: 700; background: #f0f9ff; padding: 0.2rem 0.55rem; border-radius: 6px; border: 1px solid #bae6fd; font-size: 0.76rem; display: inline-flex; align-items: center; gap: 4px;">✨ Unlimited Seat (Tanpa Dek)</span>'
+          : `${v.capacity} Penumpang`;
         const crewArr = Array.isArray(v.crewList) ? v.crewList.filter(c => c && c.name && c.name.trim()) : [];
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${v.name}</strong></td>
           <td><code style="color: var(--primary-cyan);">${v.regNumber}</code></td>
           <td>${v.type}</td>
-          <td>${v.capacity} Penumpang</td>
+          <td>${capHtml}</td>
           <td><span class="status-pill paid">${v.status}</span></td>
           <td style="white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap;">
@@ -5497,9 +5543,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (tixVesselSelect) {
       tixVesselSelect.innerHTML = '';
       fleet.forEach(v => {
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(v) : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
         const opt = document.createElement('option');
         opt.value = v.id;
-        opt.textContent = `⚓ ${v.name} (${v.capacity || 150} Kursi)`;
+        opt.textContent = `⚓ ${v.name} (${isUnl ? 'Unlimited Seat' : `${v.capacity || 150} Kursi`})`;
         if (v.id === curTixVid) opt.selected = true;
         tixVesselSelect.appendChild(opt);
       });
@@ -5614,7 +5661,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                 <span style="width: 10px; height: 10px; border-radius: 50%; background: ${tenant.brandColor}; display: inline-block;"></span>
                 <div>
                   <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">🚢 ${vName}</div>
-                  <div style="font-size: 0.75rem; color: #64748b;">${currentVessel ? (currentVessel.capacity || 200) + ' Kursi' : 'Armada Aktif'} • ${sch.pier || 'Dermaga Utama'}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">${currentVessel ? (((typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(currentVessel) : Boolean((currentVessel.decks && currentVessel.decks.length === 0) || currentVessel.isNoDeck || currentVessel.capacity === 0)) ? 'Unlimited Seat (Tanpa Dek)' : (currentVessel.capacity || 200) + ' Kursi') : 'Armada Aktif'} • ${sch.pier || 'Dermaga Utama'}</div>
                 </div>
               </div>
 
@@ -5810,7 +5857,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         <td style="padding: 4px; font-size: 0.68rem; color: var(--text-dim); max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.remark || '-'}">${p.remark || '-'}</td>
         <td style="padding: 4px; white-space: nowrap;">
           <span style="font-size: 0.68rem; font-weight: 600; color: #334155;" title="${b.vesselName}">${(b.vesselName || '').replace('PT ', '').replace('Express', 'Exp.').slice(0, 14)}</span>
-          <strong style="color: #0284c7; font-size: 0.72rem; margin-left: 2px;">(${p.seat})</strong>
+          <strong style="color: #0284c7; font-size: 0.72rem; margin-left: 2px;">(${(!p.seat || p.seat === '-') ? 'Bebas' : p.seat})</strong>
         </td>
         <td style="padding: 4px; white-space: nowrap;">
           <span class="status-pill ${isBoarded ? 'boarded' : 'waiting'}" style="font-size: 0.62rem; padding: 1px 5px;">
@@ -7270,7 +7317,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const p = booking.passengers[paxIndex];
     document.getElementById('editManifestPnr').value = pnr;
     document.getElementById('editManifestPaxIndex').value = paxIndex;
-    document.getElementById('editManifestPnrLabel').innerText = `${pnr} (Kursi: ${p.seat})`;
+    const pSeatText = (!p.seat || p.seat === '-') ? 'Bebas' : p.seat;
+    document.getElementById('editManifestPnrLabel').innerText = `${pnr} (Kursi: ${pSeatText})`;
 
     const rawType = (p.paxType || p.type || 'Dewasa').toString().trim().toUpperCase();
     const normType = rawType.includes('ANAK') ? 'Anak' : (rawType.includes('BAYI') ? 'Bayi' : 'Dewasa');
@@ -8172,7 +8220,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       const activeSched = schedules.find(s => s.id === this.tixConsoleState.selectedScheduleId) || schedules[0];
       const fleet = tenant ? Store.getVesselsByCompany(tenant.id) : [];
       const vessel = activeSched ? (fleet.find(v => v.id === activeSched.vesselId) || fleet[0]) : fleet[0];
-      const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+      const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(vessel) : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
       this.addPassengerEntry(isNoDeck);
     });
 
@@ -8443,10 +8491,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         schedBookings.forEach(b => {
           occupiedCount += (b.passengers && b.passengers.length > 0) ? b.passengers.length : 1;
         });
-        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+          ? Store.isVesselUnlimited(v)
+          : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
         const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
         const totalCap = sch.quotaTotal || (v ? v.capacity : 150);
         const availCount = Math.max(0, totalCap - occupiedCount);
+        const seatAvailText = isUnlimited ? 'Unlimited Seat' : (availCount === 0 ? 'Habis (0 Seat)' : `Sisa ${availCount} Seat`);
 
         const card = document.createElement('div');
         card.className = `tix-time-card ${isAct ? 'active' : ''}`;
@@ -8457,7 +8508,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
               🕒 ${sch.departTime} WITA • ${vName}
             </div>
             <div style="font-size: 0.68rem; color: #64748b; margin-top: 1px;">
-              ${formatRupiah(totalFare)} / Pax • <strong style="color: ${availCount > 0 && !isUnlimited ? '#16a34a' : '#0284c7'};">${(isUnlimited || availCount === 0) ? 'Unlimited Seat' : `Sisa ${availCount} Seat`}</strong>
+              ${formatRupiah(totalFare)} / Pax • <strong style="color: ${availCount > 0 && !isUnlimited ? '#16a34a' : '#0284c7'};">${seatAvailText}</strong>
             </div>
           </div>
           <div>
@@ -8507,7 +8558,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     if (elTripFare) elTripFare.innerText = `${formatRupiah(totalFare)} (${formatRupiah(minPrice)} + Pas ${formatRupiah(passFee)})`;
 
     // 4. PILIH SEAT PENUMPANG (CHOOSE SEATS)
-    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+    const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
 
     const vesselDecks = (!isNoDeck && vessel && Array.isArray(vessel.decks) && vessel.decks.length > 0)
       ? vessel.decks
@@ -8742,7 +8795,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     tbody.innerHTML = '';
     const entries = this.tixConsoleState.passengerEntries;
-    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+    const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
 
     if (entries.length === 0) {
       tbody.innerHTML = `
@@ -8879,7 +8934,9 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     const fleet = Store.getVesselsByCompany(tenant.id);
     const vessel = fleet.find(v => v.id === activeSched.vesselId) || fleet[0];
     const vesselName = vessel ? vessel.name : (activeSched.vesselNameCustom || 'Armada Kapal');
-    const isNoDeck = Boolean(vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0);
+    const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
 
     let entries = this.tixConsoleState.passengerEntries;
     if ((!entries || entries.length === 0) && this.bulkState && this.bulkState.paxList && this.bulkState.paxList.length > 0) {
@@ -9116,7 +9173,8 @@ ${area.innerHTML}
         if (vesselSelect && fleet && fleet.length > 0) {
           vesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada (${fleet.length} Kapal)</option>`;
           fleet.forEach(fv => {
-            const opt = new Option(`🚢 ${fv.name} (${fv.capacity || 150} Kursi)`, fv.id);
+            const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(fv) : Boolean((fv && Array.isArray(fv.decks) && fv.decks.length === 0) || (fv && fv.isNoDeck) || (fv && (fv.capacity === 0 || fv.capacity === '0')));
+            const opt = new Option(`🚢 ${fv.name} (${isUnl ? 'Unlimited Seat' : `${fv.capacity || 150} Kursi`})`, fv.id);
             vesselSelect.add(opt);
           });
           if (this.selectedTicketingVessel && this.selectedTicketingVessel !== 'ALL') {
@@ -9127,7 +9185,12 @@ ${area.innerHTML}
         if (select && companySchedules && companySchedules.length > 0) {
           select.innerHTML = '';
           companySchedules.forEach(s => {
-            const opt = new Option(`${s.vesselName || s.shipName || 'Armada'} — ${s.route} (${s.departureTime || s.time || s.departTime || '09:00'}) [Sisa: ${s.quota || 150}]`, s.id);
+            const fv = fleet.find(f => f.id === s.vesselId);
+            const isUnl = (typeof Store !== 'undefined' && Store.isScheduleUnlimited)
+              ? Store.isScheduleUnlimited(s)
+              : ((typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(fv) : Boolean((fv && fv.capacity === 0)));
+            const sisaLabel = isUnl ? 'Unlimited Seat' : `Sisa: ${s.quota || 150} Seat`;
+            const opt = new Option(`${s.vesselName || s.shipName || 'Armada'} — ${s.route} (${s.departureTime || s.time || s.departTime || '09:00'}) [${sisaLabel}]`, s.id);
             select.add(opt);
           });
           if (this.bulkState && this.bulkState.targetScheduleId) {
@@ -9800,7 +9863,10 @@ ${area.innerHTML}
           b.departDate === dStr
         );
         const bookedPax = voyBookings.reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
-        const capacity = vessel.capacity || 120;
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+          ? Store.isVesselUnlimited(vessel)
+          : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
+        const capacity = isUnl ? 0 : (vessel.capacity || 120);
 
         const voyageObj = {
           ...sch,
@@ -9808,13 +9874,14 @@ ${area.innerHTML}
           vessel,
           bookedPax,
           capacity,
+          isUnlimited: isUnl,
           isIntl
         };
 
         dayVoyagesMap[dStr].push(voyageObj);
         totalMonthVoyages++;
         activeVesselIds.add(vessel.id || vessel.name);
-        totalMonthCapacity += capacity;
+        if (!isUnl) totalMonthCapacity += capacity;
         totalMonthBooked += bookedPax;
       });
     });
@@ -9878,7 +9945,7 @@ ${area.innerHTML}
               </div>
               <span class="voyage-chip-vessel">${voy.vessel.name}</span>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-                <span class="voyage-chip-pax">${voy.bookedPax}/${voy.capacity} Pax</span>
+                <span class="voyage-chip-pax">${voy.isUnlimited ? `${voy.bookedPax} Pax (Unl)` : `${voy.bookedPax}/${voy.capacity} Pax`}</span>
                 <span style="font-size:0.62rem;color:${voy.isIntl ? '#f59e0b' : '#0284c7'};font-weight:700;">${voy.isIntl ? 'LN' : 'DN'}</span>
               </div>
             </div>
@@ -10052,13 +10119,20 @@ ${area.innerHTML}
     document.getElementById('voyageModalDuration').innerText = sch.durationText || '1.5 Jam';
     document.getElementById('voyageModalVesselName').innerText = vessel.name;
     document.getElementById('voyageModalRegNum').innerText = vessel.regNumber || 'REG-KSOP';
-    document.getElementById('voyageModalCapacity').innerText = `${sch.capacity || vessel.capacity || 120} Seat`;
-    document.getElementById('voyageModalBookedPax').innerText = `${sch.bookedPax || 0} Pax`;
+    const isVesUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+      ? Store.isVesselUnlimited(vessel)
+      : Boolean((vessel && Array.isArray(vessel.decks) && vessel.decks.length === 0) || (vessel && vessel.isNoDeck) || (vessel && (vessel.capacity === 0 || vessel.capacity === '0')));
 
-    const cap = sch.capacity || vessel.capacity || 120;
-    const occ = sch.bookedPax || 0;
-    const pct = cap > 0 ? ((occ / cap) * 100).toFixed(1) : 0;
-    document.getElementById('voyageModalOccupancyRate').innerText = `${pct}% Terisi (${cap - occ} Kursi Sisa)`;
+    if (isVesUnl) {
+      document.getElementById('voyageModalCapacity').innerText = 'Unlimited Seat';
+      document.getElementById('voyageModalOccupancyRate').innerText = `${sch.bookedPax || 0} Terisi (Kapasitas Bebas / Unlimited)`;
+    } else {
+      const cap = sch.capacity || vessel.capacity || 120;
+      const occ = sch.bookedPax || 0;
+      const pct = cap > 0 ? ((occ / cap) * 100).toFixed(1) : 0;
+      document.getElementById('voyageModalCapacity').innerText = `${cap} Seat`;
+      document.getElementById('voyageModalOccupancyRate').innerText = `${pct}% Terisi (${cap - occ} Kursi Sisa)`;
+    }
 
     const catBadge = document.getElementById('voyageModalCategoryBadge');
     if (catBadge) {
@@ -11682,9 +11756,10 @@ ${area.innerHTML}
       if (!sel) return;
       sel.innerHTML = `<option value="ALL">🚢 Semua Armada Perusahaan (${fleet.length} Kapal)</option>`;
       fleet.forEach(v => {
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(v) : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
         const opt = document.createElement('option');
         opt.value = v.id;
-        opt.textContent = `⚓ ${v.name} (${v.capacity || 150} Kursi)`;
+        opt.textContent = `⚓ ${v.name} (${isUnl ? 'Unlimited Seat' : `${v.capacity || 150} Kursi`})`;
         if (v.id === activeVid) opt.selected = true;
         sel.appendChild(opt);
       });
@@ -11731,9 +11806,10 @@ ${area.innerHTML}
           const vTickets = vBookings.reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
           const vBoarded = vBookings.filter(b => b.boardingStatus === 'BOARDED').reduce((sum, b) => sum + (b.passengers ? b.passengers.length : 1), 0);
           const vRev = vBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-          const cap = v.capacity || 150;
+          const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(v) : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
+          const cap = isUnl ? 0 : (v.capacity || 150);
           const totalCap = vScheds.length > 0 ? vScheds.length * cap : cap;
-          const sisaKursi = Math.max(0, totalCap - vTickets);
+          const sisaKursi = isUnl ? 'Unlimited' : Math.max(0, totalCap - vTickets);
           const occPct = totalCap > 0 ? Math.min(100, Math.round((vTickets / totalCap) * 100)) : 0;
           const isSelected = activeVid === v.id;
 
@@ -11753,7 +11829,7 @@ ${area.innerHTML}
               <div>Sisa Kursi: <strong style="color: #0284c7;">${sisaKursi}</strong></div>
             </div>
             <div style="margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; font-size: 0.73rem;">
-              <span style="color: #64748b;">Okupansi: <strong>${occPct}%</strong></span>
+              <span style="color: #64748b;">${isUnl ? 'Mode: <strong>Tanpa Dek (Bebas)</strong>' : `Okupansi: <strong>${occPct}%</strong>`}</span>
               <strong style="color: #7c3aed;">${formatRupiah(vRev)}</strong>
             </div>
           `;
@@ -12320,7 +12396,8 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
     if (vesselSelect) {
       vesselSelect.innerHTML = `<option value="ALL">🚢 Semua Armada (${fleet.length} Kapal)</option>`;
       fleet.forEach(fv => {
-        const opt = new Option(`⚓ ${fv.name} (${fv.capacity || 150} Kursi)`, fv.id);
+        const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(fv) : Boolean((fv && Array.isArray(fv.decks) && fv.decks.length === 0) || (fv && fv.isNoDeck) || (fv && (fv.capacity === 0 || fv.capacity === '0')));
+        const opt = new Option(`⚓ ${fv.name} (${isUnl ? 'Unlimited Seat' : `${fv.capacity || 150} Kursi`})`, fv.id);
         vesselSelect.add(opt);
       });
       vesselSelect.onchange = () => {
@@ -12336,12 +12413,14 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
             const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
             const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
-            const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+            const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+              ? Store.isVesselUnlimited(v)
+              : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
             const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
             const booked = s.quotaBooked || 0;
             const total = s.quotaTotal || (v ? v.capacity : 250);
             const sisa = Math.max(0, total - booked);
-            const sisaLabel = (isUnlimited || sisa === 0) ? 'Unlimited Seat' : `Sisa: ${sisa} Seat`;
+            const sisaLabel = isUnlimited ? 'Unlimited Seat' : (sisa === 0 ? 'Habis (0 Seat)' : `Sisa: ${sisa} Seat`);
             const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${sisaLabel}]`;
             const opt = new Option(label, s.id);
             if (idx === 0) opt.selected = true;
@@ -12361,12 +12440,14 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         const vName = v ? v.name : (s.vesselNameCustom || 'Armada Reguler');
         const orig = MASTER_PORTS.find(pt => pt.id === s.originId) || { city: s.originId };
         const dest = MASTER_PORTS.find(pt => pt.id === s.destinationId) || { city: s.destinationId };
-        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isNoDeck = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+          ? Store.isVesselUnlimited(v)
+          : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
         const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
         const booked = s.quotaBooked || 0;
         const total = s.quotaTotal || (v ? v.capacity : 250);
         const sisa = Math.max(0, total - booked);
-        const sisaLabel = (isUnlimited || sisa === 0) ? 'Unlimited Seat' : `Sisa: ${sisa} Seat`;
+        const sisaLabel = isUnlimited ? 'Unlimited Seat' : (sisa === 0 ? 'Habis (0 Seat)' : `Sisa: ${sisa} Seat`);
         const label = `${vName} — ${orig.city} ➔ ${dest.city} (${s.departTime} WITA) [${sisaLabel}]`;
         const opt = new Option(label, s.id);
         if (preselectedScheduleId && s.id === preselectedScheduleId) {
@@ -12451,7 +12532,10 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       const vName = v ? v.name : (targetSched.vesselNameCustom || 'Armada Reguler');
       const orig = MASTER_PORTS.find(pt => pt.id === targetSched.originId) || { city: targetSched.originId || 'Nunukan' };
       const dest = MASTER_PORTS.find(pt => pt.id === targetSched.destinationId) || { city: targetSched.destinationId || 'Tawau' };
-      const totalSeats = targetSched.quotaTotal || (v ? v.capacity : 150);
+      const isUnl = (typeof Store !== 'undefined' && Store.isVesselUnlimited)
+        ? Store.isVesselUnlimited(v)
+        : Boolean((v && Array.isArray(v.decks) && v.decks.length === 0) || (v && v.isNoDeck) || (v && (v.capacity === 0 || v.capacity === '0')));
+      const totalSeats = isUnl ? 0 : (targetSched.quotaTotal || (v ? v.capacity : 150));
       const booked = targetSched.quotaBooked || 0;
       const avail = Math.max(0, totalSeats - booked);
 
@@ -12464,7 +12548,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
       if (elVes) elVes.innerText = `Armada: ${vName}`;
       if (elRoute) elRoute.innerText = `${orig.city} ➔ ${dest.city}`;
       if (elDate) elDate.innerText = `🕒 ${targetSched.departTime || '09:00'} WITA • ${targetSched.departDate || 'Hari Ini'}`;
-      if (elAvail) elAvail.innerText = avail;
+      if (elAvail) elAvail.innerText = isUnl ? 'Unlimited' : avail;
       if (elFare) elFare.innerText = formatRupiah(totalPerPax);
     }
   },
@@ -12596,6 +12680,20 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
   reallocateBulkSeats(forceReset = false) {
     if (!this.bulkState.paxList || this.bulkState.paxList.length === 0) return;
     const scheduleId = this.bulkState.targetScheduleId;
+    const targetSched = (Store.getSchedules() || []).find(s => s.id === scheduleId);
+    const targetVessel = targetSched ? (Store.getVessels().find(v => v.id === targetSched.vesselId)) : null;
+    const isUnl = (typeof Store !== 'undefined' && Store.isScheduleUnlimited)
+      ? Store.isScheduleUnlimited(targetSched)
+      : ((typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(targetVessel) : Boolean(targetVessel && targetVessel.capacity === 0));
+
+    if (isUnl) {
+      this.bulkState.paxList.forEach((p) => {
+        p.seat = '-';
+      });
+      this.renderBulkPassengerPreview();
+      return;
+    }
+
     const manualSeats = this.bulkState.paxList.map(p => forceReset ? '' : p.manualSeat);
     const allocated = this.generateSequentialSeats(scheduleId, this.bulkState.paxList.length, manualSeats);
 
@@ -13085,6 +13183,11 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         if (!proceed) return;
       }
 
+      const targetVessel = Store.getVessels().find(v => v.id === targetSched.vesselId);
+      const isUnl = (typeof Store !== 'undefined' && Store.isScheduleUnlimited)
+        ? Store.isScheduleUnlimited(targetSched)
+        : ((typeof Store !== 'undefined' && Store.isVesselUnlimited) ? Store.isVesselUnlimited(targetVessel) : Boolean(targetVessel && targetVessel.capacity === 0));
+
       let mainPnr = '';
 
       if (pnrMode === 'GROUP') {
@@ -13122,7 +13225,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             nationality: p.nationality || 'ID',
             remark: (p.remark && ['None', 'LC', 'PGS', 'CAD'].includes(p.remark)) ? p.remark : 'None',
             passportExp: '2029-01-01',
-            seat: p.seat || `B-${String(idx + 1).padStart(2, '0')}`,
+            seat: isUnl ? '-' : (p.seat || `B-${String(idx + 1).padStart(2, '0')}`),
             className
           })),
           totalAmount: totalFare,
@@ -13168,7 +13271,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
               nationality: p.nationality || 'ID',
               remark: (p.remark && ['None', 'LC', 'PGS', 'CAD'].includes(p.remark)) ? p.remark : 'None',
               passportExp: '2029-01-01',
-              seat: p.seat || `B-${String(idx + 1).padStart(2, '0')}`,
+              seat: isUnl ? '-' : (p.seat || `B-${String(idx + 1).padStart(2, '0')}`),
               className
             }],
             totalAmount: fare,
