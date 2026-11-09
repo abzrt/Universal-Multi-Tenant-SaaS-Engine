@@ -3058,7 +3058,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                 const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
                 return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> ✏️</span>`;
               }).join(' ')
-            : `<span class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="color:#64748b; font-size:0.74rem; white-space:nowrap; cursor:pointer;" onmouseover="this.style.color='#94a3b8'; this.style.textDecoration='underline';" onmouseout="this.style.color='#64748b'; this.style.textDecoration='none';" title="Klik untuk tambah armada baru">Belum ada armada</span>`;
+            : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
           return `
             <tr style="background: #162032; color: #e2e8f0;">
