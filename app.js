@@ -2458,6 +2458,12 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     });
 
     // Listeners for Deck Editor buttons in modalDevEditVessel
+    document.getElementById('btnDevEditVesselNoDeck')?.addEventListener('click', () => {
+      this.renderDevEditVesselDecks([]);
+      this.updateDevEditVesselCapacitySummary();
+      this.showToast('Mode Tanpa Dek Aktif', 'Armada diatur sebagai 1 kabin utama tanpa pembagian dek.');
+    });
+
     document.getElementById('btnDevEditVesselAddDeckRow')?.addEventListener('click', () => {
       const tbody = document.getElementById('tbodyDevEditVesselDecks');
       if (!tbody) return;
@@ -2499,7 +2505,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Listeners for unified Seat Layout (Rows & Columns) inside modalDevEditVessel
     document.getElementById('devEditVesselRowsInput')?.addEventListener('input', () => {
-      this.updateDevEditVesselSeatPreview();
+      const tbody = document.getElementById('tbodyDevEditVesselDecks');
+      const rows = tbody?.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)') || [];
+      if (rows.length === 0) {
+        this.updateDevEditVesselCapacitySummary();
+      } else {
+        this.updateDevEditVesselSeatPreview();
+      }
     });
 
     document.getElementById('devEditVesselColsInput')?.addEventListener('input', () => {
@@ -2511,7 +2523,13 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         leftInput.value = half;
         rightInput.value = cols - half;
       }
-      this.updateDevEditVesselSeatPreview();
+      const tbody = document.getElementById('tbodyDevEditVesselDecks');
+      const rows = tbody?.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)') || [];
+      if (rows.length === 0) {
+        this.updateDevEditVesselCapacitySummary();
+      } else {
+        this.updateDevEditVesselSeatPreview();
+      }
     });
 
     document.getElementById('devEditVesselColsLeftInput')?.addEventListener('input', () => {
@@ -2551,10 +2569,11 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
       // Ambil seluruh dek yang telah diedit di tabel modal
       const decks = this.getDevEditVesselDecksFromTable();
-      const capacity = decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0) || (parseInt(document.getElementById('devEditVesselCapacity')?.value, 10) || 150);
-
       const seatRows = parseInt(document.getElementById('devEditVesselRowsInput')?.value, 10) || 25;
       const seatCols = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 6;
+      const capacity = decks.length > 0
+        ? decks.reduce((sum, d) => sum + (parseInt(d.capacity, 10) || 0), 0)
+        : (seatRows * seatCols);
       const seatColsLeft = parseInt(document.getElementById('devEditVesselColsLeftInput')?.value, 10) || Math.ceil(seatCols / 2);
       const seatColsRight = parseInt(document.getElementById('devEditVesselColsRightInput')?.value, 10) || (seatCols - seatColsLeft);
 
@@ -3297,7 +3316,8 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             ? compVessels.map(v => {
                 const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
                 const paxCount = v.capacity || 0;
-                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dCount} Dek)</span> ✏️</span>`;
+                const dLabel = dCount > 0 ? `${dCount} Dek` : 'Tanpa Dek';
+                return `<span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; margin:0.12rem; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit data armada & pengaturan dek ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dLabel})</span> ✏️</span>`;
               }).join(' ')
             : `<span style="color:#64748b; font-size:0.74rem; white-space:nowrap;">Belum ada armada</span>`;
 
@@ -3315,13 +3335,14 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
             const v = compVessels[0];
             const dCount = (v.decks && Array.isArray(v.decks)) ? v.decks.length : 0;
             const paxCount = v.capacity || 0;
+            const dLabel = dCount > 0 ? `${dCount} Dek` : 'Tanpa Dek';
             fleetCellHtml = `
               <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
                 <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8;">1 Armada • ${compSchedules.length} Jadwal</span>
                 <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); color: #2dd4bf; border-radius: 4px; padding: 0.1rem 0.35rem; font-size: 0.65rem; font-weight: 700; cursor: pointer;" title="Tambah armada lagi untuk ${c.name}">+ Tambah</button>
               </div>
               <div>
-                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dCount} Dek)</span> ✏️</span>
+                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${paxCount} Pax • ${dLabel})</span> ✏️</span>
               </div>
             `;
           } else {
@@ -11095,8 +11116,14 @@ ${area.innerHTML}
     if (!Array.isArray(decks) || decks.length === 0) {
       tbody.innerHTML = `
         <tr id="rowDevEditVesselEmptyDecks">
-          <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem; font-size: 0.76rem;">
-            Belum ada dek ditambahkan untuk armada ini. Klik tombol <strong>➕ Tambah Dek</strong> di atas untuk mengatur nama dek dan jumlah kursi.
+          <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.35rem 1rem; font-size: 0.76rem; background: rgba(15, 23, 42, 0.45);">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.25rem;">
+              ⛴️ Mode Tanpa Dek Aktif (1 Kabin Utama)
+            </div>
+            Armada ini beroperasi tanpa pembagian dek. Kapasitas kursi diatur langsung melalui konfigurasi Baris &times; Kolom kursi di atas.
+            <div style="margin-top: 0.35rem; font-size: 0.72rem; color: #64748b;">
+              Jika ingin membagi kapal menjadi beberapa dek bertingkat (misal: Deck 1, Deck 2), klik tombol <strong>➕ Tambah Dek</strong>.
+            </div>
           </td>
         </tr>
       `;
@@ -11153,12 +11180,20 @@ ${area.innerHTML}
     if (!tbody) return;
     const rows = tbody.querySelectorAll('tr:not(#rowDevEditVesselEmptyDecks)');
     let totalSeats = 0;
-    rows.forEach(tr => {
-      const capInput = tr.querySelector('.dev-vessel-deck-capacity');
-      if (capInput) {
-        totalSeats += parseInt(capInput.value, 10) || 0;
-      }
-    });
+    const hasDecks = rows.length > 0;
+
+    if (hasDecks) {
+      rows.forEach(tr => {
+        const capInput = tr.querySelector('.dev-vessel-deck-capacity');
+        if (capInput) {
+          totalSeats += parseInt(capInput.value, 10) || 0;
+        }
+      });
+    } else {
+      const rowVal = parseInt(document.getElementById('devEditVesselRowsInput')?.value, 10) || 0;
+      const colVal = parseInt(document.getElementById('devEditVesselColsInput')?.value, 10) || 0;
+      totalSeats = rowVal * colVal;
+    }
 
     const totalSeatsLabel = document.getElementById('devEditVesselTotalSeatsLabel');
     const totalDecksLabel = document.getElementById('devEditVesselDecksCountLabel');
@@ -11166,14 +11201,18 @@ ${area.innerHTML}
     const vesselCapInput = document.getElementById('devEditVesselCapacity');
 
     if (totalSeatsLabel) totalSeatsLabel.textContent = `${totalSeats.toLocaleString('id-ID')} Pax`;
-    if (totalDecksLabel) totalDecksLabel.textContent = `(${rows.length} Dek)`;
-    if (badgeLabel) badgeLabel.textContent = `${rows.length} Dek`;
+    if (totalDecksLabel) totalDecksLabel.textContent = hasDecks ? `(${rows.length} Dek)` : '(Tanpa Dek)';
+    if (badgeLabel) {
+      badgeLabel.textContent = hasDecks ? `${rows.length} Dek` : 'Tanpa Dek';
+      badgeLabel.style.background = hasDecks ? 'rgba(56, 189, 248, 0.2)' : 'rgba(148, 163, 184, 0.2)';
+      badgeLabel.style.color = hasDecks ? '#38bdf8' : '#cbd5e1';
+    }
     if (vesselCapInput) vesselCapInput.value = totalSeats;
 
-    // Sinkronkan baris vertikal otomatis jika total kursi terakumulasi
+    // Sinkronkan baris vertikal otomatis jika menggunakan dek dan total kursi terakumulasi
     const colsInput = document.getElementById('devEditVesselColsInput');
     const rowsInput = document.getElementById('devEditVesselRowsInput');
-    if (colsInput && rowsInput && totalSeats > 0) {
+    if (hasDecks && colsInput && rowsInput && totalSeats > 0) {
       const cols = Math.max(2, parseInt(colsInput.value, 10) || 6);
       rowsInput.value = Math.max(1, Math.ceil(totalSeats / cols));
     }
