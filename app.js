@@ -3290,25 +3290,31 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
           let fleetCellHtml = '';
           if (compVessels.length === 0) {
             fleetCellHtml = `
-              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-block; margin-bottom: 0.2rem; font-size: 0.73rem; font-weight: 700; color: #38bdf8; transition: all 0.15s;" onmouseover="this.style.textDecoration='underline'; this.style.color='#7dd3fc';" onmouseout="this.style.textDecoration='none'; this.style.color='#38bdf8';" title="Klik untuk menu kelola Armada, Seat/Dek & Jadwal ${c.name}">
+              <div style="margin-bottom: 0.25rem; font-size: 0.73rem; font-weight: 700; color: #94a3b8;">
                 0 Armada • 0 Jadwal
               </div>
-              <div style="color: #64748b; font-size: 0.74rem; white-space: nowrap;">Belum ada armada</div>
+              <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(13, 148, 136, 0.2); border: 1px solid rgba(45, 212, 191, 0.4); color: #2dd4bf; border-radius: 6px; padding: 0.2rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease;" onmouseover="this.style.background='rgba(13, 148, 136, 0.35)';" onmouseout="this.style.background='rgba(13, 148, 136, 0.2)';" title="Tambah armada kapal untuk ${c.name}">
+                <span>➕ Tambah Armada</span>
+              </button>
             `;
           } else if (compVessels.length === 1) {
             const v = compVessels[0];
             const isSul = (v.type || '').toLowerCase().includes('parepare') || (v.type || '').toLowerCase().includes('domestik') || (v.name || '').toLowerCase().includes('pantokrator');
             const dCount = (v.decks && v.decks.length > 0) ? v.decks.length : (isSul ? 6 : 2);
             fleetCellHtml = `
-              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; font-weight: 700; color: #38bdf8; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 0.22rem 0.55rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#0f172a';" title="Klik untuk kelola armada, denah kursi & jadwal ${c.name}">
-                <span>⛴️ ${v.name} <span style="color: #94a3b8; font-weight: 600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> • 📅 ${compSchedules.length} Jadwal</span>
-                <span style="font-size: 0.65rem; color: #38bdf8;">⚙️</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8;">1 Armada • ${compSchedules.length} Jadwal</span>
+                <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); color: #2dd4bf; border-radius: 4px; padding: 0.1rem 0.35rem; font-size: 0.65rem; font-weight: 700; cursor: pointer;" title="Tambah armada lagi untuk ${c.name}">+ Tambah</button>
+              </div>
+              <div>
+                <span class="btn-dev-edit-vessel-trigger" data-id="${v.id}" style="display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.2rem 0.55rem; font-size:0.7rem; font-weight:700; color:#38bdf8; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#38bdf8';this.style.background='#1e293b'" onmouseout="this.style.borderColor='#334155';this.style.background='#0f172a'" title="Klik untuk edit armada, denah kursi/dek & jadwal ${v.name}">⛴️ ${v.name} <span style="color:#94a3b8; font-weight:600;">(${v.capacity || 150} Pax • ${dCount} Dek)</span> ✏️</span>
               </div>
             `;
           } else {
             fleetCellHtml = `
-              <div class="btn-dev-quick-fleet-menu-trigger" data-id="${c.id}" style="cursor: pointer; display: inline-block; margin-bottom: 0.2rem; font-size: 0.73rem; font-weight: 700; color: #38bdf8; transition: all 0.15s;" onmouseover="this.style.textDecoration='underline'; this.style.color='#7dd3fc';" onmouseout="this.style.textDecoration='none'; this.style.color='#38bdf8';" title="Klik untuk menu kelola Armada, Seat/Dek & Jadwal ${c.name}">
-                ${compVessels.length} Armada • ${compSchedules.length} Jadwal
+              <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8;">${compVessels.length} Armada • ${compSchedules.length} Jadwal</span>
+                <button type="button" class="btn-dev-row-add-vessel" data-id="${c.id}" style="background: rgba(13, 148, 136, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); color: #2dd4bf; border-radius: 4px; padding: 0.1rem 0.35rem; font-size: 0.65rem; font-weight: 700; cursor: pointer;" title="Tambah armada lagi untuk ${c.name}">+ Tambah</button>
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 0.2rem;">${vesselNamesStr}</div>
             `;
