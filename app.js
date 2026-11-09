@@ -1732,6 +1732,77 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
       }
     });
 
+    // Modal Pilihan Hapus: Perusahaan atau Armada (Developer Mode)
+    const closeDevDeleteChoice = () => this.closeDevDeleteChoiceModal();
+    document.getElementById('btnCloseDevDeleteChoice')?.addEventListener('click', closeDevDeleteChoice);
+    document.getElementById('btnCancelDevDeleteChoice')?.addEventListener('click', closeDevDeleteChoice);
+    const modalDeleteChoice = document.getElementById('modalDevDeleteChoice');
+    if (modalDeleteChoice) {
+      modalDeleteChoice.addEventListener('click', (e) => {
+        if (e.target === modalDeleteChoice) closeDevDeleteChoice();
+      });
+    }
+
+    document.getElementById('btnDevChoiceDeleteVessel')?.addEventListener('click', () => {
+      const compId = this.devDeleteTargetCompId;
+      if (!compId) return;
+      const comp = Store.getCompanyById(compId);
+      const vessels = Store.getVessels().filter(v => v.companyId === compId);
+
+      if (vessels.length === 0) {
+        this.showToast('Tidak Ada Armada', 'Perusahaan ini belum memiliki armada kapal untuk dihapus.', 'info');
+        return;
+      }
+
+      if (vessels.length === 1) {
+        const v = vessels[0];
+        if (confirm(`Hapus armada kapal "${v.name}" milik ${comp ? comp.name : compId}?\n\nPerusahaan tetap terdaftar dalam sistem, hanya data armada & jadwalnya yang dihapus.`)) {
+          Store.deleteVessel(v.id);
+          closeDevDeleteChoice();
+          this.renderCompanyFilterChips();
+          this.renderDevAdminDashboard();
+          this.showToast('Armada Dihapus', `Armada "${v.name}" berhasil dihapus dari sistem.`, 'warning');
+        }
+      } else {
+        const sublist = document.getElementById('devDeleteChoiceVesselSublist');
+        if (sublist) {
+          sublist.style.display = (sublist.style.display === 'none' ? 'flex' : 'none');
+        }
+      }
+    });
+
+    document.getElementById('devDeleteChoiceVesselSublist')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-dev-delete-specific-vessel');
+      if (!btn) return;
+      const vId = btn.getAttribute('data-vessel-id');
+      const vName = btn.getAttribute('data-vessel-name');
+      const compId = this.devDeleteTargetCompId;
+      const comp = Store.getCompanyById(compId);
+      if (confirm(`Hapus armada kapal "${vName}" milik ${comp ? comp.name : compId}?\n\nPerusahaan tetap terdaftar dalam sistem.`)) {
+        Store.deleteVessel(vId);
+        closeDevDeleteChoice();
+        this.renderCompanyFilterChips();
+        this.renderDevAdminDashboard();
+        this.showToast('Armada Dihapus', `Armada "${vName}" berhasil dihapus dari sistem.`, 'warning');
+      }
+    });
+
+    document.getElementById('btnDevChoiceDeleteCompany')?.addEventListener('click', () => {
+      const compId = this.devDeleteTargetCompId;
+      if (!compId) return;
+      const comp = Store.getCompanyById(compId);
+      const compName = comp ? comp.name : compId;
+      if (confirm(`PERINGATAN HAPUS PERUSAHAAN:\n\nYakin ingin menghapus seluruh akun perusahaan "${compName}"?\nSemua armada kapal, jadwal pelayaran, dan akses login terkait akan dihapus permanen.`)) {
+        const vessels = Store.getVessels().filter(v => v.companyId === compId);
+        vessels.forEach(v => Store.deleteVessel(v.id));
+        Store.deleteCompany(compId);
+        closeDevDeleteChoice();
+        this.renderCompanyFilterChips();
+        this.renderDevAdminDashboard();
+        this.showToast('Perusahaan Dihapus', `Perusahaan "${compName}" beserta seluruh datanya telah dihapus dari sistem.`, 'warning');
+      }
+    });
+
     // Live 1-second interval for Google Authenticator TOTP countdown in modal
     setInterval(() => {
       const modalEl = document.getElementById('modalDevAdminAuth');
@@ -3134,7 +3205,7 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
                   <button type="button" class="btn-dev-filter-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; gap: 0.22rem; white-space: nowrap; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 0.28rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Lihat Transaksi Perusahaan Ini">
                     🔍 Transaksi
                   </button>
-                  <button type="button" class="btn-dev-delete-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 0.28rem 0.45rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Hapus Perusahaan">
+                  <button type="button" class="btn-dev-delete-comp" data-id="${c.id}" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 0.28rem 0.45rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Pilihan Hapus (Perusahaan atau Armada)">
                     🗑️
                   </button>
                 </div>
@@ -3242,15 +3313,10 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
         });
 
         tbodyComp.querySelectorAll('.btn-dev-delete-comp').forEach(btn => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const compId = btn.getAttribute('data-id');
-            const comp = Store.getCompanyById(compId);
-            if (confirm(`Hapus perusahaan "${comp ? comp.name : compId}" dari daftar perusahaan terdaftar?`)) {
-              Store.deleteCompany(compId);
-              this.renderCompanyFilterChips();
-              this.renderDevAdminDashboard();
-              this.showToast('Perusahaan Dihapus', 'Data perusahaan telah dihapus dari sistem.');
-            }
+            this.openDevDeleteChoiceModal(compId);
           });
         });
       }
@@ -10200,6 +10266,76 @@ ${area.innerHTML}
 
   closeDevQuickFleetMenu() {
     document.getElementById('modalDevQuickFleetMenu')?.classList.remove('show');
+  },
+
+  openDevDeleteChoiceModal(compId) {
+    if (!Store.isDevAdminLoggedIn() && this.activeView !== 'devAdminDashboard') {
+      this.showToast('Akses Dibatasi', 'Menu ini hanya dapat diakses dalam Mode Developer.', 'warning');
+      return;
+    }
+    const comp = Store.getCompanyById(compId);
+    if (!comp) {
+      this.showToast('Perusahaan Tidak Ditemukan', 'Data perusahaan tidak ditemukan dalam sistem.', 'warning');
+      return;
+    }
+
+    this.devDeleteTargetCompId = compId;
+    const titleEl = document.getElementById('devDeleteChoiceModalTitle');
+    const subEl = document.getElementById('devDeleteChoiceModalSubtitle');
+    if (titleEl) titleEl.textContent = `Pilihan Hapus: ${comp.name}`;
+    if (subEl) subEl.textContent = `Pilih apakah ingin menghapus armada kapal saja atau seluruh akun perusahaan:`;
+
+    const vessels = Store.getVessels().filter(v => v.companyId === compId);
+    const vesBtn = document.getElementById('btnDevChoiceDeleteVessel');
+    const vesTitle = document.getElementById('devDeleteChoiceVesselTitle');
+    const vesDesc = document.getElementById('devDeleteChoiceVesselDesc');
+    const vesSublist = document.getElementById('devDeleteChoiceVesselSublist');
+
+    if (vesSublist) {
+      vesSublist.style.display = 'none';
+      vesSublist.innerHTML = '';
+    }
+
+    if (vessels.length === 0) {
+      if (vesTitle) vesTitle.textContent = 'Hapus Armada Kapal (0 Armada)';
+      if (vesDesc) vesDesc.textContent = 'Perusahaan ini belum memiliki armada kapal untuk dihapus.';
+      if (vesBtn) {
+        vesBtn.style.opacity = '0.5';
+        vesBtn.style.cursor = 'not-allowed';
+      }
+    } else if (vessels.length === 1) {
+      const v = vessels[0];
+      if (vesTitle) vesTitle.textContent = `Hapus Armada Kapal: ${v.name}`;
+      if (vesDesc) vesDesc.textContent = `Hapus kapal ${v.name} (${v.capacity || 150} Pax). Akun perusahaan tetap aktif.`;
+      if (vesBtn) {
+        vesBtn.style.opacity = '1';
+        vesBtn.style.cursor = 'pointer';
+      }
+    } else {
+      if (vesTitle) vesTitle.textContent = `Hapus Armada Kapal (${vessels.length} Terdaftar) ▾`;
+      if (vesDesc) vesDesc.textContent = `Klik untuk memilih armada kapal yang ingin dihapus dari ${vessels.length} kapal.`;
+      if (vesBtn) {
+        vesBtn.style.opacity = '1';
+        vesBtn.style.cursor = 'pointer';
+      }
+      if (vesSublist) {
+        vesSublist.innerHTML = vessels.map(v => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: #162032; border-radius: 6px; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 700;">⛴️ ${v.name} <span style="color: #94a3b8; font-weight: 500;">(${v.capacity || 150} Pax)</span></span>
+            <button type="button" class="btn-dev-delete-specific-vessel" data-vessel-id="${v.id}" data-vessel-name="${v.name}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.45); color: #f87171; border-radius: 4px; padding: 0.2rem 0.5rem; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Hapus Kapal Ini</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    const modal = document.getElementById('modalDevDeleteChoice');
+    if (modal) {
+      modal.classList.add('show');
+    }
+  },
+
+  closeDevDeleteChoiceModal() {
+    document.getElementById('modalDevDeleteChoice')?.classList.remove('show');
   },
 
   openDevEditCompanyModal(compId) {

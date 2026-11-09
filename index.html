@@ -5775,6 +5775,52 @@
     </div>
   </div>
 
+  <!-- Modal Pilihan Hapus: Perusahaan atau Armada (Developer Mode) -->
+  <div class="modal-layer" id="modalDevDeleteChoice">
+    <div class="modal-window" style="max-width: 520px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
+      <div class="modal-top" style="border-bottom: 1px solid #1e293b; padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="font-size: 1.4rem; background: rgba(239, 68, 68, 0.15); padding: 0.4rem; border-radius: 8px;">🗑️</span>
+          <div>
+            <h4 style="color: #f87171 !important; margin: 0; font-size: 1.05rem;" id="devDeleteChoiceModalTitle">Pilihan Hapus Data</h4>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 0.15rem 0 0 0;" id="devDeleteChoiceModalSubtitle">Pilih apakah Anda ingin menghapus armada kapal saja atau seluruh data perusahaan.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-x" id="btnCloseDevDeleteChoice" style="color: #94a3b8;">&times;</button>
+      </div>
+      <div style="padding: 1.25rem 0 0.5rem 0; display: flex; flex-direction: column; gap: 0.75rem;">
+        <!-- Pilihan 1: Hapus Armada Kapal -->
+        <button type="button" id="btnDevChoiceDeleteVessel" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#f59e0b'; this.style.background='#1e293b';" onmouseout="this.style.borderColor='#334155'; this.style.background='#162032';">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(245, 158, 11, 0.15); padding: 0.4rem; border-radius: 8px;">⛴️</span>
+            <div>
+              <div style="color: #fbbf24; font-size: 0.9rem;" id="devDeleteChoiceVesselTitle">Hapus Armada Kapal Saja</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;" id="devDeleteChoiceVesselDesc">Hapus armada kapal tanpa menghapus akun atau profil perusahaan.</div>
+            </div>
+          </div>
+          <span style="color: #fbbf24; font-size: 1.1rem;">🗑️</span>
+        </button>
+
+        <div id="devDeleteChoiceVesselSublist" style="display: none; flex-direction: column; gap: 0.35rem; padding: 0.4rem 0.6rem; background: #090f1d; border: 1px dashed #334155; border-radius: 8px;"></div>
+
+        <!-- Pilihan 2: Hapus Seluruh Perusahaan -->
+        <button type="button" id="btnDevChoiceDeleteCompany" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #162032; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; color: #f8fafc; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.borderColor='#ef4444'; this.style.background='rgba(239, 68, 68, 0.1)';" onmouseout="this.style.borderColor='rgba(239, 68, 68, 0.35)'; this.style.background='#162032';">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem; background: rgba(239, 68, 68, 0.15); padding: 0.4rem; border-radius: 8px;">🏢</span>
+            <div>
+              <div style="color: #f87171; font-size: 0.9rem;" id="devDeleteChoiceCompanyTitle">Hapus Seluruh Perusahaan</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; font-weight: 400;" id="devDeleteChoiceCompanyDesc">Hapus permanen akun perusahaan beserta seluruh armada &amp; jadwal terkait.</div>
+            </div>
+          </div>
+          <span style="color: #f87171; font-size: 1.1rem;">🗑️</span>
+        </button>
+      </div>
+      <div class="modal-bottom-actions" style="border-top: 1px solid #1e293b; padding-top: 0.85rem; margin-top: 0.75rem;">
+        <button type="button" class="btn-cancel" id="btnCancelDevDeleteChoice" style="background: #1e293b; color: #cbd5e1; border-color: #334155; width: 100%;">Batal / Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Tambah Armada Kapal (Developer Mode) -->
   <div class="modal-layer" id="modalDevAddVessel">
     <div class="modal-window" style="max-width: 540px; background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);">
@@ -6160,6 +6206,6 @@
   </div>
 
   <script src="data-store.js?v=3.0"></script>
-  <script src="app.js?v=5.8"></script>
+  <script src="app.js?v=5.9"></script>
 </body>
 </html>
