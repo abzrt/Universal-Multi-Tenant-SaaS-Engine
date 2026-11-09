@@ -5165,18 +5165,41 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
 
     // Sisa Kuota Kursi across active schedules (atau kapasitas armada jika jadwal belum dibuat)
     let totalRemainingSeats = 0;
+    let hasUnlimitedSeats = false;
     if (filteredSchedules.length > 0) {
       totalRemainingSeats = filteredSchedules.reduce((sum, s) => {
         const v = fleet.find(item => item.id === s.vesselId);
-        const cap = v ? (v.capacity || 150) : (s.capacity || 150);
+        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
+        if (isUnlimited) {
+          hasUnlimitedSeats = true;
+          return sum;
+        }
+        const cap = (v && typeof v.capacity === 'number' && v.capacity > 0) ? v.capacity : (s.capacity || 150);
         const bookedOnSched = bookings.filter(b => b.scheduleId === s.id).reduce((bSum, b) => bSum + (b.passengers ? b.passengers.length : 1), 0);
         return sum + Math.max(0, cap - bookedOnSched);
       }, 0);
     } else if (filteredFleet.length > 0) {
-      totalRemainingSeats = filteredFleet.reduce((sum, v) => sum + (v.capacity || 150), 0);
+      totalRemainingSeats = filteredFleet.reduce((sum, v) => {
+        const isNoDeck = Boolean(v && Array.isArray(v.decks) && v.decks.length === 0);
+        const isUnlimited = isNoDeck || (v && (v.capacity === 0 || !v.capacity));
+        if (isUnlimited) {
+          hasUnlimitedSeats = true;
+          return sum;
+        }
+        return sum + ((typeof v.capacity === 'number' && v.capacity > 0) ? v.capacity : 150);
+      }, 0);
     }
     const elWithdrawal = document.getElementById('kpiWithdrawalAmounts');
-    if (elWithdrawal) elWithdrawal.innerText = totalRemainingSeats;
+    if (elWithdrawal) {
+      if (hasUnlimitedSeats && totalRemainingSeats === 0) {
+        elWithdrawal.innerText = 'Unlimited';
+      } else if (hasUnlimitedSeats) {
+        elWithdrawal.innerText = totalRemainingSeats + ' + Unl';
+      } else {
+        elWithdrawal.innerText = totalRemainingSeats;
+      }
+    }
 
     const elTotTrans = document.getElementById('kpiTotalTransaction');
     if (elTotTrans) elTotTrans.innerText = formatRupiah(totalRevenue);
