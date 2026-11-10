@@ -1,7 +1,7 @@
 # TECH SOLUTION — TICKETING SERVICES PLATFORM
 ## Sistem Tiketing Khusus Perusahaan Pelayaran & Pantauan Cuaca Maritim BMKG
 
-**Tech Solution** adalah platform ticketing *cloud* berskala *enterprise* dengan arsitektur **Multi-Tenant SaaS (Ticketing Services Platform)**. Aplikasi ini difokuskan secara eksklusif untuk **proses tiketing resmi sesuai ketentuan perusahaan pelayaran terdaftar**, dengan integrasi **Pusat Informasi Cuaca Maritim BMKG** pada halaman awal dan **Modal Masuk Mitra Operator** yang hanya muncul saat tombol login diklik.
+**TickyTECH** adalah platform ticketing *cloud* berskala *enterprise* dengan arsitektur **Multi-Tenant SaaS (Ticketing Services Platform)**. Aplikasi ini difokuskan secara eksklusif untuk **proses tiketing resmi sesuai ketentuan perusahaan pelayaran terdaftar**, dengan integrasi **Pusat Informasi Cuaca Maritim BMKG** pada halaman awal dan **Modal Masuk Mitra Operator** yang hanya muncul saat tombol login diklik.
 
 ---
 
