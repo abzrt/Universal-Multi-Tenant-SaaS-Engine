@@ -6013,6 +6013,26 @@ table.dash-table.dev-dark-table tbody tr:hover td {
 }
 
 .ticky-breadcrumb {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  flex-shrink: 0 !important;
+}
+
+#opsHeaderClockStrip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  margin-left: 1rem !important;
+  padding-left: 1rem !important;
+  border-left: 1.5px solid #cbd5e1 !important;
+}
+
+#opsLiveClock,
+#opsLiveDate {
   display: none !important;
 }
 
@@ -6168,8 +6188,22 @@ table.dash-table.dev-dark-table tbody tr:hover td {
 
   /* Top Weather & Profile Widgets in Company Dashboard */
   .ticky-top-header {
+    height: auto !important;
+    min-height: 60px !important;
+    padding: 0.5rem 1rem !important;
     flex-wrap: wrap !important;
-    gap: 0.75rem !important;
+    gap: 0.6rem !important;
+  }
+
+  #opsHeaderClockStrip {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    border-left: none !important;
+    flex-wrap: wrap !important;
+  }
+
+  .ops-sys-tags {
+    flex-wrap: wrap !important;
   }
 
   .ticky-header-actions {
