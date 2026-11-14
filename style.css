@@ -3473,7 +3473,7 @@ html.preload-dev-admin #viewDevAdminDashboard {
 }
 
 .ticky-content-area {
-  padding: 1.4rem 1.75rem 3rem;
+  padding: 0 1.75rem 3rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -3772,7 +3772,7 @@ html.preload-dev-admin #viewDevAdminDashboard {
   }
 
   .ticky-content-area {
-    padding: 1rem;
+    padding: 0 1rem 2rem;
   }
 }
 
