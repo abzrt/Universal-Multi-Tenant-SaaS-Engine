@@ -380,8 +380,6 @@ const App = {
 
       const ddName = document.getElementById('dropdownProfileCompanyName');
       if (ddName) ddName.textContent = activeTenant.name;
-      const hdrCompBadge = document.getElementById('headerActiveCompanyBadge');
-      if (hdrCompBadge) hdrCompBadge.textContent = activeTenant.name;
       const ddRole = document.getElementById('dropdownProfileRole');
       if (ddRole) ddRole.textContent = activeTenant.category || 'Operator Loket Resmi';
 
@@ -5092,8 +5090,6 @@ Terima kasih telah berlayar bersama armada resmi kami!`;
     // Header banner
     const elName = document.getElementById('dashTenantName');
     if (elName) elName.innerText = tenant.name;
-    const hdrCompBadge = document.getElementById('headerActiveCompanyBadge');
-    if (hdrCompBadge) hdrCompBadge.innerText = tenant.name;
     const elMeta = document.getElementById('dashTenantMeta');
     if (elMeta) elMeta.innerText = `Kategori: ${tenant.category} • ID: ${tenant.id} • Email: ${tenant.email}`;
     const elAvatar = document.getElementById('dashTenantAvatar');
