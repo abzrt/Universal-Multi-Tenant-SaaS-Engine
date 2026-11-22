@@ -5666,6 +5666,18 @@ table.dash-table.dev-dark-table tbody tr:hover td {
   outline: none;
 }
 
+#modalEditRouteTariff select.form-input option,
+#modalAddMasterRoute select.form-input option {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+#modalEditRouteTariff .form-input:focus,
+#modalAddMasterRoute .form-input:focus {
+  border-color: #38bdf8 !important;
+  outline: 2px solid rgba(56, 189, 248, 0.25) !important;
+}
+
 
 /* Exchange Rate Live Recheck Spinner */
 @keyframes spinRate {
