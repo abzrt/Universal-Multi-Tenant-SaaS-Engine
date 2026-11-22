@@ -6322,3 +6322,113 @@ table.dash-table.dev-dark-table tbody tr:hover td {
     font-size: 0.74rem !important;
   }
 }
+
+/* ========================================================
+   MODERN VISUAL POLISH & ENHANCEMENTS
+   1. Micro-interactions & Smooth Transitions
+   2. Modern Glassmorphism & Soft Shadows
+   3. Seat Picker Visual Upgrade
+   4. Theme Polish & Developer Dark Mode
+   ======================================================== */
+
+/* 1. Micro-interactions & Glassmorphism Card Polish */
+.ticky-kpi-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.ticky-kpi-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.ticky-white-card,
+.dash-block-panel {
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+/* Modern Pill Badges & Buttons Hover Feedback */
+.btn-primary-action,
+.btn-primary-block,
+.btn-secondary-block {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-primary-action:hover,
+.btn-primary-block:hover {
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.25) !important;
+}
+
+.btn-primary-action:active,
+.btn-primary-block:active {
+  transform: translateY(0.5px) !important;
+}
+
+/* 2. Seat Picker Visual Upgrade (Tampilan Kursi Lebih Elegan & Kontras) */
+.tix-visual-seat-btn {
+  border-radius: 7px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.tix-visual-seat-btn.available {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.tix-visual-seat-btn.available:hover {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2) !important;
+  z-index: 2;
+}
+
+.tix-visual-seat-btn.selected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #047857 !important;
+  color: #ffffff !important;
+  transform: scale(1.06) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
+  z-index: 3;
+}
+
+.tix-visual-seat-btn.occupied {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* Deck Plan Indicator & Hull Polish */
+.ship-hull-frame {
+  border-radius: 14px !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* 3. Dark Theme Polish (Developer Mode) */
+.dev-dark-table {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dev-dark-table thead th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom: 2px solid #334155 !important;
+  letter-spacing: 0.5px !important;
+}
+
