@@ -495,7 +495,7 @@
           <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
         </label>
 
-        <button type="button" class="btn-shutter" id="btnCaptureShutter" title="Ambil Foto & Scan">
+        <button type="button" class="btn-shutter" id="btnCaptureShutter" title="Ambil Foto & Scan" style="display: none;">
           📸
         </button>
 
@@ -506,7 +506,7 @@
 
       <!-- AUTO-SCAN STATUS TEXT -->
       <div id="scanStatusIndicator" style="text-align: center; font-size: 0.74rem; color: #94a3b8; margin: 0.2rem 0;">
-        Posisikan foto halaman biodata paspor dengan jelas lalu tekan 📸 Foto.
+        ⏳ Menyiapkan Auto-Scan — arahkan halaman biodata paspor ke dalam kotak.
       </div>
 
       <!-- RESULT CARD (KHUSUS DATA FORM PENGISIAN TIKET) -->
@@ -1179,6 +1179,8 @@
     let autoCaptureTimer = null;
     let autoOcrBusy = false;
     let autoBuffer = null;
+    let lastCapturedPassportNo = '';
+    let lastCapturedAt = 0;
 
     function getGuideCropRect(video, canvas) {
       const vRect = video.getBoundingClientRect();
@@ -1190,15 +1192,19 @@
       const scale = Math.max(vRect.width / canvas.width, vRect.height / canvas.height);
       const offsetX = (vRect.width - canvas.width * scale) / 2;
       const offsetY = (vRect.height - canvas.height * scale) / 2;
+      const w = r.width / scale;
+      const h = r.height / scale;
+      const padX = w * 0.06;
+      const padY = h * 0.06;
       return {
-        x: (r.left - vRect.left - offsetX) / scale,
-        y: (r.top - vRect.top - offsetY) / scale,
-        w: r.width / scale,
-        h: r.height / scale
+        x: Math.max(0, (r.left - vRect.left - offsetX) / scale - padX),
+        y: Math.max(0, (r.top - vRect.top - offsetY) / scale - padY),
+        w: Math.min(canvas.width, w + padX * 2),
+        h: Math.min(canvas.height, h + padY * 2)
       };
     }
 
-    // Ultra-fast sharpness check (<2ms) so auto-capture skips blurry moving frames
+    // Ultra-fast sharpness check (<2ms) so auto-capture skips dark/blank frames without blocking pastel passport pages
     function isFrameSharpEnough(sourceCanvas, crop) {
       const probe = document.createElement('canvas');
       probe.width = 160;
@@ -1219,7 +1225,7 @@
         }
       }
       const avgGrad = count ? (gradSum / count) : 0;
-      return avgGrad >= 11;
+      return avgGrad >= 4;
     }
 
     // Check if ALL required ticket passenger entry fields are present & valid
@@ -1326,19 +1332,24 @@
           if (autoBuffer.expiry) foundTags.push('Berlaku ✓');
 
           if (isTicketDataComplete(autoBuffer)) {
-            if (guideEl) {
-              guideEl.classList.remove('locking');
-              guideEl.classList.add('locked');
+            const now = Date.now();
+            const isSameRecent = Boolean(lastCapturedPassportNo && autoBuffer.passportNo === lastCapturedPassportNo && (now - lastCapturedAt) < 5000);
+            if (!isSameRecent) {
+              if (guideEl) {
+                guideEl.classList.remove('locking');
+                guideEl.classList.add('locked');
+              }
+              const finalData = { ...autoBuffer };
+              lastCapturedPassportNo = finalData.passportNo;
+              lastCapturedAt = now;
+              autoBuffer = null;
+              handleScanSuccess(finalData);
+              document.getElementById('scanStatusIndicator').innerHTML = '✅ <strong>Auto-Capture Berhasil!</strong> Arahkan paspor baru untuk scan otomatis berikutnya.';
             }
-            const finalData = { ...autoBuffer };
-            autoBuffer = null;
-            // Pause auto-capture after lock so it doesn't spam the same passport
-            autoCaptureEnabled = false;
-            updateAutoToggleUI();
-            stopAutoCapture();
-            handleScanSuccess(finalData);
-            document.getElementById('scanStatusIndicator').innerHTML = '✅ <strong>Auto-Capture Berhasil!</strong> Ketuk ⚡ atau 📸 untuk scan paspor berikutnya.';
             autoOcrBusy = false;
+            if (autoCaptureEnabled) {
+              autoCaptureTimer = setTimeout(autoCaptureTick, 800);
+            }
             return;
           } else if (foundTags.length > 0) {
             if (guideEl) guideEl.classList.add('locking');
