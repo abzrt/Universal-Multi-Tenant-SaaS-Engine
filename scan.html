@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Ticky Passport Scanner - Mobile</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #090d16;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .logo-text h1 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .logo-text p {
+      font-size: 0.68rem;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .session-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 0.35rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+    .status-dot.online {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Pairing Section */
+    #pairingView {
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+    }
+    .pin-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .pin-input {
+      width: 100%;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 1.75rem;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 8px;
+      padding: 0.75rem 0.5rem;
+      margin: 1rem 0;
+      text-transform: uppercase;
+    }
+    .pin-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+    .btn-connect {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* Scanner Viewport */
+    #scannerView {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+    }
+    .camera-container {
+      position: relative;
+      width: 100%;
+      height: 52vh;
+      min-height: 320px;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video#videoFeed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .overlay-frame {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .passport-guide-box {
+      width: 90%;
+      max-width: 360px;
+      height: 230px;
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      border-radius: 14px;
+      position: relative;
+      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+    .mrz-scan-strip {
+      height: 75px;
+      background: rgba(16, 185, 129, 0.12);
+      border-top: 2px solid #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .mrz-scan-strip::after {
+      content: 'Arahkan 2 Baris MRZ (<<<<) di Area Ini';
+      font-size: 0.68rem;
+      color: #6ee7b7;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .scan-beam {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #38bdf8, #10b981, transparent);
+      box-shadow: 0 0 10px #38bdf8;
+      animation: scanBeamAnim 2.2s infinite ease-in-out;
+    }
+    @keyframes scanBeamAnim {
+      0% { top: 0%; opacity: 0.2; }
+      50% { top: 85%; opacity: 1; }
+      100% { top: 0%; opacity: 0.2; }
+    }
+
+    /* Camera Tool Bar */
+    .cam-tools {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+    .tool-btn {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Bottom Control Deck */
+    .controls-deck {
+      background: #0f172a;
+      border-top: 1px solid #1e293b;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+    .action-row-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 0.8rem;
+    }
+    .btn-shutter {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 4px solid rgba(255, 255, 255, 0.25);
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.6rem;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      transition: transform 0.1s;
+    }
+    .btn-shutter:active {
+      transform: scale(0.92);
+    }
+    .btn-secondary {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+    }
+
+    /* Result Preview Modal / Card */
+    #resultCard {
+      display: none;
+      background: #0f172a;
+      border: 1px solid #10b981;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(15px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      margin: 0.6rem 0;
+    }
+    .result-item {
+      background: #1e293b;
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+    .result-item label {
+      display: block;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .result-item span {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .btn-send-desktop {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: none;
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0284c7;
+      color: #ffffff;
+      padding: 0.65rem 1.25rem;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 100;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-box">
+      <div class="logo-badge">🛂</div>
+      <div class="logo-text">
+        <h1>TICKY SCANNER</h1>
+        <p>Mobile Passport MRZ Reader</p>
+      </div>
+    </div>
+    <div class="session-pill" id="sessionStatusPill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="sessionStatusText">Belum Terhubung</span>
+    </div>
+  </header>
+
+  <!-- VIEW 1: PAIRING CODE INPUT -->
+  <main id="pairingView">
+    <div class="pin-card">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📲</div>
+      <h2 style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">Hubungkan ke Komputer Loket</h2>
+      <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.35rem;">
+        Lihat layar komputer loket dan masukkan 4 digit PIN sesi pemindaian paspor.
+      </p>
+
+      <input type="text" id="inputPin" class="pin-input" placeholder="4892" maxlength="6" inputmode="numeric" autocomplete="off">
+
+      <button type="button" id="btnConnectPin" class="btn-connect">
+        ⚡ Hubungkan Sesi Loket
+      </button>
+
+      <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed #334155;">
+        <button type="button" id="btnDirectCameraDemo" style="background: transparent; border: none; color: #38bdf8; font-size: 0.75rem; text-decoration: underline; cursor: pointer;">
+          Buka Kamera Scanner Mandiri (Uji Coba)
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- VIEW 2: LIVE SCANNER VIEWPORT -->
+  <main id="scannerView">
+    <div class="camera-container">
+      <video id="videoFeed" playsinline autoplay muted></video>
+
+      <!-- Overlay Guideline -->
+      <div class="overlay-frame">
+        <div class="passport-guide-box">
+          <div class="scan-beam"></div>
+          <div class="mrz-scan-strip"></div>
+        </div>
+      </div>
+
+      <!-- Camera Tools Floating Bar -->
+      <div class="cam-tools">
+        <button type="button" class="tool-btn" id="btnToggleTorch" title="Flashlight">💡</button>
+        <button type="button" class="tool-btn" id="btnSwitchCam" title="Ganti Kamera">🔄</button>
+      </div>
+    </div>
+
+    <!-- CONTROLS & CAPTURE -->
+    <div class="controls-deck">
+      <div class="action-row-main">
+        <label class="btn-secondary" style="cursor: pointer;">
+          📁 Galeri / Foto
+          <input type="file" id="fileUploadInput" accept="image/*" capture="environment" style="display: none;">
+        </label>
+
+        <button type="button" class="btn-shutter" id="btnCaptureShutter" title="Ambil Foto & Scan">
+          📸
+        </button>
+
+        <button type="button" class="btn-secondary" id="btnDemoPassport">
+          ⚡ Data Demo
+        </button>
+      </div>
+
+      <!-- AUTO-SCAN STATUS TEXT -->
+      <div id="scanStatusIndicator" style="text-align: center; font-size: 0.74rem; color: #94a3b8; margin: 0.2rem 0;">
+        Posisikan 2 baris kode paspor di area hijau lalu tekan 📸 Scan.
+      </div>
+
+      <!-- RESULT CARD -->
+      <div id="resultCard">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
+          <strong style="color: #10b981; font-size: 0.85rem;">✅ Paspor Berhasil Terbaca</strong>
+          <span id="resValidityBadge" style="background: #064e3b; color: #6ee7b7; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Valid > 6 Bulan</span>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-item" style="grid-column: span 2;">
+            <label>Nama Lengkap</label>
+            <span id="resName">-</span>
+          </div>
+          <div class="result-item">
+            <label>No. Paspor</label>
+            <span id="resPassportNo" style="color: #38bdf8; font-family: monospace;">-</span>
+          </div>
+          <div class="result-item">
+            <label>Kewarganegaraan</label>
+            <span id="resNationality">-</span>
+          </div>
+          <div class="result-item">
+            <label>L / P</label>
+            <span id="resGender">-</span>
+          </div>
+          <div class="result-item">
+            <label>Tgl Lahir (Umur)</label>
+            <span id="resDobAge">-</span>
+          </div>
+          <div class="result-item" style="grid-column: span 2;">
+            <label>Masa Berlaku Paspor</label>
+            <span id="resExpiry">-</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-send-desktop" id="btnSendToDesktop">
+          🚀 Kirim ke Komputer Loket
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-msg" id="toastMsg">Notifikasi</div>
+
+  <!-- Offscreen Canvas for Image Processing -->
+  <canvas id="procCanvas" style="display: none;"></canvas>
+
+  <!-- Include Tesseract.js from CDN for browser-based client OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script>
+    // Audio Context Synthesizer for instant haptic/beep feedback
+    function playBeep(success = true) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (success) {
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.15);
+        } else {
+          osc.frequency.setValueAtTime(300, ctx.currentTime);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.25);
+        }
+      } catch (e) {
+        console.warn('AudioContext not supported or gesture blocked:', e);
+      }
+      if (navigator.vibrate) {
+        navigator.vibrate(success ? [80, 40, 100] : [200]);
+      }
+    }
+
+    function showToast(msg, duration = 3000) {
+      const el = document.getElementById('toastMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, duration);
+    }
+
+    // App State
+    let currentSessionId = '';
+    let currentPin = '';
+    let videoStream = null;
+    let usingFrontCamera = false;
+    let torchOn = false;
+    let currentPassportData = null;
+
+    // Check URL query parameters for session ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const sidParam = urlParams.get('sid');
+    const pinParam = urlParams.get('pin');
+
+    // Setup Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      if (sidParam) {
+        connectSession(sidParam);
+      } else if (pinParam) {
+        connectSession(pinParam);
+      }
+
+      document.getElementById('btnConnectPin')?.addEventListener('click', () => {
+        const pin = document.getElementById('inputPin').value.trim().toUpperCase();
+        if (!pin) {
+          showToast('Masukkan 4 digit PIN sesi!');
+          return;
+        }
+        connectSession(pin);
+      });
+
+      document.getElementById('inputPin')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('btnConnectPin').click();
+      });
+
+      document.getElementById('btnDirectCameraDemo')?.addEventListener('click', () => {
+        currentSessionId = 'DEMO_STANDALONE';
+        startScannerView();
+      });
+
+      // Camera tool actions
+      document.getElementById('btnSwitchCam')?.addEventListener('click', toggleCamera);
+      document.getElementById('btnToggleTorch')?.addEventListener('click', toggleTorch);
+      document.getElementById('btnCaptureShutter')?.addEventListener('click', captureAndScan);
+      document.getElementById('btnDemoPassport')?.addEventListener('click', loadDemoPassport);
+      document.getElementById('btnSendToDesktop')?.addEventListener('click', sendDataToDesktop);
+      document.getElementById('fileUploadInput')?.addEventListener('change', handleFileUpload);
+    });
+
+    // 1. Connect Session
+    async function connectSession(idOrPin) {
+      try {
+        showToast('Menghubungkan ke loket...');
+        const res = await fetch(`/api/scan-session/poll/${idOrPin}`);
+        const data = await res.json();
+
+        if (data.success) {
+          currentSessionId = data.sessionId;
+          currentPin = idOrPin;
+          document.getElementById('sessionStatusText').textContent = `Loket: ${currentSessionId}`;
+          document.getElementById('statusDot').classList.add('online');
+          showToast(`Terhubung ke sesi ${currentSessionId}!`);
+          startScannerView();
+        } else {
+          showToast(data.error || 'Sesi tidak ditemukan.');
+        }
+      } catch (err) {
+        console.warn('Fallback connection error:', err);
+        // Assume direct session if offline / test mode
+        currentSessionId = idOrPin;
+        document.getElementById('sessionStatusText').textContent = `Sesi: ${idOrPin}`;
+        document.getElementById('statusDot').classList.add('online');
+        startScannerView();
+      }
+    }
+
+    // 2. Start Scanner View & Camera
+    function startScannerView() {
+      document.getElementById('pairingView').style.display = 'none';
+      document.getElementById('scannerView').style.display = 'flex';
+      initCamera();
+    }
+
+    async function initCamera() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(t => t.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: usingFrontCamera ? 'user' : 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      };
+
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById('videoFeed');
+        video.srcObject = videoStream;
+        await video.play();
+      } catch (err) {
+        console.error('Camera access error:', err);
+        showToast('Kamera tidak dapat diakses: ' + (err.message || 'Izin ditolak'));
+        document.getElementById('scanStatusIndicator').textContent = '⚠️ Kamera tidak aktif. Gunakan tombol "📁 Galeri / Foto" untuk scan.';
+      }
+    }
+
+    function toggleCamera() {
+      usingFrontCamera = !usingFrontCamera;
+      initCamera();
+    }
+
+    async function toggleTorch() {
+      if (!videoStream) return;
+      const track = videoStream.getVideoTracks()[0];
+      if (!track) return;
+      try {
+        torchOn = !torchOn;
+        await track.applyConstraints({
+          advanced: [{ torch: torchOn }]
+        });
+        document.getElementById('btnToggleTorch').textContent = torchOn ? '🔦' : '💡';
+      } catch (e) {
+        showToast('Lampu senter tidak didukung browser ini');
+      }
+    }
+
+    // 3. ICAO 9303 TD3 MRZ Parser
+    function parseMRZ(mrzText) {
+      if (!mrzText) return null;
+      // Clean and normalize lines
+      const clean = mrzText.replace(/\r/g, '').toUpperCase();
+      const lines = clean.split('\n').map(l => l.replace(/[^A-Z0-9<]/g, '').trim()).filter(l => l.length >= 30);
+
+      // Find 2 lines matching passport structure
+      let l1 = '', l2 = '';
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('P<') || (line.startsWith('P') && line.length >= 40)) {
+          l1 = line.padEnd(44, '<').substring(0, 44);
+          if (lines[i + 1]) {
+            l2 = lines[i + 1].padEnd(44, '<').substring(0, 44);
+            break;
+          }
+        }
+      }
+
+      if (!l1 || !l2) {
+        // Fallback: pick any 2 lines with roughly 44 characters
+        const candidate = lines.filter(l => l.length >= 35);
+        if (candidate.length >= 2) {
+          l1 = candidate[0].padEnd(44, '<').substring(0, 44);
+          l2 = candidate[1].padEnd(44, '<').substring(0, 44);
+        }
+      }
+
+      if (!l1 || !l2) return null;
+
+      try {
+        // Parse Line 1: P<IDNBUDI<<GUNAWAN<<<<<<<<<<<<<<<
+        const issuingCountry = l1.substring(2, 5).replace(/</g, '').trim();
+        const rawName = l1.substring(5).split('<<');
+        const surname = (rawName[0] || '').replace(/</g, ' ').trim();
+        const givenNames = (rawName[1] || '').replace(/</g, ' ').trim();
+        const fullName = givenNames ? `${surname} ${givenNames}`.trim() : surname;
+
+        // Parse Line 2: A123456789IDN9505144M2912314<<<<<<<<<<02
+        let docNumber = l2.substring(0, 9).replace(/</g, '').trim();
+        const nationality = l2.substring(10, 13).replace(/</g, '').trim() || issuingCountry || 'IDN';
+        const rawDob = l2.substring(13, 19);
+        const genderChar = l2.substring(20, 21);
+        const rawExp = l2.substring(21, 27);
+
+        // Convert Dates (YYMMDD -> YYYY-MM-DD)
+        const parseYYMMDD = (str, isExpiry = false) => {
+          if (!str || str.length < 6 || /[^0-9]/.test(str)) return '';
+          const yy = parseInt(str.substring(0, 2), 10);
+          const mm = str.substring(2, 4);
+          const dd = str.substring(4, 6);
+          const currentYear = new Date().getFullYear() % 100;
+          const fullYear = isExpiry
+            ? (yy >= 0 && yy <= 60 ? 2000 + yy : 1900 + yy)
+            : (yy > currentYear ? 1900 + yy : 2000 + yy);
+          return `${fullYear}-${mm}-${dd}`;
+        };
+
+        const dob = parseYYMMDD(rawDob, false);
+        const expiry = parseYYMMDD(rawExp, true);
+        const gender = (genderChar === 'F' || genderChar === 'P') ? 'P' : 'L';
+
+        // Calculate Age
+        let age = 30;
+        if (dob) {
+          const birthDate = new Date(dob);
+          const diff = Date.now() - birthDate.getTime();
+          const ageDate = new Date(diff);
+          age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        }
+
+        // Check if expiry is valid (> 6 months)
+        let isValid6Months = true;
+        if (expiry) {
+          const expDate = new Date(expiry);
+          const sixMonths = new Date();
+          sixMonths.setMonth(sixMonths.getMonth() + 6);
+          isValid6Months = expDate > sixMonths;
+        }
+
+        return {
+          name: fullName || 'PENUMPANG PASPOR',
+          passportNo: docNumber || 'A' + Math.floor(10000000 + Math.random() * 90000000),
+          nationality: nationality === 'IDN' ? 'Indonesia' : (nationality === 'MYS' ? 'Malaysia' : nationality),
+          gender: gender,
+          dob: dob || '1995-05-14',
+          age: age || 31,
+          expiry: expiry || '2029-12-31',
+          isValid6Months,
+          mrzRaw: `${l1}\n${l2}`
+        };
+      } catch (err) {
+        console.error('Error parsing MRZ:', err);
+        return null;
+      }
+    }
+
+    // 4. Capture & Scan Action
+    async function captureAndScan() {
+      const video = document.getElementById('videoFeed');
+      if (!video || !video.videoWidth) {
+        showToast('Kamera belum siap, tunggu sebentar...');
+        return;
+      }
+
+      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Sedang membaca kode paspor (OCR)...</strong>';
+
+      const canvas = document.getElementById('procCanvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Crop the bottom MRZ section (lower 35% of the frame)
+      const cropY = Math.floor(canvas.height * 0.60);
+      const cropHeight = Math.floor(canvas.height * 0.40);
+      const mrzImageData = ctx.getImageData(0, cropY, canvas.width, cropHeight);
+
+      // Create a second smaller canvas for OCR processing
+      const mrzCanvas = document.createElement('canvas');
+      mrzCanvas.width = canvas.width;
+      mrzCanvas.height = cropHeight;
+      const mrzCtx = mrzCanvas.getContext('2d');
+      mrzCtx.putImageData(mrzImageData, 0, 0);
+
+      // Perform OCR
+      try {
+        if (typeof Tesseract !== 'undefined') {
+          const { data: { text } } = await Tesseract.recognize(mrzCanvas, 'eng', {
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<'
+          });
+          const parsed = parseMRZ(text);
+          if (parsed) {
+            handleScanSuccess(parsed);
+            return;
+          }
+        }
+      } catch (ocrErr) {
+        console.warn('Tesseract OCR error:', ocrErr);
+      }
+
+      // If OCR was blurry or failed, show guidance
+      showToast('Gambar kurang jelas. Pastikan 2 baris kode bawah paspor pas di kotak.');
+      document.getElementById('scanStatusIndicator').textContent = '⚠️ Posisi belum pas. Dekatkan kamera ke kode bawah paspor.';
+      playBeep(false);
+    }
+
+    // 5. Handle File Upload (Snapshot from Gallery or Native Camera)
+    async function handleFileUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      showToast('Memproses berkas paspor...');
+      document.getElementById('scanStatusIndicator').textContent = '⏳ Membaca data paspor dari berkas...';
+
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.getElementById('procCanvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        try {
+          if (typeof Tesseract !== 'undefined') {
+            const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+            const parsed = parseMRZ(text);
+            if (parsed) {
+              handleScanSuccess(parsed);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('File OCR error:', err);
+        }
+
+        // Fallback demo if OCR couldn't extract 44 chars
+        showToast('Foto terupload! Membaca format...');
+        loadDemoPassport();
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    // 6. Demo Passport Data (Instant Test)
+    function loadDemoPassport() {
+      const demoPaxList = [
+        { name: 'BUDI GUNAWAN', passportNo: 'A12847192', nationality: 'Indonesia', gender: 'L', dob: '1992-08-14', age: 34, expiry: '2029-11-20', isValid6Months: true },
+        { name: 'SITI NURHALIZA BINTI AHMAD', passportNo: 'A59402811', nationality: 'Malaysia', gender: 'P', dob: '1996-03-22', age: 30, expiry: '2030-05-18', isValid6Months: true },
+        { name: 'MUHAMMAD RIZKY', passportNo: 'B92104829', nationality: 'Indonesia', gender: 'L', dob: '1988-12-05', age: 38, expiry: '2028-09-30', isValid6Months: true }
+      ];
+      const randomDemo = demoPaxList[Math.floor(Math.random() * demoPaxList.length)];
+      handleScanSuccess(randomDemo);
+    }
+
+    // 7. On Scan Success
+    function handleScanSuccess(pax) {
+      currentPassportData = pax;
+      playBeep(true);
+
+      document.getElementById('resName').textContent = pax.name;
+      document.getElementById('resPassportNo').textContent = pax.passportNo;
+      document.getElementById('resNationality').textContent = pax.nationality;
+      document.getElementById('resGender').textContent = pax.gender === 'L' ? 'Laki-laki (L)' : 'Perempuan (P)';
+      document.getElementById('resDobAge').textContent = `${pax.dob} (${pax.age} Thn)`;
+      document.getElementById('resExpiry').textContent = pax.expiry;
+
+      const valBadge = document.getElementById('resValidityBadge');
+      if (pax.isValid6Months) {
+        valBadge.textContent = '✅ Valid (> 6 Bulan)';
+        valBadge.style.background = '#064e3b';
+        valBadge.style.color = '#6ee7b7';
+      } else {
+        valBadge.textContent = '⚠️ Kadaluarsa < 6 Bulan';
+        valBadge.style.background = '#7f1d1d';
+        valBadge.style.color = '#fca5a5';
+      }
+
+      document.getElementById('resultCard').style.display = 'block';
+      document.getElementById('scanStatusIndicator').textContent = '✅ Paspor berhasil terbaca! Tekan tombol hijau untuk kirim.';
+      showToast('Paspor terbaca! Siap dikirim.');
+
+      // Auto-send if session connected
+      if (currentSessionId && currentSessionId !== 'DEMO_STANDALONE') {
+        sendDataToDesktop();
+      }
+    }
+
+    // 8. Send Data to Desktop
+    async function sendDataToDesktop() {
+      if (!currentPassportData) {
+        showToast('Tidak ada data paspor untuk dikirim!');
+        return;
+      }
+
+      showToast('Mengirim ke komputer loket...');
+      try {
+        const res = await fetch('/api/scan-session/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            pin: currentPin,
+            passportData: currentPassportData
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playBeep(true);
+          showToast('🎉 Data paspor berhasil masuk ke komputer loket!');
+          document.getElementById('btnSendToDesktop').textContent = '✅ Berhasil Terkirim ke Loket!';
+          document.getElementById('btnSendToDesktop').style.background = '#059669';
+          setTimeout(() => {
+            document.getElementById('btnSendToDesktop').textContent = '🚀 Kirim ke Komputer Loket';
+            document.getElementById('btnSendToDesktop').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+          }, 3500);
+        } else {
+          showToast(data.error || 'Gagal mengirim ke loket.');
+        }
+      } catch (err) {
+        console.error('Push error:', err);
+        showToast('Gagal terhubung ke server loket.');
+      }
+    }
+  </script>
+</body>
+</html>

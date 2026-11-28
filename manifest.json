@@ -1,0 +1,24 @@
+{
+  "name": "Ticky Passport Scanner",
+  "short_name": "PassScanner",
+  "start_url": "/scan.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090d16",
+  "theme_color": "#0284c7",
+  "description": "Pemindai Paspor Digital Real-Time untuk Loket Tiket Kapal TickyTech",
+  "icons": [
+    {
+      "src": "/assets/avatar-header.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/avatar-header.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

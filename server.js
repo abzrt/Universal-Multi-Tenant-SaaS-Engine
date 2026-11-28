@@ -256,6 +256,98 @@ app.delete('/api/sync', async (req, res) => {
 });
 
 // =======================================================
+// REAL-TIME MOBILE PASSPORT SCANNER SESSIONS
+// =======================================================
+const scanSessions = new Map();
+
+// Periodic cleanup of sessions older than 20 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, session] of scanSessions.entries()) {
+    if (now - session.createdAt > 20 * 60 * 1000) {
+      scanSessions.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
+
+// 1. Create a new pairing session (Called by Desktop Counter)
+app.post('/api/scan-session/create', (req, res) => {
+  const sid = 'S' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  const pin = Math.floor(1000 + Math.random() * 9000).toString();
+  const session = {
+    sessionId: sid,
+    pin: pin,
+    createdAt: Date.now(),
+    status: 'waiting', // 'waiting' | 'scanned' | 'consumed'
+    passportData: null
+  };
+
+  scanSessions.set(sid, session);
+  scanSessions.set(pin, session); // Allow lookup by 4-digit PIN as well
+
+  const host = req.get('host');
+  const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const scanUrl = `${protocol}://${host}/scan.html?sid=${sid}`;
+
+  res.json({
+    success: true,
+    sessionId: sid,
+    pin,
+    scanUrl
+  });
+});
+
+// 2. Poll session status (Called by Desktop Counter)
+app.get('/api/scan-session/poll/:sessionId', (req, res) => {
+  const sid = (req.params.sessionId || '').toUpperCase();
+  const session = scanSessions.get(sid);
+  if (!session) {
+    return res.status(404).json({ success: false, error: 'Sesi scan tidak ditemukan atau sudah kedaluwarsa.' });
+  }
+
+  res.json({
+    success: true,
+    sessionId: session.sessionId,
+    status: session.status,
+    passportData: session.passportData
+  });
+});
+
+// 3. Push scanned passport data (Called by Mobile Smartphone / Scanner App)
+app.post('/api/scan-session/push', (req, res) => {
+  const { sessionId, pin, passportData } = req.body || {};
+  const key = (sessionId || pin || '').trim().toUpperCase();
+  const session = scanSessions.get(key);
+
+  if (!session) {
+    return res.status(404).json({ success: false, error: 'Sesi scan tidak ditemukan atau PIN salah.' });
+  }
+
+  session.status = 'scanned';
+  session.passportData = passportData;
+  session.updatedAt = Date.now();
+
+  console.log(`[Passport Scan] Received data for session ${session.sessionId} (PIN ${session.pin}):`, passportData ? passportData.name : 'Unknown');
+
+  res.json({
+    success: true,
+    message: 'Data paspor berhasil dikirim ke komputer loket!',
+    sessionId: session.sessionId
+  });
+});
+
+// 4. Reset / consume session
+app.post('/api/scan-session/consume', (req, res) => {
+  const { sessionId } = req.body || {};
+  const sid = (sessionId || '').toUpperCase();
+  const session = scanSessions.get(sid);
+  if (session) {
+    session.status = 'consumed';
+  }
+  res.json({ success: true });
+});
+
+// =======================================================
 // AUTO-DEPLOY WEBHOOK (GitHub -> Server Auto Sync)
 // =======================================================
 const { exec } = require('child_process');

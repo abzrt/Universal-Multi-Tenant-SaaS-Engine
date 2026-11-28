@@ -49,6 +49,7 @@ const App = {
     this.initWeatherWarningEvents();
     this.initPeakSeasonEvents();
     this.initCurrencyAndMdacEvents();
+    this.initMobilePassportScanner();
 
     // Status tenant atau dev admin di header jika ada sesi aktif
     if (typeof Store !== 'undefined' && Store.isDevAdminLoggedIn && Store.isDevAdminLoggedIn()) {
@@ -14509,6 +14510,226 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         }
       });
     });
+  },
+
+  // =======================================================
+  // MOBILE PASSPORT SCANNER REAL-TIME PAIRING MODULE
+  // =======================================================
+  mobileScanState: {
+    sessionId: null,
+    pin: null,
+    scanUrl: null,
+    pollTimer: null,
+    targetContext: 'bookingModal' // 'bookingModal' | 'ticketingConsole'
+  },
+
+  initMobilePassportScanner() {
+    // 1. Button inside Customer Booking Modal
+    document.getElementById('btnOpenMobileScanBooking')?.addEventListener('click', () => {
+      this.openMobilePassportScanModal('bookingModal');
+    });
+
+    // 2. Button inside Tab Ticketing Console
+    document.getElementById('btnTixScanPassportMobile')?.addEventListener('click', () => {
+      this.openMobilePassportScanModal('ticketingConsole');
+    });
+
+    // 3. Modal close buttons
+    document.getElementById('btnCloseMobilePassportScan')?.addEventListener('click', () => {
+      this.closeMobilePassportScanModal();
+    });
+    document.getElementById('btnCancelMobilePassportScan')?.addEventListener('click', () => {
+      this.closeMobilePassportScanModal();
+    });
+
+    // 4. Copy URL button
+    document.getElementById('btnCopyScanUrl')?.addEventListener('click', () => {
+      if (this.mobileScanState.scanUrl) {
+        navigator.clipboard.writeText(this.mobileScanState.scanUrl);
+        this.showToast('Link Disalin', 'Link pemindai paspor HP berhasil disalin ke clipboard.');
+      }
+    });
+
+    // 5. Manual simulate button (for instant test)
+    document.getElementById('btnManualSimulateScan')?.addEventListener('click', () => {
+      const demoData = {
+        name: 'BUDI GUNAWAN',
+        passportNo: 'A12847192',
+        nationality: 'Indonesia',
+        gender: 'L',
+        dob: '1992-08-14',
+        age: 34,
+        expiry: '2029-11-20',
+        isValid6Months: true
+      };
+      this.applyScannedPassportData(demoData);
+    });
+  },
+
+  async openMobilePassportScanModal(targetContext = 'bookingModal') {
+    this.mobileScanState.targetContext = targetContext;
+    this.stopMobileScanPolling();
+
+    const modal = document.getElementById('modalMobilePassportScan');
+    if (!modal) return;
+
+    modal.classList.add('show');
+    const resultBox = document.getElementById('mobileScanResultBox');
+    if (resultBox) resultBox.style.display = 'none';
+    const statusText = document.getElementById('mobileScanStatusText');
+    if (statusText) statusText.textContent = 'Menghubungkan sesi baru...';
+    const pinDisplay = document.getElementById('mobileScanPinDisplay');
+    if (pinDisplay) pinDisplay.textContent = '----';
+
+    try {
+      const res = await fetch('/api/scan-session/create', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        this.mobileScanState.sessionId = data.sessionId;
+        this.mobileScanState.pin = data.pin;
+        this.mobileScanState.scanUrl = data.scanUrl;
+
+        if (pinDisplay) pinDisplay.textContent = data.pin;
+        const linkDirect = document.getElementById('linkOpenScannerDirect');
+        if (linkDirect) linkDirect.href = data.scanUrl;
+
+        // Render QR Code
+        const qrContainer = document.getElementById('mobileScanQrContainer');
+        if (qrContainer) {
+          qrContainer.innerHTML = '';
+          if (typeof QRCode !== 'undefined') {
+            new QRCode(qrContainer, {
+              text: data.scanUrl,
+              width: 170,
+              height: 170,
+              colorDark: '#0f172a',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } else {
+            // High quality fallback QR image via API
+            const img = document.createElement('img');
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(data.scanUrl)}`;
+            img.style.width = '170px';
+            img.style.height = '170px';
+            img.style.display = 'block';
+            img.alt = 'QR Code Scan';
+            qrContainer.appendChild(img);
+          }
+        }
+
+        if (statusText) statusText.textContent = 'Arahkan kamera HP ke QR Code atau buka PIN ' + data.pin;
+        this.startMobileScanPolling(data.sessionId);
+      } else {
+        if (statusText) statusText.textContent = 'Gagal membuat sesi scan.';
+      }
+    } catch (err) {
+      console.warn('Scan session create error:', err);
+      // Fallback local session if offline
+      const localPin = Math.floor(1000 + Math.random() * 9000).toString();
+      this.mobileScanState.sessionId = 'LOCAL';
+      this.mobileScanState.pin = localPin;
+      this.mobileScanState.scanUrl = window.location.origin + '/scan.html?pin=' + localPin;
+      if (pinDisplay) pinDisplay.textContent = localPin;
+      if (statusText) statusText.textContent = 'Buka /scan.html di HP dan ketik PIN: ' + localPin;
+      this.startMobileScanPolling('LOCAL');
+    }
+  },
+
+  startMobileScanPolling(sessionId) {
+    this.stopMobileScanPolling();
+    this.mobileScanState.pollTimer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/scan-session/poll/${sessionId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && data.status === 'scanned' && data.passportData) {
+          this.stopMobileScanPolling();
+          this.applyScannedPassportData(data.passportData);
+        }
+      } catch (err) {
+        // Ignore background polling network glitches
+      }
+    }, 1200);
+  },
+
+  stopMobileScanPolling() {
+    if (this.mobileScanState.pollTimer) {
+      clearInterval(this.mobileScanState.pollTimer);
+      this.mobileScanState.pollTimer = null;
+    }
+  },
+
+  closeMobilePassportScanModal() {
+    this.stopMobileScanPolling();
+    document.getElementById('modalMobilePassportScan')?.classList.remove('show');
+  },
+
+  applyScannedPassportData(pax) {
+    if (!pax) return;
+
+    // Show visual receipt in modal
+    const resBox = document.getElementById('mobileScanResultBox');
+    const resDetail = document.getElementById('mobileScanResultDetail');
+    if (resBox && resDetail) {
+      resBox.style.display = 'block';
+      resDetail.innerHTML = `<strong>${pax.name}</strong> • Paspor: <code style="color: #38bdf8;">${pax.passportNo}</code> • ${pax.nationality} (${pax.gender === 'L' ? 'Laki-laki' : 'Perempuan'})`;
+    }
+
+    const statusText = document.getElementById('mobileScanStatusText');
+    if (statusText) statusText.innerHTML = '🎉 <strong>Paspor Berhasil Diterima dari HP!</strong>';
+
+    setTimeout(() => {
+      this.closeMobilePassportScanModal();
+
+      if (this.mobileScanState.targetContext === 'bookingModal') {
+        // Apply to single booking modal inputs
+        const nameInp = document.getElementById('custPaxName');
+        const docInp = document.getElementById('custPaxDocNum');
+        const genderInp = document.getElementById('custPaxGender');
+        const dobInp = document.getElementById('custPaxDob');
+        const ageInp = document.getElementById('custPaxAge');
+        const natInp = document.getElementById('custPaxNationality');
+        const expInp = document.getElementById('custPaxPassportExpInput');
+        const expHidden = document.getElementById('custPaxPassportExp');
+
+        if (nameInp) { nameInp.value = pax.name; nameInp.dispatchEvent(new Event('input')); }
+        if (docInp) { docInp.value = pax.passportNo; docInp.dispatchEvent(new Event('input')); }
+        if (genderInp) genderInp.value = pax.gender;
+        if (dobInp) dobInp.value = pax.dob;
+        if (ageInp) ageInp.value = pax.age;
+        if (natInp) natInp.value = (pax.nationality === 'Malaysia' || pax.nationality === 'MYS') ? 'Malaysia' : 'Indonesia';
+        if (expInp) { expInp.value = pax.expiry; expInp.dispatchEvent(new Event('change')); }
+        if (expHidden) expHidden.value = pax.expiry;
+
+        this.showToast('Paspor Masuk!', `Data paspor ${pax.name} (${pax.passportNo}) berhasil masuk ke formulir.`);
+      } else {
+        // Apply to main ticketing console passenger entries table
+        const entries = this.tixConsoleState.passengerEntries;
+        // Find first empty entry or append new
+        let targetEntry = entries.find(e => !e.name || !e.name.trim());
+        if (!targetEntry) {
+          targetEntry = {
+            seat: '-',
+            name: pax.name,
+            docNum: pax.passportNo,
+            gender: pax.gender,
+            paxType: 'Dewasa',
+            nationality: (pax.nationality === 'Malaysia' || pax.nationality === 'MYS') ? 'MY' : 'ID',
+            phone: ''
+          };
+          entries.push(targetEntry);
+        } else {
+          targetEntry.name = pax.name;
+          targetEntry.docNum = pax.passportNo;
+          targetEntry.gender = pax.gender;
+          targetEntry.nationality = (pax.nationality === 'Malaysia' || pax.nationality === 'MYS') ? 'MY' : 'ID';
+        }
+
+        this.renderTicketingConsole();
+        this.showToast('Paspor Masuk!', `Data paspor ${pax.name} (${pax.passportNo}) berhasil masuk ke tabel penumpang.`);
+      }
+    }, 1000);
   },
 };
 
