@@ -182,6 +182,13 @@
       align-items: center;
       padding-bottom: 10px;
       overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .passport-guide-box.locking {
+      border: 2.5px solid #f59e0b;
+    }
+    .passport-guide-box.locked {
+      border: 3px solid #10b981;
     }
     .passport-guide-label {
       font-size: 0.7rem;
@@ -474,6 +481,7 @@
 
       <!-- Camera Tools Floating Bar -->
       <div class="cam-tools">
+        <button type="button" class="tool-btn" id="btnToggleAuto" title="Auto Capture: ON" style="border-color: #10b981; background: rgba(16, 185, 129, 0.25);">⚡</button>
         <button type="button" class="tool-btn" id="btnToggleTorch" title="Flashlight">💡</button>
         <button type="button" class="tool-btn" id="btnSwitchCam" title="Ganti Kamera">🔄</button>
       </div>
@@ -705,6 +713,7 @@
       });
 
       // Camera tool actions
+      document.getElementById('btnToggleAuto')?.addEventListener('click', toggleAutoCapture);
       document.getElementById('btnSwitchCam')?.addEventListener('click', toggleCamera);
       document.getElementById('btnToggleTorch')?.addEventListener('click', toggleTorch);
       document.getElementById('btnCaptureShutter')?.addEventListener('click', captureAndScan);
@@ -807,6 +816,10 @@
         const video = document.getElementById('videoFeed');
         video.srcObject = videoStream;
         await video.play();
+        // Pre-warm OCR worker & start fast auto-capture loop
+        getOcrWorker().then(() => {
+          if (autoCaptureEnabled) startAutoCapture();
+        }).catch(() => {});
       } catch (err) {
         console.error('Camera access error:', err);
         showToast('Kamera tidak dapat diakses: ' + (err.message || 'Izin ditolak'));
@@ -855,16 +868,16 @@
       return text || '';
     }
 
-    function preprocessCanvasForPhotoOCR(sourceCanvas, sx, sy, sw, sh) {
+    function preprocessCanvasForPhotoOCR(sourceCanvas, sx, sy, sw, sh, targetWidth = 1600) {
       const safeX = Math.max(0, Math.floor(sx));
       const safeY = Math.max(0, Math.floor(sy));
       const safeW = Math.max(1, Math.min(sourceCanvas.width - safeX, Math.floor(sw)));
       const safeH = Math.max(1, Math.min(sourceCanvas.height - safeY, Math.floor(sh)));
 
-      // Scale to optimal OCR resolution (~1600px wide)
+      // Scale to optimal OCR resolution (fast ~1150px for auto-capture, ~1600px for manual/upload)
       let scale = 1;
-      if (safeW < 1400) scale = Math.min(2.2, 1600 / safeW);
-      else if (safeW > 2000) scale = 1800 / safeW;
+      if (safeW < targetWidth * 0.9) scale = Math.min(2.2, targetWidth / safeW);
+      else if (safeW > targetWidth * 1.25) scale = targetWidth / safeW;
 
       const out = document.createElement('canvas');
       out.width = Math.round(safeW * scale);
@@ -1131,6 +1144,7 @@
         passportNo: result.passportNo || '',
         nationality: result.nationality || 'Indonesia',
         gender: result.gender || 'L',
+        genderDetected: Boolean(result.gender),
         paxType: age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa',
         dob: result.dob || '',
         age: age !== null ? age : '',
@@ -1143,11 +1157,13 @@
       if (!primary && !secondary) return null;
       if (!primary) return secondary;
       if (!secondary) return primary;
+      const genderDetected = Boolean(primary.genderDetected || secondary.genderDetected);
       const merged = {
         name: primary.name || secondary.name || '',
         passportNo: primary.passportNo || secondary.passportNo || '',
         nationality: primary.nationality || secondary.nationality || 'Indonesia',
-        gender: primary.gender || secondary.gender || 'L',
+        gender: primary.genderDetected ? primary.gender : (secondary.genderDetected ? secondary.gender : (primary.gender || secondary.gender || 'L')),
+        genderDetected,
         dob: primary.dob || secondary.dob || '',
         expiry: primary.expiry || secondary.expiry || ''
       };
@@ -1158,13 +1174,199 @@
       return merged;
     }
 
-    // 4. Capture & Scan Action (Live Camera - Foto Halaman Biodata Biasa)
+    // 4A. Fast & Accurate Auto-Capture Engine (triggers automatically when ALL ticket entry fields are complete)
+    let autoCaptureEnabled = true;
+    let autoCaptureTimer = null;
+    let autoOcrBusy = false;
+    let autoBuffer = null;
+
+    function getGuideCropRect(video, canvas) {
+      const vRect = video.getBoundingClientRect();
+      const guideEl = document.querySelector('.passport-guide-box');
+      if (!guideEl || !vRect.width || !vRect.height) {
+        return { x: 0, y: 0, w: canvas.width, h: canvas.height };
+      }
+      const r = guideEl.getBoundingClientRect();
+      const scale = Math.max(vRect.width / canvas.width, vRect.height / canvas.height);
+      const offsetX = (vRect.width - canvas.width * scale) / 2;
+      const offsetY = (vRect.height - canvas.height * scale) / 2;
+      return {
+        x: (r.left - vRect.left - offsetX) / scale,
+        y: (r.top - vRect.top - offsetY) / scale,
+        w: r.width / scale,
+        h: r.height / scale
+      };
+    }
+
+    // Ultra-fast sharpness check (<2ms) so auto-capture skips blurry moving frames
+    function isFrameSharpEnough(sourceCanvas, crop) {
+      const probe = document.createElement('canvas');
+      probe.width = 160;
+      probe.height = 100;
+      const pctx = probe.getContext('2d');
+      pctx.drawImage(sourceCanvas, Math.max(0, crop.x), Math.max(0, crop.y), Math.max(1, crop.w), Math.max(1, crop.h), 0, 0, 160, 100);
+      const d = pctx.getImageData(0, 0, 160, 100).data;
+      let gradSum = 0;
+      let count = 0;
+      for (let y = 1; y < 99; y += 2) {
+        for (let x = 1; x < 159; x += 2) {
+          const i = (y * 160 + x) * 4;
+          const g = d[i];
+          const gx = Math.abs(g - d[i + 4]);
+          const gy = Math.abs(g - d[i + 160 * 4]);
+          gradSum += gx + gy;
+          count++;
+        }
+      }
+      const avgGrad = count ? (gradSum / count) : 0;
+      return avgGrad >= 11;
+    }
+
+    // Check if ALL required ticket passenger entry fields are present & valid
+    function isTicketDataComplete(pax) {
+      if (!pax) return false;
+      const validName = Boolean(pax.name && pax.name.length >= 3);
+      const validPass = Boolean(pax.passportNo && /^[A-Z]{1,2}\d{6,8}$/.test(pax.passportNo));
+      const validGender = Boolean(pax.genderDetected && (pax.gender === 'L' || pax.gender === 'P'));
+      const validDob = Boolean(pax.dob && /^\d{4}-\d{2}-\d{2}$/.test(pax.dob));
+      const validExp = Boolean(pax.expiry && /^\d{4}-\d{2}-\d{2}$/.test(pax.expiry));
+      return validName && validPass && validGender && validDob && validExp;
+    }
+
+    function updateAutoToggleUI() {
+      const btn = document.getElementById('btnToggleAuto');
+      if (!btn) return;
+      if (autoCaptureEnabled) {
+        btn.style.borderColor = '#10b981';
+        btn.style.background = 'rgba(16, 185, 129, 0.25)';
+        btn.title = 'Auto Capture: ON';
+      } else {
+        btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        btn.style.background = 'rgba(15, 23, 42, 0.75)';
+        btn.title = 'Auto Capture: OFF';
+      }
+    }
+
+    function toggleAutoCapture() {
+      autoCaptureEnabled = !autoCaptureEnabled;
+      updateAutoToggleUI();
+      if (autoCaptureEnabled) {
+        autoBuffer = null;
+        showToast('⚡ Auto-Capture aktif!');
+        startAutoCapture();
+      } else {
+        stopAutoCapture();
+        const guideEl = document.querySelector('.passport-guide-box');
+        if (guideEl) guideEl.classList.remove('locking', 'locked');
+        document.getElementById('scanStatusIndicator').textContent = 'Auto-Capture dijeda. Tekan 📸 untuk foto manual atau ⚡ untuk aktifkan lagi.';
+        showToast('Auto-Capture dijeda.');
+      }
+    }
+
+    function startAutoCapture() {
+      stopAutoCapture();
+      if (!autoCaptureEnabled) return;
+      autoBuffer = null;
+      const guideEl = document.querySelector('.passport-guide-box');
+      if (guideEl) guideEl.classList.remove('locking', 'locked');
+      document.getElementById('scanStatusIndicator').innerHTML = '⚡ <strong>Auto-Capture Aktif</strong> — arahkan paspor ke kotak, otomatis scan saat data lengkap.';
+      autoCaptureTimer = setTimeout(autoCaptureTick, 450);
+    }
+
+    function stopAutoCapture() {
+      if (autoCaptureTimer) {
+        clearTimeout(autoCaptureTimer);
+        autoCaptureTimer = null;
+      }
+    }
+
+    async function autoCaptureTick() {
+      if (!autoCaptureEnabled) return;
+      const scanView = document.getElementById('scannerView');
+      const video = document.getElementById('videoFeed');
+      if (!scanView || scanView.style.display === 'none' || !video || !video.videoWidth || autoOcrBusy) {
+        autoCaptureTimer = setTimeout(autoCaptureTick, 400);
+        return;
+      }
+
+      autoOcrBusy = true;
+      const guideEl = document.querySelector('.passport-guide-box');
+      try {
+        const canvas = document.getElementById('procCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const crop = getGuideCropRect(video, canvas);
+        if (!isFrameSharpEnough(canvas, crop)) {
+          autoOcrBusy = false;
+          autoCaptureTimer = setTimeout(autoCaptureTick, 250);
+          return;
+        }
+
+        // Fast OCR (~1150px width) for low-latency live auto-capture
+        const fastCanvas = preprocessCanvasForPhotoOCR(canvas, crop.x, crop.y, crop.w, crop.h, 1150);
+        const text = await runOcr(fastCanvas);
+        const frameData = parsePassportPhotoText(text);
+
+        if (frameData) {
+          // Reset accumulation buffer if a different passport number is placed in frame
+          if (autoBuffer && autoBuffer.passportNo && frameData.passportNo && autoBuffer.passportNo !== frameData.passportNo) {
+            autoBuffer = null;
+          }
+          autoBuffer = mergePhotoPasses(frameData, autoBuffer);
+
+          // Show live field lock progress
+          const foundTags = [];
+          if (autoBuffer.name) foundTags.push('Nama ✓');
+          if (autoBuffer.passportNo) foundTags.push('Paspor ✓');
+          if (autoBuffer.genderDetected) foundTags.push('L/P ✓');
+          if (autoBuffer.dob) foundTags.push('Lahir ✓');
+          if (autoBuffer.expiry) foundTags.push('Berlaku ✓');
+
+          if (isTicketDataComplete(autoBuffer)) {
+            if (guideEl) {
+              guideEl.classList.remove('locking');
+              guideEl.classList.add('locked');
+            }
+            const finalData = { ...autoBuffer };
+            autoBuffer = null;
+            // Pause auto-capture after lock so it doesn't spam the same passport
+            autoCaptureEnabled = false;
+            updateAutoToggleUI();
+            stopAutoCapture();
+            handleScanSuccess(finalData);
+            document.getElementById('scanStatusIndicator').innerHTML = '✅ <strong>Auto-Capture Berhasil!</strong> Ketuk ⚡ atau 📸 untuk scan paspor berikutnya.';
+            autoOcrBusy = false;
+            return;
+          } else if (foundTags.length > 0) {
+            if (guideEl) guideEl.classList.add('locking');
+            document.getElementById('scanStatusIndicator').innerHTML = `🔍 Terdeteksi: <strong>${foundTags.join(' • ')}</strong> — tahan paspor stabil...`;
+          }
+        }
+      } catch (err) {
+        console.warn('Auto-capture frame error:', err);
+      }
+
+      autoOcrBusy = false;
+      if (autoCaptureEnabled) {
+        autoCaptureTimer = setTimeout(autoCaptureTick, 300);
+      }
+    }
+
+    // 4. Capture & Scan Action (Manual Shutter - also re-arms if user wants next passport)
     async function captureAndScan() {
       const video = document.getElementById('videoFeed');
       if (!video || !video.videoWidth) {
         showToast('Kamera belum siap, tunggu sebentar...');
         return;
       }
+
+      stopAutoCapture();
+      autoOcrBusy = true;
+      const guideEl = document.querySelector('.passport-guide-box');
+      if (guideEl) guideEl.classList.remove('locking', 'locked');
 
       document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Sedang membaca foto paspor...</strong>';
 
@@ -1174,37 +1376,23 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Map passport guide box onto video pixel coordinates (object-fit: cover)
-      const vRect = video.getBoundingClientRect();
-      const guideEl = document.querySelector('.passport-guide-box');
-      let crop = { x: 0, y: 0, w: canvas.width, h: canvas.height };
-
-      if (guideEl && vRect.width && vRect.height) {
-        const r = guideEl.getBoundingClientRect();
-        const scale = Math.max(vRect.width / canvas.width, vRect.height / canvas.height);
-        const offsetX = (vRect.width - canvas.width * scale) / 2;
-        const offsetY = (vRect.height - canvas.height * scale) / 2;
-        crop = {
-          x: (r.left - vRect.left - offsetX) / scale,
-          y: (r.top - vRect.top - offsetY) / scale,
-          w: r.width / scale,
-          h: r.height / scale
-        };
-      }
+      const crop = getGuideCropRect(video, canvas);
 
       try {
-        const guideCanvas = preprocessCanvasForPhotoOCR(canvas, crop.x, crop.y, crop.w, crop.h);
+        const guideCanvas = preprocessCanvasForPhotoOCR(canvas, crop.x, crop.y, crop.w, crop.h, 1600);
         const text1 = await runOcr(guideCanvas);
         let parsed = parsePassportPhotoText(text1);
 
         // If any key field missing, also check full camera frame
-        if (!parsed || !parsed.name || !parsed.passportNo || !parsed.dob) {
-          const fullCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height);
+        if (!parsed || !parsed.name || !parsed.passportNo || !parsed.dob || !parsed.expiry) {
+          const fullCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height, 1600);
           const text2 = await runOcr(fullCanvas);
           parsed = mergePhotoPasses(parsed, parsePassportPhotoText(text2));
         }
 
         if (parsed && (parsed.name || parsed.passportNo)) {
+          if (guideEl) guideEl.classList.add('locked');
+          autoOcrBusy = false;
           handleScanSuccess(parsed);
           return;
         }
@@ -1212,9 +1400,11 @@
         console.warn('Tesseract OCR error:', ocrErr);
       }
 
+      autoOcrBusy = false;
       showToast('Foto belum terbaca jelas. Pastikan halaman biodata paspor tajam & terang.');
       document.getElementById('scanStatusIndicator').textContent = '⚠️ Foto kurang jelas. Coba dekatkan kamera ke halaman biodata paspor.';
       playBeep(false);
+      if (autoCaptureEnabled) startAutoCapture();
     }
 
     // 5. Handle File Upload (Foto Paspor Biasa - Tanpa MRZ)
