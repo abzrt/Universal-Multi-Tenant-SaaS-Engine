@@ -1,5 +1,5 @@
 // Ticky Passport Scanner Service Worker
-const CACHE_NAME = 'ticky-pass-scanner-v2';
+const CACHE_NAME = 'ticky-pass-scanner-v3';
 const ASSETS_TO_CACHE = [
   '/scan.html',
   '/manifest.json'

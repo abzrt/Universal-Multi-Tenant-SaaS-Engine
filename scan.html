@@ -169,37 +169,29 @@
       padding: 1rem;
     }
     .passport-guide-box {
-      width: 90%;
-      max-width: 360px;
-      height: 230px;
-      border: 2px dashed rgba(255, 255, 255, 0.4);
+      width: 92%;
+      max-width: 370px;
+      height: 245px;
+      border: 2px dashed rgba(56, 189, 248, 0.75);
       border-radius: 14px;
       position: relative;
       box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.55);
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 10px;
       overflow: hidden;
     }
-    .mrz-scan-strip {
-      height: 75px;
-      background: rgba(16, 185, 129, 0.12);
-      border-top: 2px solid #10b981;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    .mrz-scan-strip::after {
-      content: 'Arahkan 2 Baris MRZ (<<<<) di Area Ini';
-      font-size: 0.68rem;
-      color: #6ee7b7;
+    .passport-guide-label {
+      font-size: 0.7rem;
+      color: #e0f2fe;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 2px 8px;
-      border-radius: 4px;
+      letter-spacing: 0.3px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 3px 10px;
+      border-radius: 6px;
     }
     .scan-beam {
       position: absolute;
@@ -435,7 +427,7 @@
       <div class="logo-badge">🛂</div>
       <div class="logo-text">
         <h1>TICKY SCANNER</h1>
-        <p>Mobile Passport MRZ Reader</p>
+        <p>Mobile Passport Photo Reader</p>
       </div>
     </div>
     <div class="session-pill" id="sessionStatusPill" style="cursor: pointer;" title="Ketuk untuk hubungkan PIN Loket">
@@ -476,7 +468,7 @@
       <div class="overlay-frame">
         <div class="passport-guide-box">
           <div class="scan-beam"></div>
-          <div class="mrz-scan-strip"></div>
+          <div class="passport-guide-label">Posisikan Halaman Biodata Paspor di Dalam Kotak</div>
         </div>
       </div>
 
@@ -492,7 +484,7 @@
       <div class="action-row-main">
         <label class="btn-secondary" style="cursor: pointer;">
           📁 Galeri / Foto
-          <input type="file" id="fileUploadInput" accept="image/*" capture="environment" style="display: none;">
+          <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
         </label>
 
         <button type="button" class="btn-shutter" id="btnCaptureShutter" title="Ambil Foto & Scan">
@@ -506,7 +498,7 @@
 
       <!-- AUTO-SCAN STATUS TEXT -->
       <div id="scanStatusIndicator" style="text-align: center; font-size: 0.74rem; color: #94a3b8; margin: 0.2rem 0;">
-        Posisikan 2 baris kode paspor di area hijau lalu tekan 📸 Scan.
+        Posisikan foto halaman biodata paspor dengan jelas lalu tekan 📸 Foto.
       </div>
 
       <!-- RESULT CARD (KHUSUS DATA FORM PENGISIAN TIKET) -->
@@ -842,7 +834,7 @@
       }
     }
 
-    // 3. ICAO 9303 TD3 MRZ & Visual Zone (VIZ) Parser + Image Preprocessor
+    // 3. Passport Biodata Photo OCR Parser (Foto Biasa - Tanpa MRZ)
     let cachedOcrWorker = null;
 
     async function getOcrWorker() {
@@ -852,18 +844,18 @@
       return cachedOcrWorker;
     }
 
-    async function runOcr(canvas, mrzOnly = true) {
+    async function runOcr(canvas) {
       const worker = await getOcrWorker();
       if (!worker) return '';
       await worker.setParameters({
-        tessedit_pageseg_mode: mrzOnly ? '6' : '6',
-        tessedit_char_whitelist: mrzOnly ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' : ''
+        tessedit_pageseg_mode: '3',
+        tessedit_char_whitelist: ''
       });
       const { data: { text } } = await worker.recognize(canvas);
       return text || '';
     }
 
-    function preprocessCanvasForOCR(sourceCanvas, sx, sy, sw, sh, binarize = true) {
+    function preprocessCanvasForPhotoOCR(sourceCanvas, sx, sy, sw, sh) {
       const safeX = Math.max(0, Math.floor(sx));
       const safeY = Math.max(0, Math.floor(sy));
       const safeW = Math.max(1, Math.min(sourceCanvas.width - safeX, Math.floor(sw)));
@@ -871,7 +863,7 @@
 
       // Scale to optimal OCR resolution (~1600px wide)
       let scale = 1;
-      if (safeW < 1400) scale = Math.min(2.5, 1600 / safeW);
+      if (safeW < 1400) scale = Math.min(2.2, 1600 / safeW);
       else if (safeW > 2000) scale = 1800 / safeW;
 
       const out = document.createElement('canvas');
@@ -881,104 +873,42 @@
       octx.imageSmoothingEnabled = true;
       octx.drawImage(sourceCanvas, safeX, safeY, safeW, safeH, 0, 0, out.width, out.height);
 
+      // Gentle grayscale contrast stretch (keeps thin biodata letters crisp without losing strokes)
       const imgData = octx.getImageData(0, 0, out.width, out.height);
       const d = imgData.data;
       const len = out.width * out.height;
       const gray = new Uint8Array(len);
-      const hist = new Uint32Array(256);
+      let minG = 255, maxG = 0;
 
       for (let i = 0, p = 0; i < d.length; i += 4, p++) {
         const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
         gray[p] = g;
-        hist[g]++;
+        if (g < minG) minG = g;
+        if (g > maxG) maxG = g;
       }
 
-      if (binarize) {
-        // Otsu threshold to cleanly remove pastel passport hologram & keep crisp black OCR-B ink
-        let sum = 0;
-        for (let t = 0; t < 256; t++) sum += t * hist[t];
-        let sumB = 0, wB = 0, maxVar = 0, thresh = 128;
-        for (let t = 0; t < 256; t++) {
-          wB += hist[t];
-          if (wB === 0) continue;
-          const wF = len - wB;
-          if (wF === 0) break;
-          sumB += t * hist[t];
-          const mB = sumB / wB;
-          const mF = (sum - sumB) / wF;
-          const v = wB * wF * (mB - mF) * (mB - mF);
-          if (v > maxVar) {
-            maxVar = v;
-            thresh = t;
-          }
-        }
-        // Slight bias darker to suppress watermark noise
-        const finalThresh = Math.max(60, Math.min(200, thresh - 8));
-        for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-          const val = gray[p] < finalThresh ? 0 : 255;
-          d[i] = d[i + 1] = d[i + 2] = val;
-          d[i + 3] = 255;
-        }
-      } else {
-        // Contrast stretch grayscale for Visual Inspection Zone
-        let minG = 255, maxG = 0;
-        for (let p = 0; p < len; p++) {
-          if (gray[p] < minG) minG = gray[p];
-          if (gray[p] > maxG) maxG = gray[p];
-        }
-        const range = Math.max(1, maxG - minG);
-        for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-          const val = Math.round(((gray[p] - minG) / range) * 255);
-          d[i] = d[i + 1] = d[i + 2] = val;
-          d[i + 3] = 255;
-        }
+      const range = Math.max(1, maxG - minG);
+      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+        let norm = (gray[p] - minG) / range;
+        // Slight S-curve contrast boost so dark text pops against pastel passport paper
+        norm = Math.max(0, Math.min(1, (norm - 0.5) * 1.35 + 0.5));
+        const val = Math.round(norm * 255);
+        d[i] = d[i + 1] = d[i + 2] = val;
+        d[i + 3] = 255;
       }
 
       octx.putImageData(imgData, 0, 0);
       return out;
     }
 
-    function mrzCheckDigit(str) {
-      const weights = [7, 3, 1];
-      let sum = 0;
-      for (let i = 0; i < str.length; i++) {
-        const c = str[i];
-        let val = 0;
-        if (c >= '0' && c <= '9') val = c.charCodeAt(0) - 48;
-        else if (c >= 'A' && c <= 'Z') val = c.charCodeAt(0) - 55;
-        sum += val * weights[i % 3];
-      }
-      return sum % 10;
-    }
-
     function fixOcrDigits(s) {
       return (s || '')
         .replace(/[OQD]/g, '0')
-        .replace(/[IL]/g, '1')
+        .replace(/[ILl]/g, '1')
         .replace(/Z/g, '2')
         .replace(/S/g, '5')
         .replace(/G/g, '6')
         .replace(/B/g, '8');
-    }
-
-    function fixOcrAlpha(s) {
-      return (s || '')
-        .replace(/0/g, 'O')
-        .replace(/1/g, 'I')
-        .replace(/5/g, 'S')
-        .replace(/8/g, 'B');
-    }
-
-    function mapCountryCode(code) {
-      const c = (code || '').toUpperCase().trim();
-      const map = {
-        IDN: 'Indonesia', INDONESIA: 'Indonesia',
-        MYS: 'Malaysia', MALAYSIA: 'Malaysia',
-        SGP: 'Singapore', SINGAPORE: 'Singapore',
-        BRN: 'Brunei', PHL: 'Philippines', THA: 'Thailand',
-        CHN: 'China', AUS: 'Australia', USA: 'USA', GBR: 'United Kingdom'
-      };
-      return map[c] || c || 'Indonesia';
     }
 
     function calcExactAge(dobStr) {
@@ -1001,275 +931,234 @@
       return expDate > sixMonths;
     }
 
-    function parseYYMMDD(str, isExpiry = false) {
-      const d = fixOcrDigits(str);
-      if (!d || d.length !== 6 || /[^0-9]/.test(d)) return '';
-      const yy = parseInt(d.substring(0, 2), 10);
-      const mm = parseInt(d.substring(2, 4), 10);
-      const dd = parseInt(d.substring(4, 6), 10);
-      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
-      const currentYY = new Date().getFullYear() % 100;
-      const fullYear = isExpiry
-        ? (yy <= 60 ? 2000 + yy : 1900 + yy)
-        : (yy > currentYY ? 1900 + yy : 2000 + yy);
-      return `${fullYear}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-    }
+    // Parse Passport Biodata strictly from regular photo text (NO MRZ)
+    function parsePassportPhotoText(rawText) {
+      if (!rawText) return null;
 
-    function parseMRZ(mrzText) {
-      if (!mrzText) return null;
-      const clean = mrzText.replace(/\r/g, '').toUpperCase();
-      const rawLines = clean.split('\n')
-        .map(l => l.replace(/[^A-Z0-9<]/g, '').trim())
-        .filter(l => l.length >= 20);
+      // Filter out any MRZ lines so bottom chevrons never pollute normal photo text
+      const lines = rawText
+        .replace(/\r/g, '')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => {
+          if (!l) return false;
+          if (l.includes('<<') || /P<[A-Z]{3}/i.test(l)) return false;
+          const compact = l.replace(/\s+/g, '');
+          if (compact.length >= 30 && /^[A-Z0-9<]+$/i.test(compact)) return false;
+          return true;
+        });
 
-      // Step 1: Anchor Line 2 using Country(3) + DOB(6) + Check(1) + Sex(1) + Exp(6) + Check(1)
-      const l2Regex = /([A-Z0158]{3})([0-9OQDZISGBL]{6})([0-9OQDZISGBL])([MF<P0-9A-Z])([0-9OQDZISGBL]{6})([0-9OQDZISGBL])/;
-      let bestL2 = null;
+      if (!lines.length) return null;
+      const upperLines = lines.map(l => l.toUpperCase());
+      const upperAll = upperLines.join('\n');
+      const result = {};
 
-      for (let i = 0; i < rawLines.length; i++) {
-        const line = rawLines[i];
-        const m = line.match(l2Regex);
-        if (!m) continue;
-
-        const natCode = fixOcrAlpha(m[1]);
-        const dobDigits = fixOcrDigits(m[2]);
-        const dobCheck = parseInt(fixOcrDigits(m[3]), 10);
-        const sexChar = m[4];
-        const expDigits = fixOcrDigits(m[5]);
-        const expCheck = parseInt(fixOcrDigits(m[6]), 10);
-
-        const dob = parseYYMMDD(dobDigits, false);
-        const expiry = parseYYMMDD(expDigits, true);
-        if (!dob || !expiry) continue;
-
-        const dobValid = mrzCheckDigit(dobDigits) === dobCheck;
-        const expValid = mrzCheckDigit(expDigits) === expCheck;
-        const score = (dobValid ? 2 : 0) + (expValid ? 2 : 0) + (sexChar === 'M' || sexChar === 'F' ? 1 : 0);
-
-        if (!bestL2 || score > bestL2.score) {
-          bestL2 = { index: i, line, match: m, natCode, dob, expiry, sexChar, dobValid, expValid, score };
-        }
-      }
-
-      if (!bestL2) return null;
-
-      // Extract Passport Number to the LEFT of Nationality in Line 2 & verify checksum
-      const leftOfNat = bestL2.line.substring(0, bestL2.match.index);
-      let docNumber = '';
-      let docCheckDigit = null;
-      let docChecksumValid = false;
-
-      if (leftOfNat.length >= 2) {
-        const chkChar = fixOcrDigits(leftOfNat.slice(-1));
-        docCheckDigit = /^[0-9]$/.test(chkChar) ? parseInt(chkChar, 10) : null;
-        let docField = leftOfNat.slice(0, -1);
-        if (docField.length > 9) docField = docField.slice(-9);
-
-        // Try direct checksum and common OCR fixes (e.g. trailing '<' misread as K/L/C)
-        const candidates = [
-          docField,
-          docField.replace(/[KLC]+$/, m => '<'.repeat(m.length)),
-          docField.slice(0, 1) + fixOcrDigits(docField.slice(1)),
-          docField.slice(0, 1) + fixOcrDigits(docField.slice(1).replace(/[KLC]+$/, m => '<'.repeat(m.length)))
-        ];
-        for (const cand of candidates) {
-          const padded = cand.padEnd(9, '<').substring(0, 9);
-          if (docCheckDigit !== null && mrzCheckDigit(padded) === docCheckDigit) {
-            docNumber = cand.replace(/</g, '').trim();
-            docChecksumValid = true;
-            break;
+      // 1. No. Paspor (Indonesia: E9992883, A1234567, C1234567; Malaysia: A59402811; 1-2 letters + 6-8 digits)
+      const extractPassportNoFromLine = (line) => {
+        if (!line || /NO\.?\s*REG|PERHATIAN|KANTOR|TAWAU|ISSUING/i.test(line)) return '';
+        const tokens = line.replace(/[^A-Z0-9\s]/g, ' ').split(/\s+/);
+        for (let t = 0; t < tokens.length; t++) {
+          let tok = tokens[t];
+          // Handle space split between letter and digits e.g. "E 9992883"
+          if (/^[A-Z]{1,2}$/.test(tok) && tokens[t + 1] && /^[0-9OIQZSB]{6,8}$/.test(tokens[t + 1])) {
+            tok = tok + tokens[t + 1];
           }
-        }
-        if (!docChecksumValid) {
-          docNumber = docField.replace(/</g, '').replace(/[KLC]$/, '').trim();
-        }
-      }
-
-      // Step 2: Find Line 1 (typically immediately before Line 2)
-      let l1Raw = '';
-      if (bestL2.index > 0) {
-        l1Raw = rawLines[bestL2.index - 1];
-      }
-      if (!l1Raw || l1Raw.length < 15) {
-        l1Raw = rawLines.find((l, idx) => idx !== bestL2.index && (l.startsWith('P<') || l.includes(bestL2.natCode))) || '';
-      }
-
-      // Parse Line 1 Name cleanly (Natural order: GIVEN NAMES + SURNAME)
-      let fullName = '';
-      if (l1Raw) {
-        let nameSection = l1Raw;
-        // Anchor past P<IDN (or P + 1 filler + country code)
-        const natRegex = new RegExp(`P[A-Z<KLC]?${bestL2.natCode}`);
-        const natMatch = nameSection.match(natRegex);
-        if (natMatch) {
-          nameSection = nameSection.substring(natMatch.index + natMatch[0].length);
-        } else {
-          const pMatch = nameSection.match(/P[A-Z<KLC]([A-Z]{3})/);
-          if (pMatch) {
-            nameSection = nameSection.substring(pMatch.index + pMatch[0].length);
-          } else {
-            const natPos = nameSection.indexOf(bestL2.natCode);
-            if (natPos !== -1 && natPos <= 6) {
-              nameSection = nameSection.substring(natPos + 3);
+          if (tok.length < 7 || tok.length > 9) continue;
+          const m = tok.match(/^([A-Z]{1,2})([0-9OIQZSB]{6,8})$/);
+          if (m) {
+            const realDigits = (m[2].match(/[0-9]/g) || []).length;
+            if (realDigits >= 5) {
+              return m[1] + fixOcrDigits(m[2]);
             }
           }
         }
-
-        // Remove trailing MRZ '<' filler (and OCR noise where '<<<' becomes K/L/C)
-        nameSection = nameSection.replace(/<{2,}$/, '');
-        // Split Surname and Given Names by '<<'
-        const parts = nameSection.split(/<<+/);
-        const cleanNamePart = (p) => {
-          return (p || '')
-            .replace(/</g, ' ')
-            .replace(/[^A-Z\s]/g, ' ')
-            // Remove OCR trailing filler noise like "K KL L K K KLLKL L"
-            .replace(/(?:\s+[KLCS]{1,4}){3,}$/g, '')
-            .replace(/\s+[KLC]{2,}$/g, '')
-            .replace(/\s+[KLCS]$/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        };
-
-        const surname = cleanNamePart(parts[0]);
-        const givenNames = cleanNamePart(parts.slice(1).join(' '));
-        fullName = givenNames ? `${givenNames} ${surname}`.trim() : surname;
-      }
-
-      const gender = (bestL2.sexChar === 'F' || bestL2.sexChar === 'P') ? 'P' : 'L';
-      const age = calcExactAge(bestL2.dob);
-      const paxType = age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa';
-
-      return {
-        name: fullName,
-        passportNo: docNumber,
-        docCheckDigit,
-        docChecksumValid,
-        dobValid: bestL2.dobValid,
-        expValid: bestL2.expValid,
-        nationality: mapCountryCode(bestL2.natCode),
-        gender,
-        paxType,
-        dob: bestL2.dob,
-        age: age !== null ? age : '',
-        expiry: bestL2.expiry,
-        isValid6Months: checkValid6Months(bestL2.expiry),
-        mrzRaw: `${l1Raw}\n${bestL2.line}`
+        return '';
       };
-    }
 
-    // Parse Visual Inspection Zone (VIZ) for cross-validation when MRZ has finger/glare obstruction
-    function parsePassportVIZ(text) {
-      if (!text) return null;
-      const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
-      const upperAll = text.toUpperCase();
-      const result = {};
-
-      // 1. Passport No (e.g. E9992883, A1234567, C1234567)
-      const passMatch = upperAll.match(/(?:PASPOR|PASSPORT)\s*(?:NO\.?)?[\s:]*\n?\s*([A-Z]{1,2}\d{6,8})\b/);
-      if (passMatch) {
-        result.passportNo = passMatch[1];
-      } else {
-        const genericPass = upperAll.match(/\b([A-CE-Z]\d{7})\b/);
-        if (genericPass) result.passportNo = genericPass[1];
+      // Priority A: Near "NO. PASPOR" / "PASSPORT NO" label (same line or next 2 lines, handles multi-column)
+      for (let i = 0; i < upperLines.length; i++) {
+        if (/PASPOR|PASSPORT\s*NO|NO\.?\s*PAS/i.test(upperLines[i])) {
+          for (let j = i; j <= Math.min(i + 2, upperLines.length - 1); j++) {
+            const found = extractPassportNoFromLine(upperLines[j]);
+            if (found) { result.passportNo = found; break; }
+          }
+          if (result.passportNo) break;
+        }
+      }
+      // Priority B: Scan all biodata lines if label was missed by OCR
+      if (!result.passportNo) {
+        for (let i = 0; i < upperLines.length; i++) {
+          const found = extractPassportNoFromLine(upperLines[i]);
+          if (found) { result.passportNo = found; break; }
+        }
       }
 
-      // 2. Full Name (line right after NAMA LENGKAP / FULL NAME)
-      for (let i = 0; i < lines.length; i++) {
-        if (/NAMA\s*LENGKAP|FULL\s*NAME/i.test(lines[i])) {
-          for (let j = i + 1; j <= Math.min(i + 2, lines.length - 1); j++) {
-            const cand = lines[j].toUpperCase().replace(/[^A-Z\s'-]/g, '').replace(/\s+/g, ' ').trim();
-            if (cand.length >= 3 && !/KEWARGANEGARAAN|NATIONALITY|INDONESIA|MALAYSIA|PASPOR/i.test(cand)) {
+      // 2. Nama Lengkap Penumpang (right below NAMA LENGKAP / FULL NAME / NAMA)
+      const labelNoiseRegex = /REPUBLIK|PASPOR|PASSPORT|KEWARGANEGARAAN|NATIONALITY|WARGANEGARA|JENIS|TYPE|KODE\s*NEGARA|COUNTRY|TGL|DATE|LAHIR|BIRTH|KELAMIN|JANTINA|\bSEX\b|TEMPAT|PLACE|PENGELUARAN|ISSUE|HABIS|BERLAKU|EXPIRY|KANTOR|ISSUING|NO\.?\s*REG|PERHATIAN|INDONESIA|MALAYSIA|SINGAPORE/i;
+      const cleanNameLine = (raw) => {
+        return (raw || '')
+          .replace(/[^A-Za-z\s'-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          // Remove leading/trailing stray 1-letter OCR artifact from portrait edge
+          .replace(/^[a-z]\s+/, '')
+          .replace(/\s+[a-z]$/, '')
+          .toUpperCase()
+          .trim();
+      };
+
+      for (let i = 0; i < upperLines.length; i++) {
+        if (/NAMA\s*LENGKAP|FULL\s*NAME|NAMA\s*\/\s*NAME|LENGKAP\s*\/\s*FULL/i.test(upperLines[i])) {
+          // Check inline after colon first
+          const inlineMatch = lines[i].match(/(?:FULL\s*NAME|NAMA\s*LENGKAP)\s*[:\-]\s*(.+)$/i);
+          if (inlineMatch) {
+            const cand = cleanNameLine(inlineMatch[1]);
+            if (cand.length >= 3 && !labelNoiseRegex.test(cand)) {
               result.name = cand;
               break;
             }
           }
-          break;
+          // Check next 1-3 lines
+          for (let j = i + 1; j <= Math.min(i + 3, lines.length - 1); j++) {
+            const cand = cleanNameLine(lines[j]);
+            if (cand.length >= 3 && !labelNoiseRegex.test(cand) && !/\d/.test(lines[j])) {
+              result.name = cand;
+              // Check if name wraps to second line
+              if (j + 1 < lines.length) {
+                const nextCand = cleanNameLine(lines[j + 1]);
+                if (nextCand.length >= 3 && !labelNoiseRegex.test(nextCand) && !/\d/.test(lines[j + 1])) {
+                  result.name = `${result.name} ${nextCand}`.trim();
+                }
+              }
+              break;
+            }
+          }
+          if (result.name) break;
         }
       }
 
-      // 3. Nationality
-      if (/\bINDONESIA\b/.test(upperAll)) result.nationality = 'Indonesia';
-      else if (/\bMALAYSIA\b/.test(upperAll)) result.nationality = 'Malaysia';
-      else if (/\bSINGAPORE\b/.test(upperAll)) result.nationality = 'Singapore';
+      // 3. Kewarganegaraan
+      const detectCountry = (str) => {
+        if (/\bINDONESI[AN]?\b|\bIDN\b/i.test(str)) return 'Indonesia';
+        if (/\bMALAYSI[AN]?\b|\bMYS\b/i.test(str)) return 'Malaysia';
+        if (/\bSINGAPOR[EAN]?\b|\bSGP\b/i.test(str)) return 'Singapore';
+        if (/\bBRUNEI\b|\bBRN\b/i.test(str)) return 'Brunei';
+        if (/\bPHILIPPINES?\b|\bPHL\b/i.test(str)) return 'Philippines';
+        if (/\bTHAILAND\b|\bTHA\b/i.test(str)) return 'Thailand';
+        return '';
+      };
 
-      // 4. Gender (P/F -> P, L/M -> L)
-      if (/\bP\s*\/\s*F\b/.test(upperAll)) result.gender = 'P';
-      else if (/\bL\s*\/\s*M\b/.test(upperAll)) result.gender = 'L';
+      for (let i = 0; i < upperLines.length; i++) {
+        if (/KEWARGANEGARAAN|NATIONALITY|WARGANEGARA/i.test(upperLines[i])) {
+          for (let j = i; j <= Math.min(i + 2, upperLines.length - 1); j++) {
+            const c = detectCountry(upperLines[j]);
+            if (c) { result.nationality = c; break; }
+          }
+          if (result.nationality) break;
+        }
+      }
+      if (!result.nationality) {
+        result.nationality = detectCountry(upperAll) || 'Indonesia';
+      }
 
-      // 5. Dates in DD MMM YYYY format (e.g. 21 APR 2009, 12 JUN 2031)
+      // 4. Jenis Kelamin (L / P) - handles OCR reading '/' as I, 1, l, |
+      if (/\bP\s*[\/|I1l]\s*F\b|\bF\s*[\/|I1l]\s*P\b|\bPEREMPUAN\b|\bFEMALE\b|\bWANITA\b/i.test(upperAll)) {
+        result.gender = 'P';
+      } else if (/\bL\s*[\/|I1l]\s*M\b|\bM\s*[\/|I1l]\s*L\b|\bLAKI[\s-]*LAKI\b|\bMALE\b|\bLELAKI\b/i.test(upperAll)) {
+        result.gender = 'L';
+      } else {
+        for (let i = 0; i < upperLines.length; i++) {
+          if (/KELAMIN|JANTINA|\bSEX\b/i.test(upperLines[i])) {
+            const area = upperLines.slice(i, Math.min(i + 3, upperLines.length)).join(' ');
+            if (/\b(PF|P\s+F|F|P)\b/.test(area) && !/\b(LM|L\s+M|M)\b/.test(area)) {
+              result.gender = 'P';
+            } else if (/\b(LM|L\s+M|M|L)\b/.test(area)) {
+              result.gender = 'L';
+            }
+            break;
+          }
+        }
+      }
+
+      // 5. Tanggal Lahir & Masa Berlaku Paspor (DD MMM YYYY / DD-MM-YYYY)
       const monthMap = {
         JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', MEI: '05',
-        JUN: '06', JUL: '07', AUG: '08', AGU: '08', SEP: '09',
+        JUN: '06', JUL: '07', AUG: '08', AGU: '08', AGT: '08', SEP: '09',
         OCT: '10', OKT: '10', NOV: '11', DEC: '12', DES: '12'
       };
-      const dateRegex = /\b(\d{2})\s+(JAN|FEB|MAR|APR|MAY|MEI|JUN|JUL|AUG|AGU|SEP|OCT|OKT|NOV|DEC|DES)\s+(\d{4})\b/g;
       const foundDates = [];
-      let dm;
-      while ((dm = dateRegex.exec(upperAll)) !== null) {
-        const y = parseInt(dm[3], 10);
-        const iso = `${y}-${monthMap[dm[2]]}-${dm[1]}`;
-        foundDates.push({ year: y, iso });
-      }
+      const addDate = (y, m, d, idxLine) => {
+        const yi = parseInt(y, 10), mi = parseInt(m, 10), di = parseInt(d, 10);
+        if (yi < 1920 || yi > 2060 || mi < 1 || mi > 12 || di < 1 || di > 31) return;
+        const iso = `${yi}-${String(mi).padStart(2, '0')}-${String(di).padStart(2, '0')}`;
+        if (!foundDates.some(x => x.iso === iso)) {
+          foundDates.push({ year: yi, iso, idxLine });
+        }
+      };
+
+      const mmmRegex = /\b([0-3O][0-9O])\s*(JAN|FEB|MAR|APR|MAY|MEI|JUN|JUL|AUG|AGU|AGT|SEP|OCT|OKT|NOV|DEC|DES)[A-Z]*\s*([12][09O][0-9O]{2})\b/g;
+      const numDateRegex = /\b([0-3][0-9])[-\/.]([01][0-9])[-\/.]([12][09][0-9]{2})\b/g;
+
+      upperLines.forEach((line, idx) => {
+        let m;
+        mmmRegex.lastIndex = 0;
+        while ((m = mmmRegex.exec(line)) !== null) {
+          addDate(fixOcrDigits(m[3]), monthMap[m[2]], fixOcrDigits(m[1]), idx);
+        }
+        numDateRegex.lastIndex = 0;
+        while ((m = numDateRegex.exec(line)) !== null) {
+          addDate(m[3], m[2], m[1], idx);
+        }
+      });
+
       if (foundDates.length > 0) {
+        foundDates.sort((a, b) => a.iso.localeCompare(b.iso));
         const curYear = new Date().getFullYear();
-        const birthCand = foundDates.find(d => d.year <= curYear - 1 && d.year >= 1920);
-        const expCand = foundDates.find(d => d.year > curYear);
-        if (birthCand) result.dob = birthCand.iso;
+
+        // Chronological rule: earliest <= curYear is DOB; latest >= curYear (and distinct) is Expiry
+        const dobCand = foundDates.find(d => d.year <= curYear);
+        const expCand = [...foundDates].reverse().find(d => d.year >= curYear && (!dobCand || d.iso !== dobCand.iso));
+
+        if (dobCand) result.dob = dobCand.iso;
         if (expCand) result.expiry = expCand.iso;
       }
 
-      return Object.keys(result).length > 0 ? result : null;
-    }
+      if (!result.name && !result.passportNo && !result.dob) return null;
 
-    function mergePassportData(mrz, viz) {
-      if (!mrz && !viz) return null;
-      const base = mrz ? { ...mrz } : {};
-
-      if (viz) {
-        // Cross-check Passport Number using ICAO checksum if MRZ doc checksum failed
-        if (viz.passportNo && (!base.passportNo || !base.docChecksumValid)) {
-          if (base.docCheckDigit !== null && base.docCheckDigit !== undefined) {
-            const vizPadded = viz.passportNo.padEnd(9, '<').substring(0, 9);
-            if (mrzCheckDigit(vizPadded) === base.docCheckDigit || !base.docChecksumValid) {
-              base.passportNo = viz.passportNo;
-              base.docChecksumValid = mrzCheckDigit(vizPadded) === base.docCheckDigit;
-            }
-          } else {
-            base.passportNo = viz.passportNo;
-          }
-        }
-        // Prefer clean VIZ name if MRZ name is empty or looks noisy (contains single-letter OCR junk)
-        const mrzNameNoisy = !base.name || /\b[KLCS]\b/.test(base.name) || /[KL]{3,}/.test(base.name);
-        if (viz.name && mrzNameNoisy) {
-          base.name = viz.name;
-        }
-        if (viz.nationality && (!base.nationality || base.nationality.length < 4)) {
-          base.nationality = viz.nationality;
-        }
-        if (viz.gender && !base.gender) base.gender = viz.gender;
-        if (viz.dob && (!base.dob || !base.dobValid)) base.dob = viz.dob;
-        if (viz.expiry && (!base.expiry || !base.expValid)) base.expiry = viz.expiry;
-      }
-
-      if (!base.name && !base.passportNo) return null;
-
-      const age = calcExactAge(base.dob);
+      const age = calcExactAge(result.dob);
       return {
-        name: base.name || '-',
-        passportNo: base.passportNo || '-',
-        nationality: base.nationality || 'Indonesia',
-        gender: base.gender || 'L',
+        name: result.name || '',
+        passportNo: result.passportNo || '',
+        nationality: result.nationality || 'Indonesia',
+        gender: result.gender || 'L',
         paxType: age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa',
-        dob: base.dob || '',
+        dob: result.dob || '',
         age: age !== null ? age : '',
-        expiry: base.expiry || '',
-        isValid6Months: checkValid6Months(base.expiry),
-        mrzRaw: base.mrzRaw || ''
+        expiry: result.expiry || '',
+        isValid6Months: checkValid6Months(result.expiry)
       };
     }
 
-    // 4. Capture & Scan Action (Live Camera - aligned accurately to green MRZ box)
+    function mergePhotoPasses(primary, secondary) {
+      if (!primary && !secondary) return null;
+      if (!primary) return secondary;
+      if (!secondary) return primary;
+      const merged = {
+        name: primary.name || secondary.name || '',
+        passportNo: primary.passportNo || secondary.passportNo || '',
+        nationality: primary.nationality || secondary.nationality || 'Indonesia',
+        gender: primary.gender || secondary.gender || 'L',
+        dob: primary.dob || secondary.dob || '',
+        expiry: primary.expiry || secondary.expiry || ''
+      };
+      const age = calcExactAge(merged.dob);
+      merged.age = age !== null ? age : '';
+      merged.paxType = age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa';
+      merged.isValid6Months = checkValid6Months(merged.expiry);
+      return merged;
+    }
+
+    // 4. Capture & Scan Action (Live Camera - Foto Halaman Biodata Biasa)
     async function captureAndScan() {
       const video = document.getElementById('videoFeed');
       if (!video || !video.videoWidth) {
@@ -1277,7 +1166,7 @@
         return;
       }
 
-      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Sedang membaca kode paspor (OCR)...</strong>';
+      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Sedang membaca foto paspor...</strong>';
 
       const canvas = document.getElementById('procCanvas');
       canvas.width = video.videoWidth;
@@ -1285,64 +1174,56 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Map visible green MRZ box & passport guide box onto video pixel coordinates (object-fit: cover)
+      // Map passport guide box onto video pixel coordinates (object-fit: cover)
       const vRect = video.getBoundingClientRect();
-      const stripEl = document.querySelector('.mrz-scan-strip');
       const guideEl = document.querySelector('.passport-guide-box');
+      let crop = { x: 0, y: 0, w: canvas.width, h: canvas.height };
 
-      const mapRectToVideo = (el, padY = 20) => {
-        if (!el || !vRect.width || !vRect.height) {
-          return { x: 0, y: canvas.height * 0.55, w: canvas.width, h: canvas.height * 0.45 };
-        }
-        const r = el.getBoundingClientRect();
+      if (guideEl && vRect.width && vRect.height) {
+        const r = guideEl.getBoundingClientRect();
         const scale = Math.max(vRect.width / canvas.width, vRect.height / canvas.height);
         const offsetX = (vRect.width - canvas.width * scale) / 2;
         const offsetY = (vRect.height - canvas.height * scale) / 2;
-        const x = (r.left - vRect.left - offsetX) / scale;
-        const y = (r.top - vRect.top - offsetY) / scale - padY;
-        const w = r.width / scale;
-        const h = r.height / scale + padY * 2;
-        return { x, y, w, h };
-      };
+        crop = {
+          x: (r.left - vRect.left - offsetX) / scale,
+          y: (r.top - vRect.top - offsetY) / scale,
+          w: r.width / scale,
+          h: r.height / scale
+        };
+      }
 
       try {
-        // Pass 1: Preprocessed binarized OCR strictly on green MRZ strip
-        const mrzBox = mapRectToVideo(stripEl, 25);
-        const mrzCanvas = preprocessCanvasForOCR(canvas, mrzBox.x, mrzBox.y, mrzBox.w, mrzBox.h, true);
-        const mrzText = await runOcr(mrzCanvas, true);
-        let mrzData = parseMRZ(mrzText);
+        const guideCanvas = preprocessCanvasForPhotoOCR(canvas, crop.x, crop.y, crop.w, crop.h);
+        const text1 = await runOcr(guideCanvas);
+        let parsed = parsePassportPhotoText(text1);
 
-        // Pass 2: If incomplete or doc checksum failed, also read full passport guide box for VIZ cross-check
-        let vizData = null;
-        if (!mrzData || !mrzData.docChecksumValid || !mrzData.name || /\b[KLCS]\b/.test(mrzData.name) || /[KL]{3,}/.test(mrzData.name)) {
-          const guideBox = mapRectToVideo(guideEl, 15);
-          const vizCanvas = preprocessCanvasForOCR(canvas, guideBox.x, guideBox.y, guideBox.w, guideBox.h, false);
-          const vizText = await runOcr(vizCanvas, false);
-          vizData = parsePassportVIZ(vizText);
-          if (!mrzData) mrzData = parseMRZ(vizText);
+        // If any key field missing, also check full camera frame
+        if (!parsed || !parsed.name || !parsed.passportNo || !parsed.dob) {
+          const fullCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height);
+          const text2 = await runOcr(fullCanvas);
+          parsed = mergePhotoPasses(parsed, parsePassportPhotoText(text2));
         }
 
-        const merged = mergePassportData(mrzData, vizData);
-        if (merged && (merged.passportNo !== '-' || merged.dob)) {
-          handleScanSuccess(merged);
+        if (parsed && (parsed.name || parsed.passportNo)) {
+          handleScanSuccess(parsed);
           return;
         }
       } catch (ocrErr) {
         console.warn('Tesseract OCR error:', ocrErr);
       }
 
-      showToast('Gambar kurang jelas. Pastikan 2 baris kode bawah paspor pas & terang di kotak hijau.');
-      document.getElementById('scanStatusIndicator').textContent = '⚠️ Belum terbaca jelas. Dekatkan kamera ke paspor di tempat terang.';
+      showToast('Foto belum terbaca jelas. Pastikan halaman biodata paspor tajam & terang.');
+      document.getElementById('scanStatusIndicator').textContent = '⚠️ Foto kurang jelas. Coba dekatkan kamera ke halaman biodata paspor.';
       playBeep(false);
     }
 
-    // 5. Handle File Upload (Multi-pass MRZ + VIZ cross-validation, NO fake demo fallback!)
+    // 5. Handle File Upload (Foto Paspor Biasa - Tanpa MRZ)
     async function handleFileUpload(e) {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
       showToast('Memproses foto paspor...');
-      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Membaca MRZ &amp; teks paspor (tunggu 2-4 detik)...</strong>';
+      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Membaca teks biodata dari foto paspor...</strong>';
 
       const img = new Image();
       const objUrl = URL.createObjectURL(file);
@@ -1354,36 +1235,40 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
 
-          // Pass 1: Bottom 32% binarized (targets MRZ band cleanly even on full open passport photo)
-          const mrzCanvas = preprocessCanvasForOCR(canvas, 0, canvas.height * 0.68, canvas.width, canvas.height * 0.32, true);
-          const mrzText = await runOcr(mrzCanvas, true);
-          let mrzData = parseMRZ(mrzText);
+          let parsed = null;
 
-          // Pass 2: Lower 58% contrast-stretched grayscale (reads Visual Inspection Zone + MRZ together)
-          let vizData = null;
-          if (!mrzData || !mrzData.docChecksumValid || !mrzData.name || /\b[KLCS]\b/.test(mrzData.name) || /[KL]{3,}/.test(mrzData.name)) {
-            const lowerCanvas = preprocessCanvasForOCR(canvas, 0, canvas.height * 0.42, canvas.width, canvas.height * 0.58, false);
-            const lowerText = await runOcr(lowerCanvas, false);
-            vizData = parsePassportVIZ(lowerText);
-            if (!mrzData) mrzData = parseMRZ(lowerText);
+          if (canvas.height > canvas.width * 1.1) {
+            // Portrait photo of open 2-page passport booklet: biodata page is in lower 52% (above MRZ)
+            const bioCanvas = preprocessCanvasForPhotoOCR(canvas, 0, canvas.height * 0.45, canvas.width, canvas.height * 0.48);
+            const bioText = await runOcr(bioCanvas);
+            parsed = parsePassportPhotoText(bioText);
+
+            // Fallback / merge with full image if tightly cropped portrait
+            if (!parsed || !parsed.name || !parsed.passportNo || !parsed.dob || !parsed.expiry) {
+              const fullCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height * 0.94);
+              const fullText = await runOcr(fullCanvas);
+              parsed = mergePhotoPasses(parsed, parsePassportPhotoText(fullText));
+            }
+          } else {
+            // Landscape photo of single biodata page (exclude bottom 16% MRZ strip)
+            const bioCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height * 0.84);
+            const bioText = await runOcr(bioCanvas);
+            parsed = parsePassportPhotoText(bioText);
+
+            if (!parsed || !parsed.name || !parsed.passportNo || !parsed.dob || !parsed.expiry) {
+              const fullCanvas = preprocessCanvasForPhotoOCR(canvas, 0, 0, canvas.width, canvas.height);
+              const fullText = await runOcr(fullCanvas);
+              parsed = mergePhotoPasses(parsed, parsePassportPhotoText(fullText));
+            }
           }
 
-          // Pass 3: Full image fallback if photo was tightly cropped to data page only
-          if (!mrzData && !vizData) {
-            const fullBin = preprocessCanvasForOCR(canvas, 0, 0, canvas.width, canvas.height, true);
-            const fullText = await runOcr(fullBin, false);
-            mrzData = parseMRZ(fullText);
-            vizData = parsePassportVIZ(fullText);
-          }
-
-          const merged = mergePassportData(mrzData, vizData);
-          if (merged && (merged.passportNo !== '-' || merged.dob)) {
-            handleScanSuccess(merged);
+          if (parsed && (parsed.name || parsed.passportNo)) {
+            handleScanSuccess(parsed);
             return;
           }
 
-          showToast('Gagal membaca paspor. Pastikan foto tajam & kode 2 baris bawah tidak tertutup jari.');
-          document.getElementById('scanStatusIndicator').textContent = '⚠️ Foto paspor belum terbaca jelas. Coba foto ulang lebih dekat & terang.';
+          showToast('Gagal membaca teks paspor. Pastikan foto halaman biodata tajam & terang.');
+          document.getElementById('scanStatusIndicator').textContent = '⚠️ Data paspor belum terbaca. Coba foto ulang lebih jelas & tidak miring.';
           playBeep(false);
         } catch (err) {
           console.warn('File OCR error:', err);
@@ -1416,9 +1301,9 @@
       currentPassportData = pax;
       playBeep(true);
 
-      document.getElementById('resName').textContent = pax.name;
-      document.getElementById('resPassportNo').textContent = pax.passportNo;
-      document.getElementById('resNationality').textContent = pax.nationality;
+      document.getElementById('resName').textContent = pax.name || '-';
+      document.getElementById('resPassportNo').textContent = pax.passportNo || '-';
+      document.getElementById('resNationality').textContent = pax.nationality || '-';
       document.getElementById('resGender').textContent = pax.gender === 'L' ? 'Laki-laki (L)' : 'Perempuan (P)';
       const paxTypeEl = document.getElementById('resPaxType');
       if (paxTypeEl) paxTypeEl.textContent = pax.paxType;
