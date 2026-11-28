@@ -842,108 +842,434 @@
       }
     }
 
-    // 3. ICAO 9303 TD3 MRZ Parser
+    // 3. ICAO 9303 TD3 MRZ & Visual Zone (VIZ) Parser + Image Preprocessor
+    let cachedOcrWorker = null;
+
+    async function getOcrWorker() {
+      if (cachedOcrWorker) return cachedOcrWorker;
+      if (typeof Tesseract === 'undefined') return null;
+      cachedOcrWorker = await Tesseract.createWorker('eng');
+      return cachedOcrWorker;
+    }
+
+    async function runOcr(canvas, mrzOnly = true) {
+      const worker = await getOcrWorker();
+      if (!worker) return '';
+      await worker.setParameters({
+        tessedit_pageseg_mode: mrzOnly ? '6' : '6',
+        tessedit_char_whitelist: mrzOnly ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' : ''
+      });
+      const { data: { text } } = await worker.recognize(canvas);
+      return text || '';
+    }
+
+    function preprocessCanvasForOCR(sourceCanvas, sx, sy, sw, sh, binarize = true) {
+      const safeX = Math.max(0, Math.floor(sx));
+      const safeY = Math.max(0, Math.floor(sy));
+      const safeW = Math.max(1, Math.min(sourceCanvas.width - safeX, Math.floor(sw)));
+      const safeH = Math.max(1, Math.min(sourceCanvas.height - safeY, Math.floor(sh)));
+
+      // Scale to optimal OCR resolution (~1600px wide)
+      let scale = 1;
+      if (safeW < 1400) scale = Math.min(2.5, 1600 / safeW);
+      else if (safeW > 2000) scale = 1800 / safeW;
+
+      const out = document.createElement('canvas');
+      out.width = Math.round(safeW * scale);
+      out.height = Math.round(safeH * scale);
+      const octx = out.getContext('2d');
+      octx.imageSmoothingEnabled = true;
+      octx.drawImage(sourceCanvas, safeX, safeY, safeW, safeH, 0, 0, out.width, out.height);
+
+      const imgData = octx.getImageData(0, 0, out.width, out.height);
+      const d = imgData.data;
+      const len = out.width * out.height;
+      const gray = new Uint8Array(len);
+      const hist = new Uint32Array(256);
+
+      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+        const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+        gray[p] = g;
+        hist[g]++;
+      }
+
+      if (binarize) {
+        // Otsu threshold to cleanly remove pastel passport hologram & keep crisp black OCR-B ink
+        let sum = 0;
+        for (let t = 0; t < 256; t++) sum += t * hist[t];
+        let sumB = 0, wB = 0, maxVar = 0, thresh = 128;
+        for (let t = 0; t < 256; t++) {
+          wB += hist[t];
+          if (wB === 0) continue;
+          const wF = len - wB;
+          if (wF === 0) break;
+          sumB += t * hist[t];
+          const mB = sumB / wB;
+          const mF = (sum - sumB) / wF;
+          const v = wB * wF * (mB - mF) * (mB - mF);
+          if (v > maxVar) {
+            maxVar = v;
+            thresh = t;
+          }
+        }
+        // Slight bias darker to suppress watermark noise
+        const finalThresh = Math.max(60, Math.min(200, thresh - 8));
+        for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+          const val = gray[p] < finalThresh ? 0 : 255;
+          d[i] = d[i + 1] = d[i + 2] = val;
+          d[i + 3] = 255;
+        }
+      } else {
+        // Contrast stretch grayscale for Visual Inspection Zone
+        let minG = 255, maxG = 0;
+        for (let p = 0; p < len; p++) {
+          if (gray[p] < minG) minG = gray[p];
+          if (gray[p] > maxG) maxG = gray[p];
+        }
+        const range = Math.max(1, maxG - minG);
+        for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+          const val = Math.round(((gray[p] - minG) / range) * 255);
+          d[i] = d[i + 1] = d[i + 2] = val;
+          d[i + 3] = 255;
+        }
+      }
+
+      octx.putImageData(imgData, 0, 0);
+      return out;
+    }
+
+    function mrzCheckDigit(str) {
+      const weights = [7, 3, 1];
+      let sum = 0;
+      for (let i = 0; i < str.length; i++) {
+        const c = str[i];
+        let val = 0;
+        if (c >= '0' && c <= '9') val = c.charCodeAt(0) - 48;
+        else if (c >= 'A' && c <= 'Z') val = c.charCodeAt(0) - 55;
+        sum += val * weights[i % 3];
+      }
+      return sum % 10;
+    }
+
+    function fixOcrDigits(s) {
+      return (s || '')
+        .replace(/[OQD]/g, '0')
+        .replace(/[IL]/g, '1')
+        .replace(/Z/g, '2')
+        .replace(/S/g, '5')
+        .replace(/G/g, '6')
+        .replace(/B/g, '8');
+    }
+
+    function fixOcrAlpha(s) {
+      return (s || '')
+        .replace(/0/g, 'O')
+        .replace(/1/g, 'I')
+        .replace(/5/g, 'S')
+        .replace(/8/g, 'B');
+    }
+
+    function mapCountryCode(code) {
+      const c = (code || '').toUpperCase().trim();
+      const map = {
+        IDN: 'Indonesia', INDONESIA: 'Indonesia',
+        MYS: 'Malaysia', MALAYSIA: 'Malaysia',
+        SGP: 'Singapore', SINGAPORE: 'Singapore',
+        BRN: 'Brunei', PHL: 'Philippines', THA: 'Thailand',
+        CHN: 'China', AUS: 'Australia', USA: 'USA', GBR: 'United Kingdom'
+      };
+      return map[c] || c || 'Indonesia';
+    }
+
+    function calcExactAge(dobStr) {
+      if (!dobStr) return null;
+      const parts = dobStr.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(isNaN)) return null;
+      const today = new Date();
+      let age = today.getFullYear() - parts[0];
+      const m = (today.getMonth() + 1) - parts[1];
+      if (m < 0 || (m === 0 && today.getDate() < parts[2])) age--;
+      return Math.max(0, age);
+    }
+
+    function checkValid6Months(expStr) {
+      if (!expStr) return true;
+      const expDate = new Date(expStr);
+      if (isNaN(expDate.getTime())) return true;
+      const sixMonths = new Date();
+      sixMonths.setMonth(sixMonths.getMonth() + 6);
+      return expDate > sixMonths;
+    }
+
+    function parseYYMMDD(str, isExpiry = false) {
+      const d = fixOcrDigits(str);
+      if (!d || d.length !== 6 || /[^0-9]/.test(d)) return '';
+      const yy = parseInt(d.substring(0, 2), 10);
+      const mm = parseInt(d.substring(2, 4), 10);
+      const dd = parseInt(d.substring(4, 6), 10);
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
+      const currentYY = new Date().getFullYear() % 100;
+      const fullYear = isExpiry
+        ? (yy <= 60 ? 2000 + yy : 1900 + yy)
+        : (yy > currentYY ? 1900 + yy : 2000 + yy);
+      return `${fullYear}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+
     function parseMRZ(mrzText) {
       if (!mrzText) return null;
-      // Clean and normalize lines
       const clean = mrzText.replace(/\r/g, '').toUpperCase();
-      const lines = clean.split('\n').map(l => l.replace(/[^A-Z0-9<]/g, '').trim()).filter(l => l.length >= 30);
+      const rawLines = clean.split('\n')
+        .map(l => l.replace(/[^A-Z0-9<]/g, '').trim())
+        .filter(l => l.length >= 20);
 
-      // Find 2 lines matching passport structure
-      let l1 = '', l2 = '';
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.startsWith('P<') || (line.startsWith('P') && line.length >= 40)) {
-          l1 = line.padEnd(44, '<').substring(0, 44);
-          if (lines[i + 1]) {
-            l2 = lines[i + 1].padEnd(44, '<').substring(0, 44);
+      // Step 1: Anchor Line 2 using Country(3) + DOB(6) + Check(1) + Sex(1) + Exp(6) + Check(1)
+      const l2Regex = /([A-Z0158]{3})([0-9OQDZISGBL]{6})([0-9OQDZISGBL])([MF<P0-9A-Z])([0-9OQDZISGBL]{6})([0-9OQDZISGBL])/;
+      let bestL2 = null;
+
+      for (let i = 0; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        const m = line.match(l2Regex);
+        if (!m) continue;
+
+        const natCode = fixOcrAlpha(m[1]);
+        const dobDigits = fixOcrDigits(m[2]);
+        const dobCheck = parseInt(fixOcrDigits(m[3]), 10);
+        const sexChar = m[4];
+        const expDigits = fixOcrDigits(m[5]);
+        const expCheck = parseInt(fixOcrDigits(m[6]), 10);
+
+        const dob = parseYYMMDD(dobDigits, false);
+        const expiry = parseYYMMDD(expDigits, true);
+        if (!dob || !expiry) continue;
+
+        const dobValid = mrzCheckDigit(dobDigits) === dobCheck;
+        const expValid = mrzCheckDigit(expDigits) === expCheck;
+        const score = (dobValid ? 2 : 0) + (expValid ? 2 : 0) + (sexChar === 'M' || sexChar === 'F' ? 1 : 0);
+
+        if (!bestL2 || score > bestL2.score) {
+          bestL2 = { index: i, line, match: m, natCode, dob, expiry, sexChar, dobValid, expValid, score };
+        }
+      }
+
+      if (!bestL2) return null;
+
+      // Extract Passport Number to the LEFT of Nationality in Line 2 & verify checksum
+      const leftOfNat = bestL2.line.substring(0, bestL2.match.index);
+      let docNumber = '';
+      let docCheckDigit = null;
+      let docChecksumValid = false;
+
+      if (leftOfNat.length >= 2) {
+        const chkChar = fixOcrDigits(leftOfNat.slice(-1));
+        docCheckDigit = /^[0-9]$/.test(chkChar) ? parseInt(chkChar, 10) : null;
+        let docField = leftOfNat.slice(0, -1);
+        if (docField.length > 9) docField = docField.slice(-9);
+
+        // Try direct checksum and common OCR fixes (e.g. trailing '<' misread as K/L/C)
+        const candidates = [
+          docField,
+          docField.replace(/[KLC]+$/, m => '<'.repeat(m.length)),
+          docField.slice(0, 1) + fixOcrDigits(docField.slice(1)),
+          docField.slice(0, 1) + fixOcrDigits(docField.slice(1).replace(/[KLC]+$/, m => '<'.repeat(m.length)))
+        ];
+        for (const cand of candidates) {
+          const padded = cand.padEnd(9, '<').substring(0, 9);
+          if (docCheckDigit !== null && mrzCheckDigit(padded) === docCheckDigit) {
+            docNumber = cand.replace(/</g, '').trim();
+            docChecksumValid = true;
             break;
           }
         }
-      }
-
-      if (!l1 || !l2) {
-        // Fallback: pick any 2 lines with roughly 44 characters
-        const candidate = lines.filter(l => l.length >= 35);
-        if (candidate.length >= 2) {
-          l1 = candidate[0].padEnd(44, '<').substring(0, 44);
-          l2 = candidate[1].padEnd(44, '<').substring(0, 44);
+        if (!docChecksumValid) {
+          docNumber = docField.replace(/</g, '').replace(/[KLC]$/, '').trim();
         }
       }
 
-      if (!l1 || !l2) return null;
+      // Step 2: Find Line 1 (typically immediately before Line 2)
+      let l1Raw = '';
+      if (bestL2.index > 0) {
+        l1Raw = rawLines[bestL2.index - 1];
+      }
+      if (!l1Raw || l1Raw.length < 15) {
+        l1Raw = rawLines.find((l, idx) => idx !== bestL2.index && (l.startsWith('P<') || l.includes(bestL2.natCode))) || '';
+      }
 
-      try {
-        // Parse Line 1: P<IDNBUDI<<GUNAWAN<<<<<<<<<<<<<<<
-        const issuingCountry = l1.substring(2, 5).replace(/</g, '').trim();
-        const rawName = l1.substring(5).split('<<');
-        const surname = (rawName[0] || '').replace(/</g, ' ').trim();
-        const givenNames = (rawName[1] || '').replace(/</g, ' ').trim();
-        const fullName = givenNames ? `${surname} ${givenNames}`.trim() : surname;
+      // Parse Line 1 Name cleanly (Natural order: GIVEN NAMES + SURNAME)
+      let fullName = '';
+      if (l1Raw) {
+        let nameSection = l1Raw;
+        // Anchor past P<IDN (or P + 1 filler + country code)
+        const natRegex = new RegExp(`P[A-Z<KLC]?${bestL2.natCode}`);
+        const natMatch = nameSection.match(natRegex);
+        if (natMatch) {
+          nameSection = nameSection.substring(natMatch.index + natMatch[0].length);
+        } else {
+          const pMatch = nameSection.match(/P[A-Z<KLC]([A-Z]{3})/);
+          if (pMatch) {
+            nameSection = nameSection.substring(pMatch.index + pMatch[0].length);
+          } else {
+            const natPos = nameSection.indexOf(bestL2.natCode);
+            if (natPos !== -1 && natPos <= 6) {
+              nameSection = nameSection.substring(natPos + 3);
+            }
+          }
+        }
 
-        // Parse Line 2: A123456789IDN9505144M2912314<<<<<<<<<<02
-        let docNumber = l2.substring(0, 9).replace(/</g, '').trim();
-        const nationality = l2.substring(10, 13).replace(/</g, '').trim() || issuingCountry || 'IDN';
-        const rawDob = l2.substring(13, 19);
-        const genderChar = l2.substring(20, 21);
-        const rawExp = l2.substring(21, 27);
-
-        // Convert Dates (YYMMDD -> YYYY-MM-DD)
-        const parseYYMMDD = (str, isExpiry = false) => {
-          if (!str || str.length < 6 || /[^0-9]/.test(str)) return '';
-          const yy = parseInt(str.substring(0, 2), 10);
-          const mm = str.substring(2, 4);
-          const dd = str.substring(4, 6);
-          const currentYear = new Date().getFullYear() % 100;
-          const fullYear = isExpiry
-            ? (yy >= 0 && yy <= 60 ? 2000 + yy : 1900 + yy)
-            : (yy > currentYear ? 1900 + yy : 2000 + yy);
-          return `${fullYear}-${mm}-${dd}`;
+        // Remove trailing MRZ '<' filler (and OCR noise where '<<<' becomes K/L/C)
+        nameSection = nameSection.replace(/<{2,}$/, '');
+        // Split Surname and Given Names by '<<'
+        const parts = nameSection.split(/<<+/);
+        const cleanNamePart = (p) => {
+          return (p || '')
+            .replace(/</g, ' ')
+            .replace(/[^A-Z\s]/g, ' ')
+            // Remove OCR trailing filler noise like "K KL L K K KLLKL L"
+            .replace(/(?:\s+[KLCS]{1,4}){3,}$/g, '')
+            .replace(/\s+[KLC]{2,}$/g, '')
+            .replace(/\s+[KLCS]$/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
         };
 
-        const dob = parseYYMMDD(rawDob, false);
-        const expiry = parseYYMMDD(rawExp, true);
-        const gender = (genderChar === 'F' || genderChar === 'P') ? 'P' : 'L';
-
-        // Calculate Age
-        let age = 30;
-        if (dob) {
-          const birthDate = new Date(dob);
-          const diff = Date.now() - birthDate.getTime();
-          const ageDate = new Date(diff);
-          age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        }
-
-        // Check if expiry is valid (> 6 months)
-        let isValid6Months = true;
-        if (expiry) {
-          const expDate = new Date(expiry);
-          const sixMonths = new Date();
-          sixMonths.setMonth(sixMonths.getMonth() + 6);
-          isValid6Months = expDate > sixMonths;
-        }
-
-        const paxType = age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa');
-
-        return {
-          name: fullName || 'PENUMPANG PASPOR',
-          passportNo: docNumber || 'A' + Math.floor(10000000 + Math.random() * 90000000),
-          nationality: nationality === 'IDN' ? 'Indonesia' : (nationality === 'MYS' ? 'Malaysia' : nationality),
-          gender: gender,
-          paxType: paxType,
-          dob: dob || '1995-05-14',
-          age: age || 31,
-          expiry: expiry || '2029-12-31',
-          isValid6Months,
-          mrzRaw: `${l1}\n${l2}`
-        };
-      } catch (err) {
-        console.error('Error parsing MRZ:', err);
-        return null;
+        const surname = cleanNamePart(parts[0]);
+        const givenNames = cleanNamePart(parts.slice(1).join(' '));
+        fullName = givenNames ? `${givenNames} ${surname}`.trim() : surname;
       }
+
+      const gender = (bestL2.sexChar === 'F' || bestL2.sexChar === 'P') ? 'P' : 'L';
+      const age = calcExactAge(bestL2.dob);
+      const paxType = age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa';
+
+      return {
+        name: fullName,
+        passportNo: docNumber,
+        docCheckDigit,
+        docChecksumValid,
+        dobValid: bestL2.dobValid,
+        expValid: bestL2.expValid,
+        nationality: mapCountryCode(bestL2.natCode),
+        gender,
+        paxType,
+        dob: bestL2.dob,
+        age: age !== null ? age : '',
+        expiry: bestL2.expiry,
+        isValid6Months: checkValid6Months(bestL2.expiry),
+        mrzRaw: `${l1Raw}\n${bestL2.line}`
+      };
     }
 
-    // 4. Capture & Scan Action
+    // Parse Visual Inspection Zone (VIZ) for cross-validation when MRZ has finger/glare obstruction
+    function parsePassportVIZ(text) {
+      if (!text) return null;
+      const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+      const upperAll = text.toUpperCase();
+      const result = {};
+
+      // 1. Passport No (e.g. E9992883, A1234567, C1234567)
+      const passMatch = upperAll.match(/(?:PASPOR|PASSPORT)\s*(?:NO\.?)?[\s:]*\n?\s*([A-Z]{1,2}\d{6,8})\b/);
+      if (passMatch) {
+        result.passportNo = passMatch[1];
+      } else {
+        const genericPass = upperAll.match(/\b([A-CE-Z]\d{7})\b/);
+        if (genericPass) result.passportNo = genericPass[1];
+      }
+
+      // 2. Full Name (line right after NAMA LENGKAP / FULL NAME)
+      for (let i = 0; i < lines.length; i++) {
+        if (/NAMA\s*LENGKAP|FULL\s*NAME/i.test(lines[i])) {
+          for (let j = i + 1; j <= Math.min(i + 2, lines.length - 1); j++) {
+            const cand = lines[j].toUpperCase().replace(/[^A-Z\s'-]/g, '').replace(/\s+/g, ' ').trim();
+            if (cand.length >= 3 && !/KEWARGANEGARAAN|NATIONALITY|INDONESIA|MALAYSIA|PASPOR/i.test(cand)) {
+              result.name = cand;
+              break;
+            }
+          }
+          break;
+        }
+      }
+
+      // 3. Nationality
+      if (/\bINDONESIA\b/.test(upperAll)) result.nationality = 'Indonesia';
+      else if (/\bMALAYSIA\b/.test(upperAll)) result.nationality = 'Malaysia';
+      else if (/\bSINGAPORE\b/.test(upperAll)) result.nationality = 'Singapore';
+
+      // 4. Gender (P/F -> P, L/M -> L)
+      if (/\bP\s*\/\s*F\b/.test(upperAll)) result.gender = 'P';
+      else if (/\bL\s*\/\s*M\b/.test(upperAll)) result.gender = 'L';
+
+      // 5. Dates in DD MMM YYYY format (e.g. 21 APR 2009, 12 JUN 2031)
+      const monthMap = {
+        JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', MEI: '05',
+        JUN: '06', JUL: '07', AUG: '08', AGU: '08', SEP: '09',
+        OCT: '10', OKT: '10', NOV: '11', DEC: '12', DES: '12'
+      };
+      const dateRegex = /\b(\d{2})\s+(JAN|FEB|MAR|APR|MAY|MEI|JUN|JUL|AUG|AGU|SEP|OCT|OKT|NOV|DEC|DES)\s+(\d{4})\b/g;
+      const foundDates = [];
+      let dm;
+      while ((dm = dateRegex.exec(upperAll)) !== null) {
+        const y = parseInt(dm[3], 10);
+        const iso = `${y}-${monthMap[dm[2]]}-${dm[1]}`;
+        foundDates.push({ year: y, iso });
+      }
+      if (foundDates.length > 0) {
+        const curYear = new Date().getFullYear();
+        const birthCand = foundDates.find(d => d.year <= curYear - 1 && d.year >= 1920);
+        const expCand = foundDates.find(d => d.year > curYear);
+        if (birthCand) result.dob = birthCand.iso;
+        if (expCand) result.expiry = expCand.iso;
+      }
+
+      return Object.keys(result).length > 0 ? result : null;
+    }
+
+    function mergePassportData(mrz, viz) {
+      if (!mrz && !viz) return null;
+      const base = mrz ? { ...mrz } : {};
+
+      if (viz) {
+        // Cross-check Passport Number using ICAO checksum if MRZ doc checksum failed
+        if (viz.passportNo && (!base.passportNo || !base.docChecksumValid)) {
+          if (base.docCheckDigit !== null && base.docCheckDigit !== undefined) {
+            const vizPadded = viz.passportNo.padEnd(9, '<').substring(0, 9);
+            if (mrzCheckDigit(vizPadded) === base.docCheckDigit || !base.docChecksumValid) {
+              base.passportNo = viz.passportNo;
+              base.docChecksumValid = mrzCheckDigit(vizPadded) === base.docCheckDigit;
+            }
+          } else {
+            base.passportNo = viz.passportNo;
+          }
+        }
+        // Prefer clean VIZ name if MRZ name is empty or looks noisy (contains single-letter OCR junk)
+        const mrzNameNoisy = !base.name || /\b[KLCS]\b/.test(base.name) || /[KL]{3,}/.test(base.name);
+        if (viz.name && mrzNameNoisy) {
+          base.name = viz.name;
+        }
+        if (viz.nationality && (!base.nationality || base.nationality.length < 4)) {
+          base.nationality = viz.nationality;
+        }
+        if (viz.gender && !base.gender) base.gender = viz.gender;
+        if (viz.dob && (!base.dob || !base.dobValid)) base.dob = viz.dob;
+        if (viz.expiry && (!base.expiry || !base.expValid)) base.expiry = viz.expiry;
+      }
+
+      if (!base.name && !base.passportNo) return null;
+
+      const age = calcExactAge(base.dob);
+      return {
+        name: base.name || '-',
+        passportNo: base.passportNo || '-',
+        nationality: base.nationality || 'Indonesia',
+        gender: base.gender || 'L',
+        paxType: age !== null ? (age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa')) : 'Dewasa',
+        dob: base.dob || '',
+        age: age !== null ? age : '',
+        expiry: base.expiry || '',
+        isValid6Months: checkValid6Months(base.expiry),
+        mrzRaw: base.mrzRaw || ''
+      };
+    }
+
+    // 4. Capture & Scan Action (Live Camera - aligned accurately to green MRZ box)
     async function captureAndScan() {
       const video = document.getElementById('videoFeed');
       if (!video || !video.videoWidth) {
@@ -959,74 +1285,116 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Crop the bottom MRZ section (lower 35% of the frame)
-      const cropY = Math.floor(canvas.height * 0.60);
-      const cropHeight = Math.floor(canvas.height * 0.40);
-      const mrzImageData = ctx.getImageData(0, cropY, canvas.width, cropHeight);
+      // Map visible green MRZ box & passport guide box onto video pixel coordinates (object-fit: cover)
+      const vRect = video.getBoundingClientRect();
+      const stripEl = document.querySelector('.mrz-scan-strip');
+      const guideEl = document.querySelector('.passport-guide-box');
 
-      // Create a second smaller canvas for OCR processing
-      const mrzCanvas = document.createElement('canvas');
-      mrzCanvas.width = canvas.width;
-      mrzCanvas.height = cropHeight;
-      const mrzCtx = mrzCanvas.getContext('2d');
-      mrzCtx.putImageData(mrzImageData, 0, 0);
+      const mapRectToVideo = (el, padY = 20) => {
+        if (!el || !vRect.width || !vRect.height) {
+          return { x: 0, y: canvas.height * 0.55, w: canvas.width, h: canvas.height * 0.45 };
+        }
+        const r = el.getBoundingClientRect();
+        const scale = Math.max(vRect.width / canvas.width, vRect.height / canvas.height);
+        const offsetX = (vRect.width - canvas.width * scale) / 2;
+        const offsetY = (vRect.height - canvas.height * scale) / 2;
+        const x = (r.left - vRect.left - offsetX) / scale;
+        const y = (r.top - vRect.top - offsetY) / scale - padY;
+        const w = r.width / scale;
+        const h = r.height / scale + padY * 2;
+        return { x, y, w, h };
+      };
 
-      // Perform OCR
       try {
-        if (typeof Tesseract !== 'undefined') {
-          const { data: { text } } = await Tesseract.recognize(mrzCanvas, 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<'
-          });
-          const parsed = parseMRZ(text);
-          if (parsed) {
-            handleScanSuccess(parsed);
-            return;
-          }
+        // Pass 1: Preprocessed binarized OCR strictly on green MRZ strip
+        const mrzBox = mapRectToVideo(stripEl, 25);
+        const mrzCanvas = preprocessCanvasForOCR(canvas, mrzBox.x, mrzBox.y, mrzBox.w, mrzBox.h, true);
+        const mrzText = await runOcr(mrzCanvas, true);
+        let mrzData = parseMRZ(mrzText);
+
+        // Pass 2: If incomplete or doc checksum failed, also read full passport guide box for VIZ cross-check
+        let vizData = null;
+        if (!mrzData || !mrzData.docChecksumValid || !mrzData.name || /\b[KLCS]\b/.test(mrzData.name) || /[KL]{3,}/.test(mrzData.name)) {
+          const guideBox = mapRectToVideo(guideEl, 15);
+          const vizCanvas = preprocessCanvasForOCR(canvas, guideBox.x, guideBox.y, guideBox.w, guideBox.h, false);
+          const vizText = await runOcr(vizCanvas, false);
+          vizData = parsePassportVIZ(vizText);
+          if (!mrzData) mrzData = parseMRZ(vizText);
+        }
+
+        const merged = mergePassportData(mrzData, vizData);
+        if (merged && (merged.passportNo !== '-' || merged.dob)) {
+          handleScanSuccess(merged);
+          return;
         }
       } catch (ocrErr) {
         console.warn('Tesseract OCR error:', ocrErr);
       }
 
-      // If OCR was blurry or failed, show guidance
-      showToast('Gambar kurang jelas. Pastikan 2 baris kode bawah paspor pas di kotak.');
-      document.getElementById('scanStatusIndicator').textContent = '⚠️ Posisi belum pas. Dekatkan kamera ke kode bawah paspor.';
+      showToast('Gambar kurang jelas. Pastikan 2 baris kode bawah paspor pas & terang di kotak hijau.');
+      document.getElementById('scanStatusIndicator').textContent = '⚠️ Belum terbaca jelas. Dekatkan kamera ke paspor di tempat terang.';
       playBeep(false);
     }
 
-    // 5. Handle File Upload (Snapshot from Gallery or Native Camera)
+    // 5. Handle File Upload (Multi-pass MRZ + VIZ cross-validation, NO fake demo fallback!)
     async function handleFileUpload(e) {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      showToast('Memproses berkas paspor...');
-      document.getElementById('scanStatusIndicator').textContent = '⏳ Membaca data paspor dari berkas...';
+      showToast('Memproses foto paspor...');
+      document.getElementById('scanStatusIndicator').innerHTML = '⏳ <strong>Membaca MRZ &amp; teks paspor (tunggu 2-4 detik)...</strong>';
 
       const img = new Image();
+      const objUrl = URL.createObjectURL(file);
       img.onload = async () => {
-        const canvas = document.getElementById('procCanvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
         try {
-          if (typeof Tesseract !== 'undefined') {
-            const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
-            const parsed = parseMRZ(text);
-            if (parsed) {
-              handleScanSuccess(parsed);
-              return;
-            }
+          const canvas = document.getElementById('procCanvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          // Pass 1: Bottom 32% binarized (targets MRZ band cleanly even on full open passport photo)
+          const mrzCanvas = preprocessCanvasForOCR(canvas, 0, canvas.height * 0.68, canvas.width, canvas.height * 0.32, true);
+          const mrzText = await runOcr(mrzCanvas, true);
+          let mrzData = parseMRZ(mrzText);
+
+          // Pass 2: Lower 58% contrast-stretched grayscale (reads Visual Inspection Zone + MRZ together)
+          let vizData = null;
+          if (!mrzData || !mrzData.docChecksumValid || !mrzData.name || /\b[KLCS]\b/.test(mrzData.name) || /[KL]{3,}/.test(mrzData.name)) {
+            const lowerCanvas = preprocessCanvasForOCR(canvas, 0, canvas.height * 0.42, canvas.width, canvas.height * 0.58, false);
+            const lowerText = await runOcr(lowerCanvas, false);
+            vizData = parsePassportVIZ(lowerText);
+            if (!mrzData) mrzData = parseMRZ(lowerText);
           }
+
+          // Pass 3: Full image fallback if photo was tightly cropped to data page only
+          if (!mrzData && !vizData) {
+            const fullBin = preprocessCanvasForOCR(canvas, 0, 0, canvas.width, canvas.height, true);
+            const fullText = await runOcr(fullBin, false);
+            mrzData = parseMRZ(fullText);
+            vizData = parsePassportVIZ(fullText);
+          }
+
+          const merged = mergePassportData(mrzData, vizData);
+          if (merged && (merged.passportNo !== '-' || merged.dob)) {
+            handleScanSuccess(merged);
+            return;
+          }
+
+          showToast('Gagal membaca paspor. Pastikan foto tajam & kode 2 baris bawah tidak tertutup jari.');
+          document.getElementById('scanStatusIndicator').textContent = '⚠️ Foto paspor belum terbaca jelas. Coba foto ulang lebih dekat & terang.';
+          playBeep(false);
         } catch (err) {
           console.warn('File OCR error:', err);
+          showToast('Terjadi kesalahan saat membaca foto paspor.');
+          playBeep(false);
+        } finally {
+          URL.revokeObjectURL(objUrl);
+          e.target.value = '';
         }
-
-        // Fallback demo if OCR couldn't extract 44 chars
-        showToast('Foto terupload! Membaca format...');
-        loadDemoPassport();
       };
-      img.src = URL.createObjectURL(file);
+      img.src = objUrl;
     }
 
     // 6. Demo Passport Data (Instant Test)
@@ -1054,8 +1422,8 @@
       document.getElementById('resGender').textContent = pax.gender === 'L' ? 'Laki-laki (L)' : 'Perempuan (P)';
       const paxTypeEl = document.getElementById('resPaxType');
       if (paxTypeEl) paxTypeEl.textContent = pax.paxType;
-      document.getElementById('resDobAge').textContent = `${pax.dob} (${pax.age} Thn)`;
-      document.getElementById('resExpiry').textContent = pax.expiry;
+      document.getElementById('resDobAge').textContent = pax.dob ? `${pax.dob} (${pax.age} Thn)` : '-';
+      document.getElementById('resExpiry').textContent = pax.expiry || '-';
 
       const valBadge = document.getElementById('resValidityBadge');
       if (pax.isValid6Months) {
