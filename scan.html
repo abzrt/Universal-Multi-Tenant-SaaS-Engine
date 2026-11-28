@@ -316,6 +316,20 @@
       padding: 0.45rem 0.65rem;
       border-radius: 6px;
       border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .result-item:active {
+      background: #0f172a;
+      border-color: #38bdf8;
+    }
+    .result-item-content {
+      min-width: 0;
+      flex: 1;
     }
     .result-item label {
       display: block;
@@ -328,15 +342,64 @@
       font-size: 0.85rem;
       font-weight: 800;
       color: #ffffff;
+      word-break: break-word;
+    }
+    .btn-copy-field {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      border-radius: 6px;
+      padding: 0.25rem 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .copy-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+    }
+    .btn-copy-all {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: none;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 0.7rem 0.6rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    }
+    .btn-copy-compact {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.7rem 0.6rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
     }
     .btn-send-desktop {
       width: 100%;
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       border: none;
       color: #ffffff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 800;
-      padding: 0.85rem;
+      padding: 0.78rem;
       border-radius: 10px;
       cursor: pointer;
       display: flex;
@@ -375,19 +438,19 @@
         <p>Mobile Passport MRZ Reader</p>
       </div>
     </div>
-    <div class="session-pill" id="sessionStatusPill">
+    <div class="session-pill" id="sessionStatusPill" style="cursor: pointer;" title="Ketuk untuk hubungkan PIN Loket">
       <div class="status-dot" id="statusDot"></div>
-      <span id="sessionStatusText">Belum Terhubung</span>
+      <span id="sessionStatusText">Mode Copas</span>
     </div>
   </header>
 
   <!-- VIEW 1: PAIRING CODE INPUT -->
-  <main id="pairingView">
+  <main id="pairingView" style="display: none;">
     <div class="pin-card">
       <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📲</div>
       <h2 style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">Hubungkan ke Komputer Loket</h2>
       <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.35rem;">
-        Lihat layar komputer loket dan masukkan 4 digit PIN sesi pemindaian paspor.
+        Opsional: masukkan 4 digit PIN sesi dari komputer loket agar hasil scan masuk otomatis.
       </p>
 
       <input type="text" id="inputPin" class="pin-input" placeholder="4892" maxlength="6" inputmode="numeric" autocomplete="off">
@@ -397,8 +460,8 @@
       </button>
 
       <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed #334155;">
-        <button type="button" id="btnDirectCameraDemo" style="background: transparent; border: none; color: #38bdf8; font-size: 0.75rem; text-decoration: underline; cursor: pointer;">
-          Buka Kamera Scanner Mandiri (Uji Coba)
+        <button type="button" id="btnDirectCameraDemo" style="background: transparent; border: none; color: #38bdf8; font-size: 0.78rem; font-weight: 700; text-decoration: underline; cursor: pointer;">
+          ← Kembali ke Mode Scan &amp; Copas Mandiri
         </button>
       </div>
     </div>
@@ -446,41 +509,75 @@
         Posisikan 2 baris kode paspor di area hijau lalu tekan 📸 Scan.
       </div>
 
-      <!-- RESULT CARD -->
+      <!-- RESULT CARD (KHUSUS DATA FORM PENGISIAN TIKET) -->
       <div id="resultCard">
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-          <strong style="color: #10b981; font-size: 0.85rem;">✅ Paspor Berhasil Terbaca</strong>
+          <strong style="color: #10b981; font-size: 0.85rem;">✅ Data Form Tiket (Ketuk untuk Copas)</strong>
           <span id="resValidityBadge" style="background: #064e3b; color: #6ee7b7; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Valid > 6 Bulan</span>
         </div>
 
         <div class="result-grid">
-          <div class="result-item" style="grid-column: span 2;">
-            <label>Nama Lengkap</label>
-            <span id="resName">-</span>
+          <div class="result-item" style="grid-column: span 2;" data-copy-field="name">
+            <div class="result-item-content">
+              <label>Nama Lengkap Penumpang</label>
+              <span id="resName">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
-          <div class="result-item">
-            <label>No. Paspor</label>
-            <span id="resPassportNo" style="color: #38bdf8; font-family: monospace;">-</span>
+          <div class="result-item" data-copy-field="passportNo">
+            <div class="result-item-content">
+              <label>No. Paspor</label>
+              <span id="resPassportNo" style="color: #38bdf8; font-family: monospace;">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
-          <div class="result-item">
-            <label>Kewarganegaraan</label>
-            <span id="resNationality">-</span>
+          <div class="result-item" data-copy-field="gender">
+            <div class="result-item-content">
+              <label>L / P</label>
+              <span id="resGender">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
-          <div class="result-item">
-            <label>L / P</label>
-            <span id="resGender">-</span>
+          <div class="result-item" data-copy-field="paxType">
+            <div class="result-item-content">
+              <label>Jenis Pax</label>
+              <span id="resPaxType">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
-          <div class="result-item">
-            <label>Tgl Lahir (Umur)</label>
-            <span id="resDobAge">-</span>
+          <div class="result-item" data-copy-field="nationality">
+            <div class="result-item-content">
+              <label>Kewarganegaraan</label>
+              <span id="resNationality">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
-          <div class="result-item" style="grid-column: span 2;">
-            <label>Masa Berlaku Paspor</label>
-            <span id="resExpiry">-</span>
+          <div class="result-item" data-copy-field="dob">
+            <div class="result-item-content">
+              <label>Tgl Lahir (Umur)</label>
+              <span id="resDobAge">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
+          </div>
+          <div class="result-item" data-copy-field="expiry">
+            <div class="result-item-content">
+              <label>Berlaku Paspor</label>
+              <span id="resExpiry">-</span>
+            </div>
+            <button type="button" class="btn-copy-field">📋</button>
           </div>
         </div>
 
-        <button type="button" class="btn-send-desktop" id="btnSendToDesktop">
+        <div class="copy-actions-row">
+          <button type="button" class="btn-copy-all" id="btnCopyAllTicketData">
+            📋 Salin Semua Data Tiket
+          </button>
+          <button type="button" class="btn-copy-compact" id="btnCopyNamePassport">
+            📋 Nama &amp; Paspor
+          </button>
+        </div>
+
+        <button type="button" class="btn-send-desktop" id="btnSendToDesktop" style="display: none;">
           🚀 Kirim ke Komputer Loket
         </button>
       </div>
@@ -534,6 +631,28 @@
       setTimeout(() => { el.style.display = 'none'; }, duration);
     }
 
+    async function copyToClipboard(text, label = 'Data') {
+      if (!text) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        playBeep(true);
+        showToast(`📋 ${label} berhasil disalin!`);
+      } catch (e) {
+        showToast('Gagal menyalin ke clipboard.');
+      }
+    }
+
     // App State
     let currentSessionId = '';
     let currentPin = '';
@@ -558,7 +677,22 @@
         connectSession(sidParam);
       } else if (pinParam) {
         connectSession(pinParam);
+      } else {
+        // Langsung buka mode scan & copas tanpa wajib PIN
+        currentSessionId = 'COPY_ONLY';
+        startScannerView();
       }
+
+      document.getElementById('sessionStatusPill')?.addEventListener('click', () => {
+        const pairView = document.getElementById('pairingView');
+        const scanView = document.getElementById('scannerView');
+        if (pairView.style.display === 'none') {
+          pairView.style.display = 'flex';
+          scanView.style.display = 'none';
+        } else {
+          startScannerView();
+        }
+      });
 
       document.getElementById('btnConnectPin')?.addEventListener('click', () => {
         const pin = document.getElementById('inputPin').value.trim().toUpperCase();
@@ -574,7 +708,7 @@
       });
 
       document.getElementById('btnDirectCameraDemo')?.addEventListener('click', () => {
-        currentSessionId = 'DEMO_STANDALONE';
+        if (!currentSessionId) currentSessionId = 'COPY_ONLY';
         startScannerView();
       });
 
@@ -585,6 +719,47 @@
       document.getElementById('btnDemoPassport')?.addEventListener('click', loadDemoPassport);
       document.getElementById('btnSendToDesktop')?.addEventListener('click', sendDataToDesktop);
       document.getElementById('fileUploadInput')?.addEventListener('change', handleFileUpload);
+
+      // Copy per-field handlers (khusus kolom form tiket)
+      document.querySelectorAll('.result-item[data-copy-field]').forEach((item) => {
+        item.addEventListener('click', () => {
+          if (!currentPassportData) return;
+          const field = item.getAttribute('data-copy-field');
+          const map = {
+            name: { val: currentPassportData.name, label: 'Nama Lengkap' },
+            passportNo: { val: currentPassportData.passportNo, label: 'No. Paspor' },
+            gender: { val: currentPassportData.gender, label: 'Jenis Kelamin' },
+            paxType: { val: currentPassportData.paxType || 'Dewasa', label: 'Jenis Pax' },
+            nationality: { val: currentPassportData.nationality, label: 'Kewarganegaraan' },
+            dob: { val: currentPassportData.dob, label: 'Tanggal Lahir' },
+            expiry: { val: currentPassportData.expiry, label: 'Masa Berlaku Paspor' }
+          };
+          if (map[field]) copyToClipboard(map[field].val, map[field].label);
+        });
+      });
+
+      // Copy all ticket fields
+      document.getElementById('btnCopyAllTicketData')?.addEventListener('click', () => {
+        if (!currentPassportData) return;
+        const p = currentPassportData;
+        const txt = [
+          `Nama Lengkap: ${p.name}`,
+          `No. Paspor: ${p.passportNo}`,
+          `Jenis Kelamin: ${p.gender}`,
+          `Jenis Pax: ${p.paxType || 'Dewasa'}`,
+          `Kewarganegaraan: ${p.nationality}`,
+          `Tanggal Lahir: ${p.dob}`,
+          `Berlaku Paspor: ${p.expiry}`
+        ].join('\n');
+        copyToClipboard(txt, 'Semua Data Tiket');
+      });
+
+      // Copy Name & Passport only
+      document.getElementById('btnCopyNamePassport')?.addEventListener('click', () => {
+        if (!currentPassportData) return;
+        const p = currentPassportData;
+        copyToClipboard(`${p.name}\t${p.passportNo}`, 'Nama & No. Paspor');
+      });
     });
 
     // 1. Connect Session
@@ -748,11 +923,14 @@
           isValid6Months = expDate > sixMonths;
         }
 
+        const paxType = age < 2 ? 'Bayi' : (age < 12 ? 'Anak' : 'Dewasa');
+
         return {
           name: fullName || 'PENUMPANG PASPOR',
           passportNo: docNumber || 'A' + Math.floor(10000000 + Math.random() * 90000000),
           nationality: nationality === 'IDN' ? 'Indonesia' : (nationality === 'MYS' ? 'Malaysia' : nationality),
           gender: gender,
+          paxType: paxType,
           dob: dob || '1995-05-14',
           age: age || 31,
           expiry: expiry || '2029-12-31',
@@ -854,9 +1032,9 @@
     // 6. Demo Passport Data (Instant Test)
     function loadDemoPassport() {
       const demoPaxList = [
-        { name: 'BUDI GUNAWAN', passportNo: 'A12847192', nationality: 'Indonesia', gender: 'L', dob: '1992-08-14', age: 34, expiry: '2029-11-20', isValid6Months: true },
-        { name: 'SITI NURHALIZA BINTI AHMAD', passportNo: 'A59402811', nationality: 'Malaysia', gender: 'P', dob: '1996-03-22', age: 30, expiry: '2030-05-18', isValid6Months: true },
-        { name: 'MUHAMMAD RIZKY', passportNo: 'B92104829', nationality: 'Indonesia', gender: 'L', dob: '1988-12-05', age: 38, expiry: '2028-09-30', isValid6Months: true }
+        { name: 'BUDI GUNAWAN', passportNo: 'A12847192', nationality: 'Indonesia', gender: 'L', paxType: 'Dewasa', dob: '1992-08-14', age: 34, expiry: '2029-11-20', isValid6Months: true },
+        { name: 'SITI NURHALIZA BINTI AHMAD', passportNo: 'A59402811', nationality: 'Malaysia', gender: 'P', paxType: 'Dewasa', dob: '1996-03-22', age: 30, expiry: '2030-05-18', isValid6Months: true },
+        { name: 'MUHAMMAD RIZKY', passportNo: 'B92104829', nationality: 'Indonesia', gender: 'L', paxType: 'Dewasa', dob: '1988-12-05', age: 38, expiry: '2028-09-30', isValid6Months: true }
       ];
       const randomDemo = demoPaxList[Math.floor(Math.random() * demoPaxList.length)];
       handleScanSuccess(randomDemo);
@@ -864,6 +1042,9 @@
 
     // 7. On Scan Success
     function handleScanSuccess(pax) {
+      if (!pax.paxType) {
+        pax.paxType = pax.age < 2 ? 'Bayi' : (pax.age < 12 ? 'Anak' : 'Dewasa');
+      }
       currentPassportData = pax;
       playBeep(true);
 
@@ -871,6 +1052,8 @@
       document.getElementById('resPassportNo').textContent = pax.passportNo;
       document.getElementById('resNationality').textContent = pax.nationality;
       document.getElementById('resGender').textContent = pax.gender === 'L' ? 'Laki-laki (L)' : 'Perempuan (P)';
+      const paxTypeEl = document.getElementById('resPaxType');
+      if (paxTypeEl) paxTypeEl.textContent = pax.paxType;
       document.getElementById('resDobAge').textContent = `${pax.dob} (${pax.age} Thn)`;
       document.getElementById('resExpiry').textContent = pax.expiry;
 
@@ -886,11 +1069,18 @@
       }
 
       document.getElementById('resultCard').style.display = 'block';
-      document.getElementById('scanStatusIndicator').textContent = '✅ Paspor berhasil terbaca! Tekan tombol hijau untuk kirim.';
-      showToast('Paspor terbaca! Siap dikirim.');
 
-      // Auto-send if session connected
-      if (currentSessionId && currentSessionId !== 'DEMO_STANDALONE') {
+      const isPairedDesktop = Boolean(currentSessionId && currentSessionId !== 'DEMO_STANDALONE' && currentSessionId !== 'COPY_ONLY');
+      const sendBtn = document.getElementById('btnSendToDesktop');
+      if (sendBtn) sendBtn.style.display = isPairedDesktop ? 'flex' : 'none';
+
+      document.getElementById('scanStatusIndicator').textContent = isPairedDesktop
+        ? '✅ Paspor terbaca! Data dikirim ke loket & siap dicopas.'
+        : '✅ Paspor terbaca! Ketuk kolom untuk copas ke form tiket.';
+      showToast('Paspor terbaca! Ketuk kolom untuk salin.');
+
+      // Auto-send if session connected to desktop counter
+      if (isPairedDesktop) {
         sendDataToDesktop();
       }
     }

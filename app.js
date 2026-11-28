@@ -10430,7 +10430,6 @@ ${area.innerHTML}
             ${rowsHtml}
           </tbody>
         </table>
-        <script>window.onload = function() { window.print(); };<\/script>
       </body>
       </html>
     `);
@@ -14684,6 +14683,8 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
 
       if (this.mobileScanState.targetContext === 'bookingModal') {
         // Apply to single booking modal inputs
+        const paxTypeVal = pax.paxType || (pax.age < 2 ? 'Bayi' : (pax.age < 12 ? 'Anak' : 'Dewasa'));
+        const typeInp = document.getElementById('custPaxType');
         const nameInp = document.getElementById('custPaxName');
         const docInp = document.getElementById('custPaxDocNum');
         const genderInp = document.getElementById('custPaxGender');
@@ -14693,6 +14694,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         const expInp = document.getElementById('custPaxPassportExpInput');
         const expHidden = document.getElementById('custPaxPassportExp');
 
+        if (typeInp) { typeInp.value = paxTypeVal; typeInp.dispatchEvent(new Event('change')); }
         if (nameInp) { nameInp.value = pax.name; nameInp.dispatchEvent(new Event('input')); }
         if (docInp) { docInp.value = pax.passportNo; docInp.dispatchEvent(new Event('input')); }
         if (genderInp) genderInp.value = pax.gender;
@@ -14705,6 +14707,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
         this.showToast('Paspor Masuk!', `Data paspor ${pax.name} (${pax.passportNo}) berhasil masuk ke formulir.`);
       } else {
         // Apply to main ticketing console passenger entries table
+        const paxTypeVal = pax.paxType || (pax.age < 2 ? 'Bayi' : (pax.age < 12 ? 'Anak' : 'Dewasa'));
         const entries = this.tixConsoleState.passengerEntries;
         // Find first empty entry or append new
         let targetEntry = entries.find(e => !e.name || !e.name.trim());
@@ -14714,7 +14717,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
             name: pax.name,
             docNum: pax.passportNo,
             gender: pax.gender,
-            paxType: 'Dewasa',
+            paxType: paxTypeVal,
             nationality: (pax.nationality === 'Malaysia' || pax.nationality === 'MYS') ? 'MY' : 'ID',
             phone: ''
           };
@@ -14723,6 +14726,7 @@ Zainal Abidin\t6401060909800007\tL\tDewasa\t44\tID\tA-10\tPedagang Lintas Batas`
           targetEntry.name = pax.name;
           targetEntry.docNum = pax.passportNo;
           targetEntry.gender = pax.gender;
+          targetEntry.paxType = paxTypeVal;
           targetEntry.nationality = (pax.nationality === 'Malaysia' || pax.nationality === 'MYS') ? 'MY' : 'ID';
         }
 
